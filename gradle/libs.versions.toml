@@ -3,7 +3,6 @@ kotlin = "2.0.21"
 quarkus = "3.16.2"
 
 [libraries]
-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 quarkus-arc = { module = "io.quarkus:quarkus-arc" }
 quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
 quarkus-junit5 = { module = "io.quarkus:quarkus-junit5" }

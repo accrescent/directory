@@ -14,7 +14,6 @@ repositories {
 dependencies {
     implementation(enforcedPlatform(libs.quarkus.bom))
     implementation(libs.quarkus.kotlin)
-    implementation(libs.kotlin.stdlib)
     implementation(libs.quarkus.arc)
     testImplementation(libs.quarkus.junit5)
 }
