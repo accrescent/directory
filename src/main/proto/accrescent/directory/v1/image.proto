@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package accrescent.directory.v1;
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.v1";
+
+// Graphical image to be displayed in client UI.
+message Image {
+  // The URL of the image file which can be retrieved with a simple HTTP GET
+  // request.
+  optional string url = 1;
+}

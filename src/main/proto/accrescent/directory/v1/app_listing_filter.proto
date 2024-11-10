@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package accrescent.directory.v1;
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.v1";
+
+import "accrescent/directory/v1/compatibility_level.proto";
+
+// Filter for app listings to include in API responses.
+message AppListingFilter {
+  // The minimum compatibility level the app must meet with the specified
+  // device. The default is COMPATIBLE. If no device attributes are specified in
+  // the request, this field has no effect.
+  optional CompatibilityLevel min_compatibility_level = 1;
+}

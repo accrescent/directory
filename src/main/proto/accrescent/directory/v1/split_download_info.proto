@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package accrescent.directory.v1;
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.v1";
+
+// Download info for an individual split APK.
+message SplitDownloadInfo {
+  // The download size of this individual split APK.
+  optional uint32 download_size = 1;
+  // The URL of the APK which can be retrieved with a simple HTTP GET.
+  optional string url = 2;
+}

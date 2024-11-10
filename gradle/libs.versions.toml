@@ -5,6 +5,7 @@ quarkus = "3.16.2"
 [libraries]
 quarkus-arc = { module = "io.quarkus:quarkus-arc" }
 quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
+quarkus-grpc = { module = "io.quarkus:quarkus-grpc" }
 quarkus-junit5 = { module = "io.quarkus:quarkus-junit5" }
 quarkus-kotlin = { module = "io.quarkus:quarkus-kotlin" }
 

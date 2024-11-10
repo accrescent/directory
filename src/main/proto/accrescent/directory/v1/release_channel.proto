@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package accrescent.directory.v1;
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.v1";
+
+// Release channel for a given app.
+message ReleaseChannel {
+  // Well-known (i.e. Accrescent-managed) release channels.
+  enum WellKnown {
+    // The unspecified value. Equivalent to STABLE.
+    WELL_KNOWN_UNSPECIFIED = 0;
+    // The stable release channel. This is the default channel for all app users
+    // and is the only channel guaranteed to exist for every app.
+    WELL_KNOWN_STABLE = 1;
+  }
+
+  // A well-known release channel.
+  WellKnown well_known = 1;
+}

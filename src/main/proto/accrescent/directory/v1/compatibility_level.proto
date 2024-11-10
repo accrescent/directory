@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package accrescent.directory.v1;
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.v1";
+
+// Level of compatibility of an app with a given device specification.
+enum CompatibilityLevel {
+  // The unspecified value. Equivalent to INCOMPATIBLE.
+  COMPATIBILITY_LEVEL_UNSPECIFIED = 0;
+  // Represents incompatibility such as an incompatible range of supported SDK
+  // versions or missing required hardware features.
+  COMPATIBILITY_LEVEL_INCOMPATIBLE = 1;
+  // Represents a minimum level of compatibility such that the app is guaranteed
+  // to install successfully on the specified device.
+  COMPATIBILITY_LEVEL_COMPATIBLE = 2;
+}

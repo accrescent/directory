@@ -15,6 +15,7 @@ dependencies {
     implementation(enforcedPlatform(libs.quarkus.bom))
     implementation(libs.quarkus.kotlin)
     implementation(libs.quarkus.arc)
+    implementation(libs.quarkus.grpc)
     testImplementation(libs.quarkus.junit5)
 }
 
