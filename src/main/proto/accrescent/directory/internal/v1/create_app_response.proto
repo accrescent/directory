@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package accrescent.directory.internal.v1;
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.internal.v1";
+
+import "accrescent/directory/internal/v1/app.proto";
+
+// Response to creating an app entry.
+message CreateAppResponse {
+  // The app created by the API.
+  App app = 1;
+}

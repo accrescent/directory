@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package accrescent.directory.internal.v1;
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.internal.v1";
+
+import "android/bundle/commands.proto";
+
+// Metadata for a specific version of an Android package.
+message PackageMetadata {
+  // The display name of the app's latest version, e.g., "1.4.2".
+  optional string version_name = 1;
+  // The resulting metadata of building the app's APK set, modified to point to
+  // the object IDs of each APK in the repository bucket. That is, each
+  // build_apks_result.[variant].[apk_set].[apk_description].path is actually
+  // the object ID of the respective APK in the repository bucket.
+  android.bundle.BuildApksResult build_apks_result = 2;
+}

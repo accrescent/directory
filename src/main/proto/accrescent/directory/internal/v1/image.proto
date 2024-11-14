@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package accrescent.directory.internal.v1;
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.internal.v1";
+
+// Graphical image to be displayed in client UI.
+message Image {
+  // Unique ID of the object in the repository bucket which contains the image
+  // file.
+  optional string object_id = 1;
+}

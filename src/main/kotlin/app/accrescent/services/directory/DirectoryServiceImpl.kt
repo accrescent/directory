@@ -1,5 +1,7 @@
 package app.accrescent.services.directory
 
+import app.accrescent.directory.internal.v1.CreateAppRequest
+import app.accrescent.directory.internal.v1.CreateAppResponse
 import app.accrescent.directory.v1.DirectoryService
 import app.accrescent.directory.v1.GetAppDownloadInfoRequest
 import app.accrescent.directory.v1.GetAppDownloadInfoResponse
@@ -12,6 +14,10 @@ import io.smallrye.mutiny.Uni
 
 @GrpcService
 class DirectoryServiceImpl : DirectoryService {
+    override fun createApp(request: CreateAppRequest): Uni<CreateAppResponse> {
+        TODO("Not yet implemented")
+    }
+
     override fun getAppListing(request: GetAppListingRequest): Uni<GetAppListingResponse> {
         TODO("Not yet implemented")
     }

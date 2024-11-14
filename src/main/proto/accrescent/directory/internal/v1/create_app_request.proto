@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package accrescent.directory.internal.v1;
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.internal.v1";
+
+import "accrescent/directory/internal/v1/app.proto";
+
+message CreateAppRequest {
+  // The application ID of the app to create. Required.
+  optional string app_id = 1;
+  // The app's metadata.
+  App app = 2;
+}
