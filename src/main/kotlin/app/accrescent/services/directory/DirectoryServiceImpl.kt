@@ -16,6 +16,9 @@ import app.accrescent.directory.v1.ListAppListingsResponse
 import io.quarkus.grpc.GrpcService
 import io.smallrye.mutiny.Uni
 
+/**
+ * Stub implementation of the gRPC [DirectoryService]
+ */
 @GrpcService
 class DirectoryServiceImpl : DirectoryService {
     override fun createApp(request: CreateAppRequest): Uni<CreateAppResponse> {

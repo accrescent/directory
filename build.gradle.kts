@@ -5,6 +5,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
+    alias(libs.plugins.dokka)
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.allopen)
     alias(libs.plugins.quarkus)
@@ -45,5 +46,20 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_21
         javaParameters = true
+    }
+}
+
+dokka {
+    dokkaPublications.configureEach {
+        failOnWarning = true
+    }
+
+    dokkaSourceSets.configureEach {
+        reportUndocumented = true
+
+        perPackageOption {
+            matchingRegex = """^(app\.accrescent\.directory\.(internal\.)?v1|com\.(android\.bundle|google\.protobuf))"""
+            suppress = true
+        }
     }
 }

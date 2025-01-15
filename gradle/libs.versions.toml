@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 [versions]
+dokka = "2.0.0"
 kotlin = "2.0.21"
 quarkus = "3.16.3"
 
@@ -14,6 +15,7 @@ quarkus-junit5 = { module = "io.quarkus:quarkus-junit5" }
 quarkus-kotlin = { module = "io.quarkus:quarkus-kotlin" }
 
 [plugins]
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
