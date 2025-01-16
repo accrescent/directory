@@ -1,0 +1,20 @@
+# Copyright 2025 Logan Magee
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+name: Buf CI
+
+on: [push, pull_request]
+
+jobs:
+  buf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-action@v1
+        with:
+          breaking: false
+          format: false
+          input: src/main/proto
+          lint: true
+          push: false
