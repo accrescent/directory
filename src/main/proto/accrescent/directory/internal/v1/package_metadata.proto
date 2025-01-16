@@ -6,10 +6,10 @@ syntax = "proto3";
 
 package accrescent.directory.internal.v1;
 
+import "android/bundle/commands.proto";
+
 option java_multiple_files = true;
 option java_package = "app.accrescent.directory.internal.v1";
-
-import "android/bundle/commands.proto";
 
 // Metadata for a specific version of an Android package.
 message PackageMetadata {

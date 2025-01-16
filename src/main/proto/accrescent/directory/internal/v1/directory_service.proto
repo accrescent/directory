@@ -6,11 +6,11 @@ syntax = "proto3";
 
 package accrescent.directory.internal.v1;
 
-option java_multiple_files = true;
-option java_package = "app.accrescent.directory.internal.v1";
-
 import "accrescent/directory/internal/v1/create_app_request.proto";
 import "accrescent/directory/internal/v1/create_app_response.proto";
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.internal.v1";
 
 service DirectoryService {
   // Creates an app.

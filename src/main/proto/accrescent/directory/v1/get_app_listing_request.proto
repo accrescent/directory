@@ -6,11 +6,11 @@ syntax = "proto3";
 
 package accrescent.directory.v1;
 
-option java_multiple_files = true;
-option java_package = "app.accrescent.directory.v1";
-
 import "accrescent/directory/v1/device_attributes.proto";
 import "accrescent/directory/v1/release_channel.proto";
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.v1";
 
 // Request defining parameters for retrieving an app listing.
 message GetAppListingRequest {

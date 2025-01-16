@@ -6,10 +6,10 @@ syntax = "proto3";
 
 package accrescent.directory.v1;
 
+import "accrescent/directory/v1/app_download_info.proto";
+
 option java_multiple_files = true;
 option java_package = "app.accrescent.directory.v1";
-
-import "accrescent/directory/v1/app_download_info.proto";
 
 // Response to requesting an app's download info
 message GetAppDownloadInfoResponse {

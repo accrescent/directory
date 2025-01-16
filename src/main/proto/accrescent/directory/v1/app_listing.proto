@@ -6,11 +6,11 @@ syntax = "proto3";
 
 package accrescent.directory.v1;
 
-option java_multiple_files = true;
-option java_package = "app.accrescent.directory.v1";
-
 import "accrescent/directory/v1/compatibility.proto";
 import "accrescent/directory/v1/image.proto";
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.v1";
 
 // A localized store listing for a given app.
 message AppListing {
