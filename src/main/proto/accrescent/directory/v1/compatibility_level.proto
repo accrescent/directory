@@ -11,7 +11,7 @@ option java_package = "app.accrescent.directory.v1";
 
 // Level of compatibility of an app with a given device specification.
 enum CompatibilityLevel {
-  // The unspecified value. Equivalent to INCOMPATIBLE.
+  // The unspecified value.
   COMPATIBILITY_LEVEL_UNSPECIFIED = 0;
 
   // Represents incompatibility such as an incompatible range of supported SDK

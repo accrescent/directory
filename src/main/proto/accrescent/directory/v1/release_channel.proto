@@ -13,7 +13,7 @@ option java_package = "app.accrescent.directory.v1";
 message ReleaseChannel {
   // Well-known (i.e. Accrescent-managed) release channels.
   enum WellKnown {
-    // The unspecified value. Equivalent to STABLE.
+    // The unspecified value.
     WELL_KNOWN_UNSPECIFIED = 0;
 
     // The stable release channel. This is the default channel for all app users

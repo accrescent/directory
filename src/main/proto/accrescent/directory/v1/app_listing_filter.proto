@@ -14,7 +14,7 @@ import "accrescent/directory/v1/compatibility_level.proto";
 // Filter for app listings to include in API responses.
 message AppListingFilter {
   // The minimum compatibility level the app must meet with the specified
-  // device. The default is COMPATIBLE. If no device attributes are specified in
-  // the request, this field has no effect.
+  // device. If unspecified, defaults to COMPATIBLE. If no device attributes are
+  // specified in the request, this field has no effect.
   optional CompatibilityLevel min_compatibility_level = 1;
 }

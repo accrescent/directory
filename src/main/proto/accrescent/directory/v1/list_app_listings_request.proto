@@ -29,7 +29,8 @@ message ListAppListingsRequest {
   // page continuation token (if supplied).
   optional uint32 skip = 3;
 
-  // The contents of the app listing which should be returned.
+  // The contents of the app listing which should be returned. If unspecified,
+  // defaults to BASIC.
   optional AppListingView view = 4;
 
   // The current device's hardware and OS attributes used to determine app
