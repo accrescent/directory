@@ -11,11 +11,15 @@ quarkus = "3.16.3"
 quarkus-arc = { module = "io.quarkus:quarkus-arc" }
 quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
 quarkus-grpc = { module = "io.quarkus:quarkus-grpc" }
+quarkus-hibernate-reactive = { module = "io.quarkus:quarkus-hibernate-reactive" }
+quarkus-hibernate-reactive-panache = { module = "io.quarkus:quarkus-hibernate-reactive-panache" }
 quarkus-junit5 = { module = "io.quarkus:quarkus-junit5" }
 quarkus-kotlin = { module = "io.quarkus:quarkus-kotlin" }
+quarkus-reactive-pg = { module = "io.quarkus:quarkus-reactive-pg-client" }
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
+kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }

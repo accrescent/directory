@@ -14,6 +14,7 @@ import "accrescent/directory/v1/split_download_info.proto";
 message AppDownloadInfo {
   // The total download size in bytes for this app or app update.
   optional uint32 download_size = 1;
+
   // Download info for each individual split APK
   repeated SplitDownloadInfo split_download_info = 2;
 }

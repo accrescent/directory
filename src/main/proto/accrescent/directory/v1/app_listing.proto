@@ -16,16 +16,21 @@ import "accrescent/directory/v1/image.proto";
 message AppListing {
   // The language of this listing's fields as a BCP-47 tag.
   optional string language = 1;
+
   // The proper name of the app, possibly including very short descriptive text
   // (e.g. "SecureChat - Secure Texting").
   optional string name = 2;
+
   // A short description of the app to be shown in headers and small screen
   // spaces.
   optional string short_description = 3;
+
   // The app's primary icon, usually the same as the launcher icon.
   Image icon = 4;
+
   // The display name of the app's latest version, e.g., "1.4.2".
   optional string version_name = 5;
+
   // Compatibility information between the app and the device attributes
   // specified in the request. If no device attributes were specified, this
   // field is not populated.

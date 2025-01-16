@@ -13,9 +13,11 @@ option java_package = "app.accrescent.directory.v1";
 enum AppListingView {
   // The unspecified value. Equivalent to BASIC.
   APP_LISTING_VIEW_UNSPECIFIED = 0;
+
   // Include the app listing's name, short description, and icon, excluding all
   // other fields. This is the default.
   APP_LISTING_VIEW_BASIC = 1;
+
   // Include all available app listing fields. Note that omitting device
   // attributes in the request may result in missing fields regardless of
   // whether this view is set.

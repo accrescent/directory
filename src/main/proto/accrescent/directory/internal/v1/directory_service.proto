@@ -1,0 +1,18 @@
+// Copyright 2025 Logan Magee
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
+syntax = "proto3";
+
+package accrescent.directory.internal.v1;
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.internal.v1";
+
+import "accrescent/directory/internal/v1/create_app_request.proto";
+import "accrescent/directory/internal/v1/create_app_response.proto";
+
+service DirectoryService {
+  // Creates an app.
+  rpc CreateApp(CreateAppRequest) returns (CreateAppResponse);
+}

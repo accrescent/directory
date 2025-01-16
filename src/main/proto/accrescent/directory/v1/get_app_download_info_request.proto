@@ -16,12 +16,15 @@ import "accrescent/directory/v1/release_channel.proto";
 message GetAppDownloadInfoRequest {
   // The application ID of the download info to retrieve. Required.
   optional string app_id = 1;
+
   // The current device's hardware and OS attributes used to determine app
   // compatibility, download size, etc. Required.
   DeviceAttributes device_attributes = 2;
+
   // The release channel to retrieve download info for. If unspecified, defaults
   // to the stable channel.
   ReleaseChannel release_channel = 3;
+
   // The base version of the app to get download info from (almost always the
   // currently installed version). If unspecified, indicates that this is an
   // initial installation instead of an update.

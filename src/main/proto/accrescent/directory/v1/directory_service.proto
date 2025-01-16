@@ -9,8 +9,6 @@ package accrescent.directory.v1;
 option java_multiple_files = true;
 option java_package = "app.accrescent.directory.v1";
 
-import "accrescent/directory/internal/v1/create_app_request.proto";
-import "accrescent/directory/internal/v1/create_app_response.proto";
 import "accrescent/directory/v1/get_app_download_info_request.proto";
 import "accrescent/directory/v1/get_app_download_info_response.proto";
 import "accrescent/directory/v1/get_app_listing_request.proto";
@@ -20,12 +18,12 @@ import "accrescent/directory/v1/list_app_listings_response.proto";
 
 // Service providing a directory of all Accrescent apps.
 service DirectoryService {
-  // Creates an app.
-  rpc CreateApp(internal.v1.CreateAppRequest) returns (internal.v1.CreateAppResponse);
   // Retrieves a single app's listing.
   rpc GetAppListing(GetAppListingRequest) returns (GetAppListingResponse);
+
   // Retrieves a list of unique app listings.
   rpc ListAppListings(ListAppListingsRequest) returns (ListAppListingsResponse);
+
   // Retrieves an app's download information
   rpc GetAppDownloadInfo(GetAppDownloadInfoRequest) returns (GetAppDownloadInfoResponse);
 }

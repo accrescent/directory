@@ -14,6 +14,7 @@ import "accrescent/directory/internal/v1/app.proto";
 message CreateAppRequest {
   // The application ID of the app to create. Required.
   optional string app_id = 1;
-  // The app's metadata.
+
+  // The app's metadata. Required.
   App app = 2;
 }

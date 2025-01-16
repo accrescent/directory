@@ -18,4 +18,5 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew build
       - run: ./gradlew build -Dquarkus.native.enabled=true -Dquarkus.package.jar.enabled=false
+      - run: ./gradlew test
       - run: ./gradlew dokkaGeneratePublicationHtml

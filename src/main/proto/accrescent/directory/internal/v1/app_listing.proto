@@ -13,14 +13,17 @@ import "accrescent/directory/internal/v1/image.proto";
 
 // A localized store listing for a given app.
 message AppListing {
-  // The language of this listing's fields as a BCP-47 tag.
+  // The language of this listing's fields as a BCP-47 tag. Required.
   optional string language = 1;
+
   // The proper name of the app, possibly including very short descriptive text
-  // (e.g. "SecureChat - Secure Texting").
+  // (e.g. "SecureChat - Secure Texting"). Required.
   optional string name = 2;
+
   // A short description of the app to be shown in headers and small screen
-  // spaces.
+  // spaces. Required.
   optional string short_description = 3;
-  // The app's primary icon, usually the same as the launcher icon.
+
+  // The app's primary icon, usually the same as the launcher icon. Required.
   Image icon = 4;
 }

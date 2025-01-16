@@ -15,6 +15,7 @@ import "accrescent/directory/v1/app_listing.proto";
 message ListAppListingsResponse {
   // The app listings matching the request parameters.
   repeated AppListing listings = 1;
+
   // An opaque token which, if passed to another invocation of ListAppListings,
   // will return the next page of app listings.
   optional string next_page_token = 2;

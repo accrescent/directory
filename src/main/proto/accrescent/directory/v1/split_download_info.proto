@@ -13,6 +13,7 @@ option java_package = "app.accrescent.directory.v1";
 message SplitDownloadInfo {
   // The download size in bytes of this individual split APK.
   optional uint32 download_size = 1;
+
   // The URL of the APK which can be retrieved with a simple HTTP GET.
   optional string url = 2;
 }

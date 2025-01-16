@@ -16,10 +16,12 @@ import "accrescent/directory/v1/release_channel.proto";
 message GetAppListingRequest {
   // The application ID of the listing to retrieve. Required.
   optional string app_id = 1;
+
   // The current device's hardware and OS attributes used to determine app
   // compatibility, download size, etc. If unspecified, some app listing fields
   // may be omitted in the response (see AppListing for more details).
   DeviceAttributes device_attributes = 2;
+
   // The release channel to retrieve a listing for. If unspecified, defaults to
   // the stable channel.
   ReleaseChannel release_channel = 3;

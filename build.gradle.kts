@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.dokka)
+    alias(libs.plugins.kotlin.jpa)
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.allopen)
     alias(libs.plugins.quarkus)
@@ -18,9 +19,12 @@ repositories {
 
 dependencies {
     implementation(enforcedPlatform(libs.quarkus.bom))
+    implementation(libs.quarkus.hibernate.reactive)
+    implementation(libs.quarkus.hibernate.reactive.panache)
     implementation(libs.quarkus.kotlin)
     implementation(libs.quarkus.arc)
     implementation(libs.quarkus.grpc)
+    implementation(libs.quarkus.reactive.pg)
     testImplementation(libs.quarkus.junit5)
 }
 

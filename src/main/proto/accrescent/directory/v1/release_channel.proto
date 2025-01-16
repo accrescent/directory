@@ -15,11 +15,12 @@ message ReleaseChannel {
   enum WellKnown {
     // The unspecified value. Equivalent to STABLE.
     WELL_KNOWN_UNSPECIFIED = 0;
+
     // The stable release channel. This is the default channel for all app users
     // and is the only channel guaranteed to exist for every app.
     WELL_KNOWN_STABLE = 1;
   }
 
   // A well-known release channel.
-  WellKnown well_known = 1;
+  optional WellKnown well_known = 1;
 }

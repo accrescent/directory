@@ -12,6 +12,6 @@ option java_package = "app.accrescent.directory.internal.v1";
 // Graphical image to be displayed in client UI.
 message Image {
   // Unique ID of the object in the repository bucket which contains the image
-  // file.
+  // file. Required.
   optional string object_id = 1;
 }

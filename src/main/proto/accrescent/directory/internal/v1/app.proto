@@ -11,12 +11,24 @@ option java_package = "app.accrescent.directory.internal.v1";
 
 import "accrescent/directory/internal/v1/app_listing.proto";
 import "accrescent/directory/internal/v1/package_metadata.proto";
+import "accrescent/directory/v1/release_channel.proto";
 
 message App {
-  // The app's listings to be displayed in client UI.
+  // The default listing language of this app as a BCP-47 tag. Required.
+  optional string default_listing_language = 1;
+
+  // The app's listings to be displayed in client UI. Must contain a listing for
+  // the default listing language and must not contain any duplicate languages.
   repeated AppListing listings = 2;
+
+  // Map of a release channel to corresponding package metadata
+  message PackageMetadataEntry {
+    accrescent.directory.v1.ReleaseChannel release_channel = 1;
+    PackageMetadata package_metadata = 2;
+  }
+
   // The package metadata of the app's latest versions for each release channel.
-  // The key is the lowercase text representation of the channel. For example,
-  // the stable channel is represented as "well_known_stable".
-  map<string, PackageMetadata> package_metadata = 3;
+  // Must contain metadata for the stable channel and must not contain any
+  // duplicate release channels.
+  repeated PackageMetadataEntry package_metadata = 3;
 }
