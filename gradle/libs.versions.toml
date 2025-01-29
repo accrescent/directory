@@ -5,7 +5,7 @@
 [versions]
 dokka = "2.0.0"
 kotlin = "2.1.0"
-quarkus = "3.17.7"
+quarkus = "3.18.1"
 
 [libraries]
 quarkus-arc = { module = "io.quarkus:quarkus-arc" }
