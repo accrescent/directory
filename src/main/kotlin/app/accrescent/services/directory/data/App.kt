@@ -4,7 +4,7 @@
 
 package app.accrescent.services.directory.data
 
-import io.quarkus.hibernate.reactive.panache.PanacheEntityBase
+import io.quarkus.hibernate.reactive.panache.kotlin.PanacheEntityBase
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -39,4 +39,4 @@ class App(
     @OneToMany(cascade = [CascadeType.PERSIST], mappedBy = "app")
     @OnDelete(action = OnDeleteAction.CASCADE)
     val releaseChannels: Set<ReleaseChannel>,
-) : PanacheEntityBase()
+) : PanacheEntityBase

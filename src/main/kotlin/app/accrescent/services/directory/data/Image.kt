@@ -4,7 +4,7 @@
 
 package app.accrescent.services.directory.data
 
-import io.quarkus.hibernate.reactive.panache.PanacheEntity
+import io.quarkus.hibernate.reactive.panache.kotlin.PanacheEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Table

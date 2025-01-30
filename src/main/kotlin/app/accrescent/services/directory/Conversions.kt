@@ -9,12 +9,15 @@ import app.accrescent.directory.v1.ReleaseChannel
 /**
  * Maps a release channel into its canonical string form
  */
-fun ReleaseChannel.canonicalForm(): String = when (this.wellKnown) {
+fun ReleaseChannel.canonicalForm(): String = this.wellKnown.canonicalForm()
+
+/**
+ * Maps a well-known release channel into its canonical string form
+ */
+fun ReleaseChannel.WellKnown.canonicalForm(): String = when (this) {
     ReleaseChannel.WellKnown.UNRECOGNIZED,
     ReleaseChannel.WellKnown.WELL_KNOWN_UNSPECIFIED,
-    ReleaseChannel.WellKnown.WELL_KNOWN_STABLE -> {
-        "well_known_stable"
-    }
+    ReleaseChannel.WellKnown.WELL_KNOWN_STABLE -> "well_known_stable"
 }
 
 /**

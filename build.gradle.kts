@@ -21,11 +21,14 @@ dependencies {
     implementation(enforcedPlatform(libs.quarkus.bom))
     implementation(libs.quarkus.hibernate.reactive)
     implementation(libs.quarkus.hibernate.reactive.panache)
+    implementation(libs.quarkus.hibernate.reactive.panache.kotlin)
     implementation(libs.quarkus.kotlin)
     implementation(libs.quarkus.arc)
     implementation(libs.quarkus.grpc)
     implementation(libs.quarkus.reactive.pg)
     testImplementation(libs.quarkus.junit5)
+    testImplementation(libs.quarkus.test.hibernate.reactive.panache)
+    testImplementation(libs.quarkus.test.vertx)
 }
 
 group = "app.accrescent.services"

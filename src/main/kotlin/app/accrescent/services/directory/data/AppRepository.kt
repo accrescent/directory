@@ -4,7 +4,7 @@
 
 package app.accrescent.services.directory.data
 
-import io.quarkus.hibernate.reactive.panache.PanacheRepositoryBase
+import io.quarkus.hibernate.reactive.panache.kotlin.PanacheRepositoryBase
 import jakarta.enterprise.context.ApplicationScoped
 
 /**

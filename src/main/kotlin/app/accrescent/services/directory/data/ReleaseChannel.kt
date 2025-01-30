@@ -4,7 +4,9 @@
 
 package app.accrescent.services.directory.data
 
-import io.quarkus.hibernate.reactive.panache.PanacheEntity
+import io.quarkus.hibernate.reactive.panache.kotlin.PanacheCompanion
+import io.quarkus.hibernate.reactive.panache.kotlin.PanacheEntity
+import io.smallrye.mutiny.Uni
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.JoinColumn
@@ -45,4 +47,20 @@ class ReleaseChannel(
     @ManyToOne
     @JoinColumn(name = "app_id", insertable = false, updatable = false)
     private lateinit var app: App
+
+    /**
+     * Container for related methods
+     */
+    companion object : PanacheCompanion<ReleaseChannel> {
+        /**
+         * Finds a release channel by its app ID and canonical name
+         *
+         * @param appId the ID of the app to find a release channel for
+         * @param name the canonical name of the release channel, such as "well_known_stable"
+         * @return the release channel for the given app and name, or null if the app does not exist
+         */
+        fun findByAppIdAndName(appId: String, name: String): Uni<ReleaseChannel?> {
+            return find("appId = ?1 AND name = ?2", appId, name).firstResult()
+        }
+    }
 }

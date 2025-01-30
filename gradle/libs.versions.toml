@@ -13,9 +13,12 @@ quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quark
 quarkus-grpc = { module = "io.quarkus:quarkus-grpc" }
 quarkus-hibernate-reactive = { module = "io.quarkus:quarkus-hibernate-reactive" }
 quarkus-hibernate-reactive-panache = { module = "io.quarkus:quarkus-hibernate-reactive-panache" }
+quarkus-hibernate-reactive-panache-kotlin = { module = "io.quarkus:quarkus-hibernate-reactive-panache-kotlin" }
 quarkus-junit5 = { module = "io.quarkus:quarkus-junit5" }
 quarkus-kotlin = { module = "io.quarkus:quarkus-kotlin" }
 quarkus-reactive-pg = { module = "io.quarkus:quarkus-reactive-pg-client" }
+quarkus-test-hibernate-reactive-panache = { module = "io.quarkus:quarkus-test-hibernate-reactive-panache" }
+quarkus-test-vertx = { module = "io.quarkus:quarkus-test-vertx" }
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
