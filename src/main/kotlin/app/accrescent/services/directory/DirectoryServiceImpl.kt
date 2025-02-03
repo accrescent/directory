@@ -29,7 +29,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty
 @GrpcService
 class DirectoryServiceImpl : DirectoryService {
     @ConfigProperty(name = "artifacts.base-url")
-    private lateinit var artifactsBaseURl: String
+    private lateinit var artifactsBaseUrl: String
 
     @WithTransaction
     override fun getAppListing(request: GetAppListingRequest): Uni<GetAppListingResponse> {
@@ -77,7 +77,7 @@ class DirectoryServiceImpl : DirectoryService {
                     .setShortDescription(listing.shortDescription)
                     .setIcon(
                         Image.newBuilder()
-                            .setUrl("${artifactsBaseURl}/${listing.icon.objectId}"),
+                            .setUrl("${artifactsBaseUrl}/${listing.icon.objectId}"),
                     )
                     .setVersionName(releaseChannel.versionName)
 
