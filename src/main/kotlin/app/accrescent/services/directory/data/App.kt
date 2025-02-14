@@ -36,7 +36,7 @@ class App(
     @OnDelete(action = OnDeleteAction.CASCADE)
     val listings: Set<Listing>,
 
-    @OneToMany(cascade = [CascadeType.PERSIST], mappedBy = "app")
+    @OneToMany(cascade = [CascadeType.ALL], mappedBy = "app")
     @OnDelete(action = OnDeleteAction.CASCADE)
     val releaseChannels: Set<ReleaseChannel>,
 ) : PanacheEntityBase

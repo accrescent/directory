@@ -45,7 +45,7 @@ class Listing(
     @Column(columnDefinition = "text", name = "short_description", nullable = false)
     val shortDescription: String,
 
-    @ManyToOne(cascade = [CascadeType.PERSIST])
+    @ManyToOne(cascade = [CascadeType.ALL])
     @JoinColumn(name = "icon_image_id", referencedColumnName = "id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     val icon: Image,
