@@ -13,12 +13,14 @@ plugins {
 }
 
 repositories {
+    google()
     mavenCentral()
     mavenLocal()
 }
 
 dependencies {
     implementation(enforcedPlatform(libs.quarkus.bom))
+    implementation(libs.bundletool)
     implementation(libs.quarkus.hibernate.reactive)
     implementation(libs.quarkus.hibernate.reactive.panache)
     implementation(libs.quarkus.hibernate.reactive.panache.kotlin)
@@ -65,7 +67,7 @@ dokka {
         reportUndocumented = true
 
         perPackageOption {
-            matchingRegex = """^(app\.accrescent\.directory\.(internal\.)?v1|com\.(android\.bundle|google\.protobuf))"""
+            matchingRegex = """^(app\.accrescent\.(com\.android\.bundle|directory\.(internal\.)?v1)|com\.google\.protobuf)"""
             suppress = true
         }
     }

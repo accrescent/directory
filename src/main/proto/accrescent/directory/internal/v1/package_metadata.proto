@@ -6,6 +6,7 @@ syntax = "proto3";
 
 package accrescent.directory.internal.v1;
 
+import "accrescent/directory/internal/v1/object_metadata.proto";
 import "android/bundle/commands.proto";
 
 option java_multiple_files = true;
@@ -24,4 +25,10 @@ message PackageMetadata {
   // build_apks_result.[variant].[apk_set].[apk_description].path is actually
   // the object ID of the respective APK in the repository bucket. Required.
   android.bundle.BuildApksResult build_apks_result = 3;
+
+  // A map between each object ID and its corresponding metadata such as
+  // uncompressed size. An entry is required for each object ID in
+  // build_apks_result.[variant].[apk_description].path. Entries not found in
+  // build_apks_result are forbidden.
+  map<string, ObjectMetadata> object_metadata = 4;
 }

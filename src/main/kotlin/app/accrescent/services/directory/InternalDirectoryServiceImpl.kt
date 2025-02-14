@@ -4,23 +4,26 @@
 
 package app.accrescent.services.directory
 
+import app.accrescent.com.android.bundle.Commands
 import app.accrescent.directory.internal.v1.App.PackageMetadataEntry
 import app.accrescent.directory.internal.v1.AppListing
 import app.accrescent.directory.internal.v1.CreateAppRequest
 import app.accrescent.directory.internal.v1.CreateAppResponse
 import app.accrescent.directory.internal.v1.DirectoryService
+import app.accrescent.directory.internal.v1.ObjectMetadata
 import app.accrescent.directory.internal.v1.PackageMetadata
 import app.accrescent.services.directory.data.App
 import app.accrescent.services.directory.data.AppRepository
 import app.accrescent.services.directory.data.Image
 import app.accrescent.services.directory.data.Listing
 import app.accrescent.services.directory.data.ReleaseChannel
-import com.android.bundle.Commands
+import app.accrescent.services.directory.data.StorageObject
 import io.grpc.Status
 import io.quarkus.grpc.GrpcService
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
 import jakarta.inject.Inject
+import java.util.UUID
 import app.accrescent.directory.internal.v1.App as AppProto
 import app.accrescent.directory.internal.v1.Image as ImageProto
 import app.accrescent.directory.v1.ReleaseChannel as ReleaseChannelProto
@@ -55,12 +58,23 @@ class InternalDirectoryServiceImpl : DirectoryService {
                 )
             },
             releaseChannels = request.app.packageMetadataList.mapTo(mutableSetOf<ReleaseChannel>()) {
+                val releaseChannelId = UUID.randomUUID()
+
                 ReleaseChannel(
+                    id = releaseChannelId,
                     appId = request.appId,
                     name = it.releaseChannel.canonicalForm(),
                     versionCode = it.packageMetadata.versionCode.toUInt(),
                     versionName = it.packageMetadata.versionName,
                     buildApksResult = it.packageMetadata.buildApksResult.toByteArray(),
+                    objects = it.packageMetadata.objectMetadataMap
+                        .mapTo(mutableSetOf<StorageObject>()) {
+                            StorageObject(
+                                id = it.key,
+                                releaseChannelId = releaseChannelId,
+                                uncompressedSize = it.value.uncompressedSize.toUInt(),
+                            )
+                        },
                 )
             }
         )
@@ -98,6 +112,12 @@ class InternalDirectoryServiceImpl : DirectoryService {
                                                     .mergeFrom(dbReleaseChannel.buildApksResult)
                                                     .build()
                                             )
+                                            .putAllObjectMetadata(dbReleaseChannel.objects.associate {
+                                                it.id to ObjectMetadata
+                                                    .newBuilder()
+                                                    .setUncompressedSize(it.uncompressedSize.toInt())
+                                                    .build()
+                                            })
                                     )
                                     .build()
                             )
@@ -161,6 +181,35 @@ class InternalDirectoryServiceImpl : DirectoryService {
             request.app.packageMetadataList.distinct().count() != request.app.packageMetadataCount
                 -> Status.fromCode(Status.Code.INVALID_ARGUMENT)
                 .withDescription("release channels must not be duplicated")
+
+            !request.app.packageMetadataList.map { it.packageMetadata }
+                .all { packageMetadata ->
+                    packageMetadata.buildApksResult.variantList.flatMap { it.apkSetList }
+                        .flatMap { it.apkDescriptionList }
+                        .map { it.path }
+                        .all { packageMetadata.objectMetadataMap.contains(it) }
+                } -> Status.fromCode(Status.Code.INVALID_ARGUMENT)
+                .withDescription("all objects must have metadata specified")
+
+            !request.app.packageMetadataList.map { it.packageMetadata }
+                .all { packageMetadata ->
+                    packageMetadata.buildApksResult.variantList.flatMap { it.apkSetList }
+                        .flatMap { it.apkDescriptionList }
+                        .map { it.path }
+                        .all { packageMetadata.objectMetadataMap[it]?.hasUncompressedSize() == true }
+                } -> Status.fromCode(Status.Code.INVALID_ARGUMENT)
+                .withDescription("all objects must have an uncompressed size specified")
+
+            !request.app.packageMetadataList.map { it.packageMetadata }
+                .all { packageMetadata ->
+                    val buildApksResultObjectIds = packageMetadata.buildApksResult.variantList
+                        .flatMap { it.apkSetList }
+                        .flatMap { it.apkDescriptionList }
+                        .map { it.path }
+                        .toSet()
+                    packageMetadata.objectMetadataMap.keys.all { buildApksResultObjectIds.contains(it) }
+                } -> Status.fromCode(Status.Code.INVALID_ARGUMENT)
+                .withDescription("object metadata found for unspecified object")
 
             else -> null
         }

@@ -3,11 +3,13 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 [versions]
+bundletool = "1.18.0"
 dokka = "2.0.0"
 kotlin = "2.1.10"
 quarkus = "3.18.1"
 
 [libraries]
+bundletool = { module = "com.android.tools.build:bundletool", version.ref = "bundletool" }
 quarkus-arc = { module = "io.quarkus:quarkus-arc" }
 quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
 quarkus-grpc = { module = "io.quarkus:quarkus-grpc" }

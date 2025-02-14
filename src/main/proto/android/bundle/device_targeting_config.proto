@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package android.bundle;
 
-option java_package = "com.android.bundle";
+option java_package = "app.accrescent.com.android.bundle";
 option java_multiple_files = true;
 
 // Configuration describing device targeting criteria for the content of an app.
