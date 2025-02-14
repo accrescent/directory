@@ -108,9 +108,8 @@ class InternalDirectoryServiceImpl : DirectoryService {
                                             .setVersionCode(dbReleaseChannel.versionCode.toInt())
                                             .setVersionName(dbReleaseChannel.versionName)
                                             .setBuildApksResult(
-                                                Commands.BuildApksResult.newBuilder()
-                                                    .mergeFrom(dbReleaseChannel.buildApksResult)
-                                                    .build()
+                                                Commands.BuildApksResult
+                                                    .parseFrom(dbReleaseChannel.buildApksResult)
                                             )
                                             .putAllObjectMetadata(dbReleaseChannel.objects.associate {
                                                 it.id to ObjectMetadata
