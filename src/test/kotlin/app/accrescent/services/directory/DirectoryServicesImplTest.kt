@@ -10,6 +10,7 @@ import app.accrescent.directory.internal.v1.CreateAppResponse
 import app.accrescent.directory.internal.v1.ObjectMetadata
 import app.accrescent.directory.v1.AppDownloadInfo
 import app.accrescent.directory.v1.AppListing
+import app.accrescent.directory.v1.Compatibility
 import app.accrescent.directory.v1.CompatibilityLevel
 import app.accrescent.directory.v1.DeviceAttributes
 import app.accrescent.directory.v1.DirectoryService
@@ -176,8 +177,8 @@ class DirectoryServicesImplTest {
     }
 
     @ParameterizedTest
-    @MethodSource("generateParamsForGetAppListingWithFullRequestReturnsExpectedListing")
-    fun getAppListingWithFullRequestReturnsExpectedListing(
+    @MethodSource("generateParamsForGetAppListingReturnsExpectedListing")
+    fun getAppListingReturnsExpectedListing(
         expectedAppListing: AppListing,
         request: GetAppListingRequest,
     ) {
@@ -194,49 +195,7 @@ class DirectoryServicesImplTest {
         val response = responseFuture.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
         requireNotNull(response)
-        assertGetAppListingResponseRequiredFieldsMatchExpected(expectedAppListing, response)
-        assertGetAppListingResponseCompatibilityMatchesExpected(response)
-    }
-
-    @Test
-    fun getAppListingWithoutDeviceAttributesReturnsOnlyExpectedFields() {
-        val responseFuture = CompletableFuture<GetAppListingResponse?>()
-
-        val request = validGetAppListingRequest.toBuilder().clearDeviceAttributes().build()
-
-        internal.createApp(validCreateAppRequest)
-            .chain { -> external.getAppListing(request) }
-            .subscribe()
-            .with(
-                { responseFuture.complete(it) },
-                { responseFuture.complete(null) },
-            )
-
-        val response = responseFuture.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
-
-        requireNotNull(response)
-        assertGetAppListingResponseRequiredFieldsMatchExpected(expectedFullAppListingEn, response)
-        assert(!response.listing.hasCompatibility())
-    }
-
-    @ParameterizedTest
-    @MethodSource("generateParamsForGetAppListingsWithoutReleaseChannelReturnsExpectedListing")
-    fun getAppListingsWithoutReleaseChannelReturnsExpectedListing(request: GetAppListingRequest) {
-        val responseFuture = CompletableFuture<GetAppListingResponse?>()
-
-        internal.createApp(validCreateAppRequest)
-            .chain { -> external.getAppListing(request) }
-            .subscribe()
-            .with(
-                { responseFuture.complete(it) },
-                { responseFuture.complete(null) },
-            )
-
-        val response = responseFuture.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
-
-        requireNotNull(response)
-        assertGetAppListingResponseRequiredFieldsMatchExpected(expectedFullAppListingEn, response)
-        assertGetAppListingResponseCompatibilityMatchesExpected(response)
+        assertGetAppListingResponseMatchesExpected(expectedAppListing, response)
     }
 
     @ParameterizedTest
@@ -344,6 +303,10 @@ class DirectoryServicesImplTest {
                     .setUrl("https://not.real.cdn/file/57297a7-6f2c-4a04-9656-497af21bf6b2"),
             )
             .setVersionName("0.25.0")
+            .setCompatibility(
+                Compatibility.newBuilder()
+                    .setLevel(CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE),
+            )
             .build()
         private val expectedFullAppListingDe = AppListing.newBuilder()
             .setLanguage("de")
@@ -354,9 +317,13 @@ class DirectoryServicesImplTest {
                     .setUrl("https://not.real.cdn/file/57297a7-6f2c-4a04-9656-497af21bf6b2"),
             )
             .setVersionName("0.25.0")
+            .setCompatibility(
+                Compatibility.newBuilder()
+                    .setLevel(CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE),
+            )
             .build()
 
-        private fun assertGetAppListingResponseRequiredFieldsMatchExpected(
+        private fun assertGetAppListingResponseMatchesExpected(
             expectedListing: AppListing,
             response: GetAppListingResponse,
         ) {
@@ -367,17 +334,10 @@ class DirectoryServicesImplTest {
             assert(response.listing.hasIcon())
             assert(response.listing.icon.hasUrl())
             assertEquals(expectedListing.versionName, response.listing.versionName)
-        }
-
-        private fun assertGetAppListingResponseCompatibilityMatchesExpected(
-            response: GetAppListingResponse,
-        ) {
-            assert(response.listing.hasCompatibility())
-            assert(response.listing.compatibility.hasLevel())
-            assertEquals(
-                CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE,
-                response.listing.compatibility.level,
-            )
+            assertEquals(expectedListing.hasCompatibility(), response.listing.hasCompatibility())
+            if (expectedListing.hasCompatibility()) {
+                assertEquals(expectedListing.compatibility, response.listing.compatibility)
+            }
         }
 
         @JvmStatic
@@ -477,7 +437,7 @@ class DirectoryServicesImplTest {
         }
 
         @JvmStatic
-        fun generateParamsForGetAppListingWithFullRequestReturnsExpectedListing()
+        fun generateParamsForGetAppListingReturnsExpectedListing()
                 : Stream<Arguments> {
             return Stream.of(
                 // With the "en-US" locale, expected to fall back to the "en" listing
@@ -515,26 +475,36 @@ class DirectoryServicesImplTest {
                         }
                         .build(),
                 ),
-            )
-        }
-
-        @JvmStatic
-        fun generateParamsForGetAppListingsWithoutReleaseChannelReturnsExpectedListing()
-                : Stream<GetAppListingRequest> {
-            return Stream.of(
-                // Without release channel field specified
-                validGetAppListingRequest.toBuilder().clearReleaseChannel().build(),
-                // Without release channel's well known field specified
-                validGetAppListingRequest.toBuilder()
-                    .setReleaseChannel(ReleaseChannel.getDefaultInstance())
-                    .build(),
-                // With the unspecified well known release channel value
-                validGetAppListingRequest.toBuilder()
-                    .apply {
-                        releaseChannelBuilder
-                            .setWellKnown(ReleaseChannel.WellKnown.WELL_KNOWN_UNSPECIFIED)
-                    }
-                    .build(),
+                // Without device attributes specified, expected to not set the compatibility field
+                Arguments.of(
+                    expectedFullAppListingEn.toBuilder().clearCompatibility().build(),
+                    validGetAppListingRequest.toBuilder().clearDeviceAttributes().build(),
+                ),
+                // Without release channel field specified, expected to return the listing for the
+                // stable channel
+                Arguments.of(
+                    expectedFullAppListingEn,
+                    validGetAppListingRequest.toBuilder().clearReleaseChannel().build(),
+                ),
+                // Without the release channel's well known field specified, expected to return the
+                // listing for the stable channel
+                Arguments.of(
+                    expectedFullAppListingEn,
+                    validGetAppListingRequest.toBuilder()
+                        .setReleaseChannel(ReleaseChannel.getDefaultInstance())
+                        .build(),
+                ),
+                // With the unspecified well known release channel value, expected to return the
+                // listing for the stable channel
+                Arguments.of(
+                    expectedFullAppListingEn,
+                    validGetAppListingRequest.toBuilder()
+                        .apply {
+                            releaseChannelBuilder
+                                .setWellKnown(ReleaseChannel.WellKnown.WELL_KNOWN_UNSPECIFIED)
+                        }
+                        .build(),
+                ),
             )
         }
 
