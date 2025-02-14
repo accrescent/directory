@@ -21,17 +21,12 @@ import app.accrescent.services.directory.data.Listing
 import app.accrescent.services.directory.data.ReleaseChannel
 import app.accrescent.services.directory.data.StorageObject
 import com.android.bundle.Commands
-import com.android.bundle.Devices
-import com.android.tools.build.bundletool.device.ApkMatcher
-import com.android.tools.build.bundletool.model.exceptions.IncompatibleDeviceException
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.Status
 import io.quarkus.grpc.GrpcService
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
 import org.eclipse.microprofile.config.inject.ConfigProperty
-import java.util.Base64
-import java.util.Optional
 
 /**
  * The server implementation of [DirectoryService]
@@ -91,12 +86,24 @@ class DirectoryServiceImpl : DirectoryService {
                     )
                     .setVersionName(releaseChannel.versionName)
 
-                // For now, unconditionally state that the app is compatible to be consistent with
-                // the previous repository model behavior
                 if (request.hasDeviceAttributes()) {
+                    val buildApksResult = try {
+                        Commands.BuildApksResult.parseFrom(releaseChannel.buildApksResult)
+                    } catch (_: InvalidProtocolBufferException) {
+                        throw Status.fromCode(Status.Code.INTERNAL)
+                            .withDescription("stored BuildApksResult is not a valid message")
+                            .asRuntimeException()
+                    }
+
                     listingBuilder.setCompatibility(
                         Compatibility.newBuilder()
-                            .setLevel(CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE),
+                            .setLevel(
+                                if (appSupportsDevice(buildApksResult, request.deviceAttributes)) {
+                                    CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
+                                } else {
+                                    CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
+                                }
+                            ),
                     )
                 }
 
@@ -134,51 +141,17 @@ class DirectoryServiceImpl : DirectoryService {
                     .asRuntimeException()
             }
 
-            val base64Encoder = Base64.getUrlEncoder()
-            val base64Decoder = Base64.getUrlDecoder()
-
-            // ApkMatcher validates the path format of each APK object ID we store in each
-            // ApkDescription's path field. Thus, any valid object ID which is not also a valid path
-            // according to ApkMatcher will be rejected. To get around this, we base64url encode
-            // each object ID before passing the BuildApksResult to ApkMatcher, then decode the
-            // returned "paths" (which are actually base64url encoded object IDs) back into the
-            // object IDs we need.
-            val encodedBuildApksResult = try {
-                Commands.BuildApksResult.newBuilder().mergeFrom(it.buildApksResult)
+            val buildApksResult = try {
+                Commands.BuildApksResult.parseFrom(it.buildApksResult)
             } catch (_: InvalidProtocolBufferException) {
                 throw Status.fromCode(Status.Code.INTERNAL)
                     .withDescription("stored BuildApksResult is not a valid message")
                     .asRuntimeException()
-            }.apply {
-                variantBuilderList
-                    .flatMap { it.apkSetBuilderList }
-                    .flatMap { it.apkDescriptionBuilderList }
-                    .forEach { it.path = base64Encoder.encodeToString(it.path.toByteArray()) }
-            }.build()
-
-            val matchingApkObjectIds = try {
-                ApkMatcher(
-                    Devices.DeviceSpec.newBuilder()
-                        .mergeFrom(request.deviceAttributes.spec.toByteArray())
-                        .build(),
-                    Optional.empty(),
-                    true,
-                    false,
-                    true,
-                ).getMatchingApks(encodedBuildApksResult)
-            } catch (_: IncompatibleDeviceException) {
-                throw Status.fromCode(Status.Code.NOT_FOUND)
-                    .withDescription("no download information matches the provided device attributes")
-                    .asRuntimeException()
-            }.map {
-                try {
-                    base64Decoder.decode(it.path.toString()).decodeToString()
-                } catch (_: IllegalArgumentException) {
-                    throw Status.fromCode(Status.Code.INTERNAL)
-                        .withDescription("APK object ID was not base64url encoded")
-                        .asRuntimeException()
-                }
             }
+
+            val matchingApkObjectIds =
+                getMatchingApkObjectIds(buildApksResult, request.deviceAttributes)
+
             if (matchingApkObjectIds.isEmpty()) {
                 throw Status.fromCode(Status.Code.NOT_FOUND)
                     .withDescription("no download information matches the provided device attributes")

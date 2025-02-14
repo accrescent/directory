@@ -505,6 +505,18 @@ class DirectoryServicesImplTest {
                         }
                         .build(),
                 ),
+                // Without support for a required ABI, expected to return an incompatible listing
+                Arguments.of(
+                    expectedFullAppListingEn.toBuilder()
+                        .setCompatibility(
+                            Compatibility.newBuilder()
+                                .setLevel(CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE)
+                        )
+                        .build(),
+                    validGetAppListingRequest.toBuilder()
+                        .apply { deviceAttributesBuilder.specBuilder.clearSupportedAbis() }
+                        .build(),
+                ),
             )
         }
 
