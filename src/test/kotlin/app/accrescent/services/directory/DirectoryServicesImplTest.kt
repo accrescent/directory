@@ -4,13 +4,10 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.com.android.bundle.Devices
 import app.accrescent.directory.internal.v1.App
-import app.accrescent.directory.internal.v1.App.PackageMetadataEntry
 import app.accrescent.directory.internal.v1.CreateAppRequest
 import app.accrescent.directory.internal.v1.CreateAppResponse
 import app.accrescent.directory.internal.v1.ObjectMetadata
-import app.accrescent.directory.internal.v1.PackageMetadata
 import app.accrescent.directory.v1.AppDownloadInfo
 import app.accrescent.directory.v1.AppListing
 import app.accrescent.directory.v1.CompatibilityLevel
@@ -45,9 +42,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 import java.util.stream.Stream
-import app.accrescent.directory.internal.v1.AppListing as InternalAppListing
 import app.accrescent.directory.internal.v1.DirectoryService as InternalDirectoryService
-import app.accrescent.directory.internal.v1.Image as InternalImage
 
 private const val REQUEST_TIMEOUT_SECS: Long = 5
 
@@ -144,10 +139,7 @@ class DirectoryServicesImplTest {
     fun getAppListingRequiresAppId() {
         val status = CompletableFuture<Status.Code>()
 
-        val request = GetAppListingRequest.newBuilder()
-            .mergeFrom(validGetAppListingRequest)
-            .clearAppId()
-            .build()
+        val request = validGetAppListingRequest.toBuilder().clearAppId().build()
 
         internal.createApp(validCreateAppRequest)
             .chain { -> external.getAppListing(request) }
@@ -210,10 +202,7 @@ class DirectoryServicesImplTest {
     fun getAppListingWithoutDeviceAttributesReturnsOnlyExpectedFields() {
         val responseFuture = CompletableFuture<GetAppListingResponse?>()
 
-        val request = GetAppListingRequest.newBuilder()
-            .mergeFrom(validGetAppListingRequest)
-            .clearDeviceAttributes()
-            .build()
+        val request = validGetAppListingRequest.toBuilder().clearDeviceAttributes().build()
 
         internal.createApp(validCreateAppRequest)
             .chain { -> external.getAppListing(request) }
@@ -395,218 +384,94 @@ class DirectoryServicesImplTest {
         fun generateParamsForCreateAppValidatesRequest(): Stream<CreateAppRequest> {
             return Stream.of(
                 // Missing the app ID
-                CreateAppRequest.newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .clearAppId()
-                    .build(),
+                validCreateAppRequest.toBuilder().clearAppId().build(),
                 // Missing the app metadata
-                CreateAppRequest.newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .clearApp()
-                    .build(),
+                validCreateAppRequest.toBuilder().clearApp().build(),
                 // Missing the default listing language
-                CreateAppRequest.newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .setApp(
-                        App.newBuilder()
-                            .mergeFrom(validCreateAppRequest.app)
-                            .clearDefaultListingLanguage()
-                            .build()
-                    )
+                validCreateAppRequest.toBuilder()
+                    .apply { appBuilder.clearDefaultListingLanguage() }
                     .build(),
                 // Listing list doesn't contain the default listing language
-                CreateAppRequest.newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .setApp(
-                        App.newBuilder()
-                            .mergeFrom(validCreateAppRequest.app)
-                            .apply {
-                                removeListings(listingsList.indexOfFirst {
-                                    it.language == defaultListingLanguage
-                                })
-                            }
-                            .build()
-                    )
+                validCreateAppRequest.toBuilder()
+                    .apply {
+                        appBuilder.removeListings(app.listingsList.indexOfFirst {
+                            it.language == app.defaultListingLanguage
+                        })
+                    }
                     .build(),
                 // Listing contains duplicate languages
-                CreateAppRequest.newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .setApp(
-                        App.newBuilder()
-                            .mergeFrom(validCreateAppRequest.app)
-                            .addListings(validCreateAppRequest.app.listingsList[0])
-                    )
+                validCreateAppRequest.toBuilder()
+                    .apply { appBuilder.addListings(validCreateAppRequest.app.listingsList[0]) }
                     .build(),
                 // Listings don't have a language set
-                CreateAppRequest
-                    .newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .setApp(
-                        App.newBuilder()
-                            .mergeFrom(validCreateAppRequest.app)
-                            .clearListings()
-                            .addAllListings(validCreateAppRequest.app.listingsList.map {
-                                InternalAppListing
-                                    .newBuilder()
-                                    .mergeFrom(it)
-                                    .clearLanguage()
-                                    .build()
-                            })
-                            .build()
-                    ).build(),
+                validCreateAppRequest.toBuilder()
+                    .apply { appBuilder.listingsBuilderList.forEach { it.clearLanguage() } }
+                    .build(),
                 // Listings don't have a name set
-                CreateAppRequest
-                    .newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .setApp(
-                        App.newBuilder()
-                            .mergeFrom(validCreateAppRequest.app)
-                            .clearListings()
-                            .addAllListings(validCreateAppRequest.app.listingsList.map {
-                                InternalAppListing
-                                    .newBuilder()
-                                    .mergeFrom(it)
-                                    .clearName()
-                                    .build()
-                            })
-                            .build()
-                    ).build(),
+                validCreateAppRequest.toBuilder()
+                    .apply { appBuilder.listingsBuilderList.forEach { it.clearName() } }
+                    .build(),
                 // Listings don't have a short description set
-                CreateAppRequest
-                    .newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .setApp(
-                        App.newBuilder()
-                            .mergeFrom(validCreateAppRequest.app)
-                            .clearListings()
-                            .addAllListings(validCreateAppRequest.app.listingsList.map {
-                                InternalAppListing
-                                    .newBuilder()
-                                    .mergeFrom(it)
-                                    .clearShortDescription()
-                                    .build()
-                            })
-                            .build()
-                    )
+                validCreateAppRequest.toBuilder()
+                    .apply { appBuilder.listingsBuilderList.forEach { it.clearShortDescription() } }
                     .build(),
                 // Listings don't have an icon set
-                CreateAppRequest
-                    .newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .setApp(
-                        App.newBuilder()
-                            .mergeFrom(validCreateAppRequest.app)
-                            .clearListings()
-                            .addAllListings(validCreateAppRequest.app.listingsList.map {
-                                InternalAppListing
-                                    .newBuilder()
-                                    .mergeFrom(it)
-                                    .clearIcon()
-                                    .build()
-                            })
-                            .build()
-                    )
+                validCreateAppRequest.toBuilder()
+                    .apply { appBuilder.listingsBuilderList.forEach { it.clearIcon() } }
                     .build(),
                 // Listing icons don't have an object ID set
-                CreateAppRequest.newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .setApp(
-                        App.newBuilder()
-                            .mergeFrom(validCreateAppRequest.app)
-                            .clearListings()
-                            .addAllListings(validCreateAppRequest.app.listingsList.map {
-                                InternalAppListing
-                                    .newBuilder()
-                                    .mergeFrom(it)
-                                    .apply {
-                                        icon = InternalImage
-                                            .newBuilder()
-                                            .mergeFrom(icon)
-                                            .clearObjectId()
-                                            .build()
-                                    }
-                                    .build()
-                            })
-                            .build()
-                    ).build(),
+                validCreateAppRequest.toBuilder()
+                    .apply {
+                        appBuilder.listingsBuilderList.forEach { it.iconBuilder.clearObjectId() }
+                    }
+                    .build(),
                 // Package metadata doesn't exist for the stable release channel
-                CreateAppRequest.newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .setApp(
-                        App.newBuilder()
-                            .mergeFrom(validCreateAppRequest.app)
-                            .apply {
-                                removePackageMetadata(packageMetadataList.indexOfFirst {
-                                    it.releaseChannel.wellKnown == ReleaseChannel.WellKnown.WELL_KNOWN_STABLE
-                                })
-                            }
-                            .build()
-                    )
+                validCreateAppRequest.toBuilder()
+                    .apply {
+                        appBuilder.removePackageMetadata(app.packageMetadataList.indexOfFirst {
+                            it.releaseChannel.wellKnown == ReleaseChannel.WellKnown.WELL_KNOWN_STABLE
+                        })
+                    }
                     .build(),
                 // Package metadata contains duplicate release channels
-                CreateAppRequest.newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .setApp(
-                        App.newBuilder()
-                            .mergeFrom(validCreateAppRequest.app)
-                            .addPackageMetadata(
-                                PackageMetadataEntry.newBuilder()
-                                    .mergeFrom(validCreateAppRequest.app.packageMetadataList[0])
-                                    .build()
-                            )
-                    )
+                validCreateAppRequest.toBuilder()
+                    .apply {
+                        appBuilder
+                            .addPackageMetadata(validCreateAppRequest.app.packageMetadataList[0])
+                    }
                     .build(),
                 // Package metadata is missing metadata for an object
-                CreateAppRequest.newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .setApp(
-                        App.newBuilder()
-                            .mergeFrom(validCreateAppRequest.app)
-                            .apply {
-                                packageMetadataBuilderList[0]
-                                    .packageMetadataBuilder
-                                    .removeObjectMetadata("38119a8c-1163-4c7d-89c6-cc5c902a6ca1")
-                            }
-                    )
+                validCreateAppRequest.toBuilder()
+                    .apply {
+                        appBuilder.packageMetadataBuilderList[0].packageMetadataBuilder
+                            .removeObjectMetadata("38119a8c-1163-4c7d-89c6-cc5c902a6ca1")
+                    }
                     .build(),
                 // An object's metadata doesn't have uncompressed size set
-                CreateAppRequest.newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .setApp(
-                        App.newBuilder()
-                            .mergeFrom(validCreateAppRequest.app)
-                            .apply {
-                                val packageMetadataBuilder = packageMetadataBuilderList[0]
-                                    .packageMetadataBuilder
-                                packageMetadataBuilder
-                                    .putObjectMetadata(
-                                        "38119a8c-1163-4c7d-89c6-cc5c902a6ca1",
-                                        packageMetadataBuilder
-                                            .objectMetadataMap["38119a8c-1163-4c7d-89c6-cc5c902a6ca1"]
-                                        !!.toBuilder()
-                                            .clearUncompressedSize()
-                                            .build(),
-                                    )
-                            }
-                    )
+                validCreateAppRequest.toBuilder()
+                    .apply {
+                        val packageMetadataBuilder = appBuilder
+                            .packageMetadataBuilderList[0]
+                            .packageMetadataBuilder
+                        packageMetadataBuilder.putObjectMetadata(
+                            "38119a8c-1163-4c7d-89c6-cc5c902a6ca1",
+                            packageMetadataBuilder
+                                .objectMetadataMap["38119a8c-1163-4c7d-89c6-cc5c902a6ca1"]!!
+                                .toBuilder()
+                                .clearUncompressedSize()
+                                .build()
+                        )
+                    }
                     .build(),
                 // Object metadata is specified for an object not found in the build-apks result
-                CreateAppRequest.newBuilder()
-                    .mergeFrom(validCreateAppRequest)
-                    .setApp(
-                        App.newBuilder()
-                            .mergeFrom(validCreateAppRequest.app)
-                            .apply {
-                                packageMetadataBuilderList[0]
-                                    .packageMetadataBuilder
-                                    .putObjectMetadata(
-                                        "nonexistent-object",
-                                        ObjectMetadata.newBuilder()
-                                            .setUncompressedSize(4096)
-                                            .build(),
-                                    )
-                            }
-                    )
+                validCreateAppRequest.toBuilder()
+                    .apply {
+                        appBuilder.packageMetadataBuilderList[0].packageMetadataBuilder
+                            .putObjectMetadata(
+                                "nonexistent-object",
+                                ObjectMetadata.newBuilder().setUncompressedSize(4096).build()
+                            )
+                    }
                     .build(),
             )
         }
@@ -620,52 +485,34 @@ class DirectoryServicesImplTest {
                 // With the "en" locale, expected to choose the "en" listing
                 Arguments.of(
                     expectedFullAppListingEn,
-                    GetAppListingRequest.newBuilder()
-                        .mergeFrom(validGetAppListingRequest)
-                        .setDeviceAttributes(
-                            DeviceAttributes.newBuilder()
-                                .mergeFrom(validGetAppListingRequest.deviceAttributes)
-                                .setSpec(
-                                    Devices.DeviceSpec.newBuilder()
-                                        .mergeFrom(validGetAppListingRequest.deviceAttributes.spec)
-                                        .clearSupportedLocales()
-                                        .addSupportedLocales("en")
-                                )
-                        )
+                    validGetAppListingRequest.toBuilder()
+                        .apply {
+                            deviceAttributesBuilder.specBuilder
+                                .clearSupportedLocales()
+                                .addSupportedLocales("en")
+                        }
                         .build(),
                 ),
                 // With the "de" locale, expected to choose the "de" listing
                 Arguments.of(
                     expectedFullAppListingDe,
-                    GetAppListingRequest.newBuilder()
-                        .mergeFrom(validGetAppListingRequest)
-                        .setDeviceAttributes(
-                            DeviceAttributes.newBuilder()
-                                .mergeFrom(validGetAppListingRequest.deviceAttributes)
-                                .setSpec(
-                                    Devices.DeviceSpec.newBuilder()
-                                        .mergeFrom(validGetAppListingRequest.deviceAttributes.spec)
-                                        .clearSupportedLocales()
-                                        .addSupportedLocales("de")
-                                )
-                        )
+                    validGetAppListingRequest.toBuilder()
+                        .apply {
+                            deviceAttributesBuilder.specBuilder
+                                .clearSupportedLocales()
+                                .addSupportedLocales("de")
+                        }
                         .build(),
                 ),
                 // With the "de" and "en" locales in that order, expected to choose the "de" listing
                 Arguments.of(
                     expectedFullAppListingDe,
-                    GetAppListingRequest.newBuilder()
-                        .mergeFrom(validGetAppListingRequest)
-                        .setDeviceAttributes(
-                            DeviceAttributes.newBuilder()
-                                .mergeFrom(validGetAppListingRequest.deviceAttributes)
-                                .setSpec(
-                                    Devices.DeviceSpec.newBuilder()
-                                        .mergeFrom(validGetAppListingRequest.deviceAttributes.spec)
-                                        .clearSupportedLocales()
-                                        .addAllSupportedLocales(listOf("de", "en"))
-                                )
-                        )
+                    validGetAppListingRequest.toBuilder()
+                        .apply {
+                            deviceAttributesBuilder.specBuilder
+                                .clearSupportedLocales()
+                                .addAllSupportedLocales(listOf("de", "en"))
+                        }
                         .build(),
                 ),
             )
@@ -676,22 +523,17 @@ class DirectoryServicesImplTest {
                 : Stream<GetAppListingRequest> {
             return Stream.of(
                 // Without release channel field specified
-                GetAppListingRequest.newBuilder()
-                    .mergeFrom(validGetAppListingRequest)
-                    .clearReleaseChannel()
-                    .build(),
+                validGetAppListingRequest.toBuilder().clearReleaseChannel().build(),
                 // Without release channel's well known field specified
-                GetAppListingRequest.newBuilder()
-                    .mergeFrom(validGetAppListingRequest)
-                    .setReleaseChannel(ReleaseChannel.newBuilder().build())
+                validGetAppListingRequest.toBuilder()
+                    .setReleaseChannel(ReleaseChannel.getDefaultInstance())
                     .build(),
                 // With the unspecified well known release channel value
-                GetAppListingRequest.newBuilder()
-                    .mergeFrom(validGetAppListingRequest)
-                    .setReleaseChannel(
-                        ReleaseChannel.newBuilder()
+                validGetAppListingRequest.toBuilder()
+                    .apply {
+                        releaseChannelBuilder
                             .setWellKnown(ReleaseChannel.WellKnown.WELL_KNOWN_UNSPECIFIED)
-                    )
+                    }
                     .build(),
             )
         }
@@ -701,15 +543,9 @@ class DirectoryServicesImplTest {
                 : Stream<GetAppDownloadInfoRequest> {
             return Stream.of(
                 // Missing the app ID
-                GetAppDownloadInfoRequest.newBuilder()
-                    .mergeFrom(validGetAppDownloadInfoRequest)
-                    .clearAppId()
-                    .build(),
+                validGetAppDownloadInfoRequest.toBuilder().clearAppId().build(),
                 // Missing device attributes
-                GetAppDownloadInfoRequest.newBuilder()
-                    .mergeFrom(validGetAppDownloadInfoRequest)
-                    .clearDeviceAttributes()
-                    .build(),
+                validGetAppDownloadInfoRequest.toBuilder().clearDeviceAttributes().build(),
             )
         }
     }
