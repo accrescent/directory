@@ -90,8 +90,8 @@ class Listing(
         fun findDefaultForApp(appId: String): Uni<Listing?> {
             return find(
                 "FROM Listing listings " +
-                "JOIN App apps ON apps.id = ?1 " +
-                "WHERE listings.language = apps.defaultListingLanguage",
+                        "JOIN App apps ON apps.id = ?1 " +
+                        "WHERE listings.language = apps.defaultListingLanguage",
                 appId,
             ).firstResult()
         }
