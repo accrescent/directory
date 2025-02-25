@@ -4,7 +4,6 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.directory.internal.v1.App
 import app.accrescent.directory.internal.v1.CreateAppRequest
 import app.accrescent.directory.internal.v1.CreateAppResponse
 import app.accrescent.directory.internal.v1.ObjectMetadata
@@ -93,19 +92,11 @@ class DirectoryServicesImplTest {
 
     @Test
     fun createAppWithValidRequestReturnsApp() {
-        val createdApp = CompletableFuture<App?>()
+        val response = internal.createApp(validCreateAppRequest)
+            .subscribeAsCompletionStage()
+            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
-        internal.createApp(validCreateAppRequest).subscribe().with(
-            { createdApp.complete(it.app) },
-            {
-                createdApp.complete(null)
-            }
-        )
-
-        assertEquals(
-            validCreateAppRequest.app,
-            createdApp.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS),
-        )
+        assertEquals(validCreateAppRequest.app, response.app)
     }
 
     @Test
@@ -182,19 +173,11 @@ class DirectoryServicesImplTest {
         expectedAppListing: AppListing,
         request: GetAppListingRequest,
     ) {
-        val responseFuture = CompletableFuture<GetAppListingResponse?>()
-
-        internal.createApp(validCreateAppRequest)
+        val response = internal.createApp(validCreateAppRequest)
             .chain { -> external.getAppListing(request) }
-            .subscribe()
-            .with(
-                { responseFuture.complete(it) },
-                { responseFuture.complete(null) },
-            )
+            .subscribeAsCompletionStage()
+            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
-        val response = responseFuture.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
-
-        requireNotNull(response)
         assertGetAppListingResponseMatchesExpected(expectedAppListing, response)
     }
 
@@ -221,8 +204,7 @@ class DirectoryServicesImplTest {
     fun getAppDownloadInfoReturnsExpected() {
         val response = internal.createApp(validCreateAppRequest)
             .chain { -> external.getAppDownloadInfo(validGetAppDownloadInfoRequest) }
-            .subscribe()
-            .asCompletionStage()
+            .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
         assertEquals(getExpectedAppDownloadInfoResponse(), response)
