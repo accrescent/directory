@@ -16,6 +16,7 @@ import app.accrescent.services.directory.data.App
 import app.accrescent.services.directory.data.AppRepository
 import app.accrescent.services.directory.data.Image
 import app.accrescent.services.directory.data.Listing
+import app.accrescent.services.directory.data.ListingId
 import app.accrescent.services.directory.data.ReleaseChannel
 import app.accrescent.services.directory.data.StorageObject
 import io.grpc.Status
@@ -48,8 +49,10 @@ class InternalDirectoryServiceImpl : DirectoryService {
             defaultListingLanguage = request.app.defaultListingLanguage,
             listings = request.app.listingsList.mapTo(mutableSetOf<Listing>()) {
                 Listing(
-                    appId = request.appId,
-                    language = it.language,
+                    id = ListingId(
+                        appId = request.appId,
+                        language = it.language,
+                    ),
                     name = it.name,
                     shortDescription = it.shortDescription,
                     icon = Image(
@@ -88,7 +91,7 @@ class InternalDirectoryServiceImpl : DirectoryService {
                         dbApp.listings.forEach { dbListing ->
                             addListings(
                                 AppListing.newBuilder()
-                                    .setLanguage(dbListing.language)
+                                    .setLanguage(dbListing.id.language)
                                     .setName(dbListing.name)
                                     .setShortDescription(dbListing.shortDescription)
                                     .setIcon(

@@ -77,7 +77,7 @@ class DirectoryServiceImpl : DirectoryService {
                 }
 
                 val listingBuilder = AppListing.newBuilder()
-                    .setLanguage(listing.language)
+                    .setLanguage(listing.id.language)
                     .setName(listing.name)
                     .setShortDescription(listing.shortDescription)
                     .setIcon(

@@ -5,39 +5,33 @@
 package app.accrescent.services.directory.data
 
 import io.quarkus.hibernate.reactive.panache.kotlin.PanacheCompanion
-import io.quarkus.hibernate.reactive.panache.kotlin.PanacheEntity
+import io.quarkus.hibernate.reactive.panache.kotlin.PanacheEntityBase
 import io.quarkus.runtime.annotations.RegisterForReflection
 import io.smallrye.mutiny.Uni
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
+import jakarta.persistence.EmbeddedId
 import jakarta.persistence.Entity
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import jakarta.persistence.UniqueConstraint
 import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
 
 /**
  * An app listing to be displayed in the store
  *
- * @property appId the Android application ID of the corresponding app
- * @property language the BCP-47 language tag for the language this listing's content is written in
+ * @property id the listing's unique composite ID
  * @property name the proper name of the app (optionally including some short descriptive text)
  * @property shortDescription a short summary of the app
  * @property icon the app's icon to be displayed in the store
  */
 @Entity
-@Table(
-    name = "listings",
-    uniqueConstraints = [UniqueConstraint(columnNames = ["app_id", "language"])],
-)
+@Table(name = "listings")
 class Listing(
-    @Column(columnDefinition = "text", name = "app_id", nullable = false)
-    val appId: String,
-
-    @Column(columnDefinition = "text", nullable = false)
-    val language: String,
+    @EmbeddedId
+    val id: ListingId,
 
     @Column(columnDefinition = "text", nullable = false)
     val name: String,
@@ -49,7 +43,7 @@ class Listing(
     @JoinColumn(name = "icon_image_id", referencedColumnName = "id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     val icon: Image,
-) : PanacheEntity() {
+) : PanacheEntityBase {
     @ManyToOne
     @JoinColumn(name = "app_id", insertable = false, updatable = false)
     private lateinit var app: App
@@ -65,9 +59,10 @@ class Listing(
          * @return the list of languages the provided app has listings for
          */
         fun findAllLanguagesForApp(appId: String): Uni<List<ListingLanguage>> {
-            return find("appId", appId)
-                .project(ListingLanguage::class.java)
-                .list()
+            return find(
+                "SELECT listings.id.language FROM Listing listings WHERE listings.id.appId = ?1",
+                appId,
+            ).project(ListingLanguage::class.java).list()
         }
 
         /**
@@ -78,7 +73,7 @@ class Listing(
          * @return the matching listing, or null if it does not exist
          */
         fun findByAppIdAndLanguage(appId: String, language: String): Uni<Listing?> {
-            return find("appId = ?1 AND language = ?2", appId, language).firstResult()
+            return find("id", ListingId(appId, language)).firstResult()
         }
 
         /**
@@ -91,7 +86,7 @@ class Listing(
             return find(
                 "FROM Listing listings " +
                         "JOIN App apps ON apps.id = ?1 " +
-                        "WHERE listings.language = apps.defaultListingLanguage",
+                        "WHERE listings.id.language = apps.defaultListingLanguage",
                 appId,
             ).firstResult()
         }
@@ -99,7 +94,22 @@ class Listing(
 }
 
 /**
- * A projection of [Listing.language]
+ * An app listing's unique composite ID
+ *
+ * @property appId the Android application ID of the corresponding app
+ * @property language the BCP-47 language tag for the language this listing's content is written in
+ */
+@Embeddable
+data class ListingId(
+    @Column(columnDefinition = "text", name = "app_id", nullable = false)
+    val appId: String,
+
+    @Column(columnDefinition = "text", nullable = false)
+    val language: String,
+)
+
+/**
+ * A projection of [ListingId.language]
  *
  * @property language the BCP-47 language code describing the listing's content
  */
