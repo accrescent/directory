@@ -6,7 +6,6 @@ syntax = "proto3";
 
 package accrescent.directory.v1;
 
-import "accrescent/directory/v1/app_listing_filter.proto";
 import "accrescent/directory/v1/app_listing_view.proto";
 import "accrescent/directory/v1/device_attributes.proto";
 
@@ -37,8 +36,4 @@ message ListAppListingsRequest {
   // compatibility, download size, etc. If unspecified, some app listing fields
   // may be omitted in the response (see AppListing for more details).
   DeviceAttributes device_attributes = 5;
-
-  // A filter to apply to app listings. Non-matching listings will not be
-  // included in the response and will not count toward the requested page size.
-  AppListingFilter filter = 6;
 }
