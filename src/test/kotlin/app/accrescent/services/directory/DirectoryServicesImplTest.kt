@@ -275,6 +275,7 @@ class DirectoryServicesImplTest {
             .build()
 
         private val expectedFullAppListingEn = AppListing.newBuilder()
+            .setAppId("app.accrescent.client")
             .setLanguage("en")
             .setName("Accrescent")
             .setShortDescription("A private and secure Android app store")
@@ -291,6 +292,7 @@ class DirectoryServicesImplTest {
             )
             .build()
         private val expectedFullAppListingDe = AppListing.newBuilder()
+            .setAppId("app.accrescent.client")
             .setLanguage("de")
             .setName("Accrescent")
             .setShortDescription("Ein privater und sicherer Android App Store")
@@ -310,6 +312,7 @@ class DirectoryServicesImplTest {
             response: GetAppListingResponse,
         ) {
             assert(response.hasListing())
+            assertEquals(expectedListing.appId, response.listing.appId)
             assertEquals(expectedListing.language, response.listing.language)
             assertEquals(expectedListing.name, response.listing.name)
             assertEquals(expectedListing.shortDescription, response.listing.shortDescription)
