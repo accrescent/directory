@@ -6,9 +6,11 @@ package app.accrescent.services.directory
 
 import app.accrescent.directory.internal.v1.CreateAppRequest
 import app.accrescent.directory.internal.v1.CreateAppResponse
+import app.accrescent.directory.internal.v1.ListAppListingsPageToken
 import app.accrescent.directory.internal.v1.ObjectMetadata
 import app.accrescent.directory.v1.AppDownloadInfo
 import app.accrescent.directory.v1.AppListing
+import app.accrescent.directory.v1.AppListingView
 import app.accrescent.directory.v1.Compatibility
 import app.accrescent.directory.v1.CompatibilityLevel
 import app.accrescent.directory.v1.DeviceAttributes
@@ -18,6 +20,7 @@ import app.accrescent.directory.v1.GetAppDownloadInfoResponse
 import app.accrescent.directory.v1.GetAppListingRequest
 import app.accrescent.directory.v1.GetAppListingResponse
 import app.accrescent.directory.v1.Image
+import app.accrescent.directory.v1.ListAppListingsRequest
 import app.accrescent.directory.v1.ReleaseChannel
 import app.accrescent.directory.v1.SplitDownloadInfo
 import app.accrescent.services.directory.data.AppRepository
@@ -33,11 +36,14 @@ import io.smallrye.mutiny.Uni
 import jakarta.inject.Inject
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import java.util.Base64
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
@@ -181,6 +187,178 @@ class DirectoryServicesImplTest {
         assertGetAppListingResponseMatchesExpected(expectedAppListing, response)
     }
 
+    @Test
+    fun listAppListingsWithBasicViewReturnsRequiredFields() {
+        val request = ListAppListingsRequest.newBuilder()
+            .setView(AppListingView.APP_LISTING_VIEW_BASIC)
+            .build()
+
+        val listing = internal.createApp(validCreateAppRequest)
+            .chain { -> external.listAppListings(request) }
+            .subscribeAsCompletionStage()
+            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
+            .listingsList
+            .first()
+
+        assertTrue(listing.hasAppId())
+        assertTrue(listing.hasLanguage())
+        assertTrue(listing.hasName())
+        assertTrue(listing.hasShortDescription())
+        assertTrue(listing.hasIcon())
+    }
+
+    @Test
+    fun listAppListingsWithFullViewReturnsAllFields() {
+        val request = ListAppListingsRequest.newBuilder()
+            .setView(AppListingView.APP_LISTING_VIEW_FULL)
+            .build()
+
+        val listing = internal.createApp(validCreateAppRequest)
+            .chain { -> external.listAppListings(request) }
+            .subscribeAsCompletionStage()
+            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
+            .listingsList
+            .first()
+
+        assertTrue(listing.hasAppId())
+        assertTrue(listing.hasLanguage())
+        assertTrue(listing.hasName())
+        assertTrue(listing.hasShortDescription())
+        assertTrue(listing.hasIcon())
+        assertTrue(listing.hasVersionName())
+    }
+
+    @Test
+    fun listAppListingsWithDeviceAttributesReturnsCompatibility() {
+        val request = ListAppListingsRequest.newBuilder()
+            .setDeviceAttributes(validDeviceAttributes)
+            .build()
+
+        val listing = internal.createApp(validCreateAppRequest)
+            .chain { -> external.listAppListings(request) }
+            .subscribeAsCompletionStage()
+            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
+            .listingsList
+            .first()
+
+        assertTrue(listing.hasCompatibility())
+    }
+
+    @Test
+    fun listAppListingsReturnsEmptySetAndNoPageTokenWhenSkipOvershoots() {
+        val request = ListAppListingsRequest.newBuilder()
+            .setSkip(Int.MAX_VALUE)
+            .build()
+
+        val response = internal.createApp(validCreateAppRequest)
+            .chain { -> external.listAppListings(request) }
+            .subscribeAsCompletionStage()
+            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
+
+        assertTrue(response.listingsList.isEmpty())
+        assertFalse(response.hasNextPageToken())
+    }
+
+    @Test
+    fun listAppListingsReturnsPageTokenWhenItemsRemain() {
+        val listAppListingsRequest = ListAppListingsRequest.newBuilder()
+            .setPageSize(1)
+            .build()
+
+        val response = internal.createApp(validCreateAppRequest)
+            .chain { -> internal.createApp(validCreateAppRequest2) }
+            .chain { -> external.listAppListings(listAppListingsRequest) }
+            .subscribeAsCompletionStage()
+            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
+
+        assertTrue(response.hasNextPageToken())
+    }
+
+    @Test
+    fun listAppListingsWithPageTokenTraversesAll() {
+        val request = ListAppListingsRequest.newBuilder()
+            .setPageSize(1)
+            .build()
+
+        val accumulatedListings = mutableListOf<AppListing>()
+
+        var nextPageToken: String? = internal.createApp(validCreateAppRequest)
+            .chain { -> internal.createApp(validCreateAppRequest2) }
+            .chain { -> external.listAppListings(request) }
+            .subscribeAsCompletionStage()
+            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
+            .let {
+                accumulatedListings.addAll(it.listingsList)
+                assertTrue(it.hasNextPageToken())
+                it.nextPageToken
+            }
+        while (nextPageToken != null) {
+            val nextRequest = request.toBuilder().setPageToken(nextPageToken).build()
+            val nextResponse = external.listAppListings(nextRequest)
+                .subscribeAsCompletionStage()
+                .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
+
+            accumulatedListings.addAll(nextResponse.listingsList)
+
+            nextPageToken = if (nextResponse.hasNextPageToken()) {
+                nextResponse.nextPageToken
+            } else {
+                null
+            }
+        }
+
+        assertTrue(
+            accumulatedListings.map { it.appId }
+                .containsAll(listOf("app.accrescent.client", "com.none.tom.exiferaser")),
+        )
+    }
+
+    // We assume here that a single default request will return enough listings for this test to be
+    // useful, which is not necessarily the case since it's not guaranteed by the API. However, this
+    // is how the API currently behaves, so it should be fine unless we change that behavior.
+    @Test
+    fun listAppListingsReturnsOnlyCompatibleApps() {
+        val request = ListAppListingsRequest.newBuilder()
+            .setDeviceAttributes(validDeviceAttributes)
+            .build()
+
+        val response = internal.createApp(validCreateAppRequest)
+            .chain { -> internal.createApp(validCreateAppRequest2) }
+            .chain { -> internal.createApp(validCreateAppRequest3Incompatible) }
+            .chain { -> external.listAppListings(request) }
+            .subscribeAsCompletionStage()
+            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
+
+        for (listing in response.listingsList) {
+            assertTrue(
+                listing.compatibility.level == CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE,
+            )
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("generateParamsForListAppListingsRejectsInvalidPageToken")
+    fun listAppListingsRejectsInvalidPageToken(pageToken: String) {
+        val response = CompletableFuture<Status.Code>()
+
+        val request = ListAppListingsRequest.newBuilder().setPageToken(pageToken).build()
+
+        external.listAppListings(request)
+            .subscribe()
+            .with(
+                { response.complete(Status.Code.OK) },
+                {
+                    require(it is StatusRuntimeException)
+                    response.complete(it.status.code)
+                }
+            )
+
+        assertEquals(
+            Status.Code.INVALID_ARGUMENT,
+            response.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS),
+        )
+    }
+
     @ParameterizedTest
     @MethodSource("generateParamsForGetAppDownloadInfoValidatesRequest")
     fun getAppDownloadInfoValidatesRequest(request: GetAppDownloadInfoRequest) {
@@ -236,6 +414,22 @@ class DirectoryServicesImplTest {
     companion object {
         private val validCreateAppRequest = javaClass.classLoader
             .getResourceAsStream("valid-create-app-request.txtpb")!!
+            .use {
+                val builder = CreateAppRequest.newBuilder()
+                it.reader().use { TextFormat.merge(it, builder) }
+                builder
+            }
+            .build()
+        private val validCreateAppRequest2 = javaClass.classLoader
+            .getResourceAsStream("valid-create-app-request-2.txtpb")!!
+            .use {
+                val builder = CreateAppRequest.newBuilder()
+                it.reader().use { TextFormat.merge(it, builder) }
+                builder
+            }
+            .build()
+        private val validCreateAppRequest3Incompatible = javaClass.classLoader
+            .getResourceAsStream("valid-create-app-request-3-incompatible.txtpb")!!
             .use {
                 val builder = CreateAppRequest.newBuilder()
                 it.reader().use { TextFormat.merge(it, builder) }
@@ -502,6 +696,19 @@ class DirectoryServicesImplTest {
                         .apply { deviceAttributesBuilder.specBuilder.clearSupportedAbis() }
                         .build(),
                 ),
+            )
+        }
+
+        @JvmStatic
+        fun generateParamsForListAppListingsRejectsInvalidPageToken(): Stream<String> {
+            return Stream.of(
+                // Invalid base64url
+                "invalidbase64url?",
+                // Valid base64url, but invalid ListAppListingsPageToken protobuf
+                "base64url",
+                // Valid ListAppListingsPageToken protobuf, but missing the last_app_id field
+                Base64.getUrlEncoder()
+                    .encodeToString(ListAppListingsPageToken.getDefaultInstance().toByteArray()),
             )
         }
 

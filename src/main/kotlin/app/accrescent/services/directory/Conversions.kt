@@ -7,6 +7,11 @@ package app.accrescent.services.directory
 import app.accrescent.directory.v1.ReleaseChannel
 
 /**
+ * The permanent, canonical name of the stable release channel
+ */
+const val RELEASE_CHANNEL_NAME_STABLE = "well_known_stable"
+
+/**
  * Maps a release channel into its canonical string form
  */
 fun ReleaseChannel.canonicalForm(): String = this.wellKnown.canonicalForm()
@@ -17,7 +22,7 @@ fun ReleaseChannel.canonicalForm(): String = this.wellKnown.canonicalForm()
 fun ReleaseChannel.WellKnown.canonicalForm(): String = when (this) {
     ReleaseChannel.WellKnown.UNRECOGNIZED,
     ReleaseChannel.WellKnown.WELL_KNOWN_UNSPECIFIED,
-    ReleaseChannel.WellKnown.WELL_KNOWN_STABLE -> "well_known_stable"
+    ReleaseChannel.WellKnown.WELL_KNOWN_STABLE -> RELEASE_CHANNEL_NAME_STABLE
 }
 
 /**

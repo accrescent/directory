@@ -1,0 +1,928 @@
+# Copyright 2025 Logan Magee
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# proto-file: accrescent/directory/internal/v1/create_app_request.proto
+# proto-message: CreateAppRequest
+
+# Molly (https://github.com/mollyim/mollyim-android/tree/b7bdead) made incompatible with the testing
+# device by artificially increasing every variant's minimum SDK to 999
+app_id: "im.molly.app"
+app {
+  default_listing_language: "en"
+  listings {
+    language: "en"
+    name: "Molly"
+    short_description: "Molly is a security-focused, enhanced version of Signal for Android users."
+    icon {
+      object_id: "19993159-a687-41a7-b61a-e8a47a0a0912"
+    }
+  }
+  package_metadata {
+    release_channel {
+      well_known: WELL_KNOWN_STABLE
+    }
+    package_metadata {
+      version_code: 151201
+      version_name: "7.33.2-1-FOSS"
+      build_apks_result {
+        variant {
+          targeting {
+            sdk_version_targeting {
+              value {
+                min {
+                  value: 999
+                }
+              }
+              alternatives {
+                min {
+                  value: 999
+                }
+              }
+            }
+          }
+          apk_set {
+            module_metadata {
+              name: "base"
+              targeting {
+              }
+              delivery_type: INSTALL_TIME
+              module_type: FEATURE_MODULE
+            }
+            apk_description {
+              targeting {
+                screen_density_targeting {
+                  value {
+                    density_alias: LDPI
+                  }
+                  alternatives {
+                    density_alias: MDPI
+                  }
+                  alternatives {
+                    density_alias: TVDPI
+                  }
+                  alternatives {
+                    density_alias: HDPI
+                  }
+                  alternatives {
+                    density_alias: XHDPI
+                  }
+                  alternatives {
+                    density_alias: XXHDPI
+                  }
+                  alternatives {
+                    density_alias: XXXHDPI
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "6a722ff6-1aaf-4b6b-bfe5-f14ea4e511a3"
+              split_apk_metadata {
+                split_id: "config.ldpi"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                screen_density_targeting {
+                  value {
+                    density_alias: MDPI
+                  }
+                  alternatives {
+                    density_alias: LDPI
+                  }
+                  alternatives {
+                    density_alias: TVDPI
+                  }
+                  alternatives {
+                    density_alias: HDPI
+                  }
+                  alternatives {
+                    density_alias: XHDPI
+                  }
+                  alternatives {
+                    density_alias: XXHDPI
+                  }
+                  alternatives {
+                    density_alias: XXXHDPI
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "7cbffca6-d809-4b6a-ad54-96e648da0038"
+              split_apk_metadata {
+                split_id: "config.mdpi"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                screen_density_targeting {
+                  value {
+                    density_alias: HDPI
+                  }
+                  alternatives {
+                    density_alias: LDPI
+                  }
+                  alternatives {
+                    density_alias: MDPI
+                  }
+                  alternatives {
+                    density_alias: TVDPI
+                  }
+                  alternatives {
+                    density_alias: XHDPI
+                  }
+                  alternatives {
+                    density_alias: XXHDPI
+                  }
+                  alternatives {
+                    density_alias: XXXHDPI
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "1c3b3159-be02-4d17-9356-e637dd9506a8"
+              split_apk_metadata {
+                split_id: "config.hdpi"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                screen_density_targeting {
+                  value {
+                    density_alias: XHDPI
+                  }
+                  alternatives {
+                    density_alias: LDPI
+                  }
+                  alternatives {
+                    density_alias: MDPI
+                  }
+                  alternatives {
+                    density_alias: TVDPI
+                  }
+                  alternatives {
+                    density_alias: HDPI
+                  }
+                  alternatives {
+                    density_alias: XXHDPI
+                  }
+                  alternatives {
+                    density_alias: XXXHDPI
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "d67cf9fc-e442-4db8-a84b-22633f44ccdd"
+              split_apk_metadata {
+                split_id: "config.xhdpi"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                screen_density_targeting {
+                  value {
+                    density_alias: XXHDPI
+                  }
+                  alternatives {
+                    density_alias: LDPI
+                  }
+                  alternatives {
+                    density_alias: MDPI
+                  }
+                  alternatives {
+                    density_alias: TVDPI
+                  }
+                  alternatives {
+                    density_alias: HDPI
+                  }
+                  alternatives {
+                    density_alias: XHDPI
+                  }
+                  alternatives {
+                    density_alias: XXXHDPI
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "c0a064dd-c318-45bd-89cc-ad6410e7f1fc"
+              split_apk_metadata {
+                split_id: "config.xxhdpi"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                screen_density_targeting {
+                  value {
+                    density_alias: XXXHDPI
+                  }
+                  alternatives {
+                    density_alias: LDPI
+                  }
+                  alternatives {
+                    density_alias: MDPI
+                  }
+                  alternatives {
+                    density_alias: TVDPI
+                  }
+                  alternatives {
+                    density_alias: HDPI
+                  }
+                  alternatives {
+                    density_alias: XHDPI
+                  }
+                  alternatives {
+                    density_alias: XXHDPI
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "af177858-84f9-489b-95e3-4341d1ed18ca"
+              split_apk_metadata {
+                split_id: "config.xxxhdpi"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                screen_density_targeting {
+                  value {
+                    density_alias: TVDPI
+                  }
+                  alternatives {
+                    density_alias: LDPI
+                  }
+                  alternatives {
+                    density_alias: MDPI
+                  }
+                  alternatives {
+                    density_alias: HDPI
+                  }
+                  alternatives {
+                    density_alias: XHDPI
+                  }
+                  alternatives {
+                    density_alias: XXHDPI
+                  }
+                  alternatives {
+                    density_alias: XXXHDPI
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "68c149bb-95aa-4753-8a82-82452d537d0f"
+              split_apk_metadata {
+                split_id: "config.tvdpi"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "f96bd9ef-b87d-4de6-ae6f-2aca25b21e70"
+              split_apk_metadata {
+                is_master_split: true
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                abi_targeting {
+                  value {
+                    alias: ARM64_V8A
+                  }
+                  alternatives {
+                    alias: ARMEABI_V7A
+                  }
+                  alternatives {
+                    alias: X86_64
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "f4276de2-e653-4208-9b31-55f04d475e08"
+              split_apk_metadata {
+                split_id: "config.arm64_v8a"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                abi_targeting {
+                  value {
+                    alias: ARMEABI_V7A
+                  }
+                  alternatives {
+                    alias: ARM64_V8A
+                  }
+                  alternatives {
+                    alias: X86_64
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "1174482a-9588-4977-a09a-819f0d6e8d30"
+              split_apk_metadata {
+                split_id: "config.armeabi_v7a"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                abi_targeting {
+                  value {
+                    alias: X86_64
+                  }
+                  alternatives {
+                    alias: ARMEABI_V7A
+                  }
+                  alternatives {
+                    alias: ARM64_V8A
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "8e7cca9b-facc-434e-b124-3e855bcf70a9"
+              split_apk_metadata {
+                split_id: "config.x86_64"
+              }
+              signing_description {
+              }
+            }
+          }
+          variant_properties {
+          }
+        }
+        variant {
+          targeting {
+            sdk_version_targeting {
+              value {
+                min {
+                  value: 999
+                }
+              }
+              alternatives {
+                min {
+                  value: 999
+                }
+              }
+            }
+          }
+          apk_set {
+            module_metadata {
+              name: "base"
+              targeting {
+              }
+              delivery_type: INSTALL_TIME
+              module_type: FEATURE_MODULE
+            }
+            apk_description {
+              targeting {
+                screen_density_targeting {
+                  value {
+                    density_alias: LDPI
+                  }
+                  alternatives {
+                    density_alias: MDPI
+                  }
+                  alternatives {
+                    density_alias: TVDPI
+                  }
+                  alternatives {
+                    density_alias: HDPI
+                  }
+                  alternatives {
+                    density_alias: XHDPI
+                  }
+                  alternatives {
+                    density_alias: XXHDPI
+                  }
+                  alternatives {
+                    density_alias: XXXHDPI
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "6a722ff6-1aaf-4b6b-bfe5-f14ea4e511a3"
+              split_apk_metadata {
+                split_id: "config.ldpi"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                screen_density_targeting {
+                  value {
+                    density_alias: MDPI
+                  }
+                  alternatives {
+                    density_alias: LDPI
+                  }
+                  alternatives {
+                    density_alias: TVDPI
+                  }
+                  alternatives {
+                    density_alias: HDPI
+                  }
+                  alternatives {
+                    density_alias: XHDPI
+                  }
+                  alternatives {
+                    density_alias: XXHDPI
+                  }
+                  alternatives {
+                    density_alias: XXXHDPI
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "7cbffca6-d809-4b6a-ad54-96e648da0038"
+              split_apk_metadata {
+                split_id: "config.mdpi"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                screen_density_targeting {
+                  value {
+                    density_alias: HDPI
+                  }
+                  alternatives {
+                    density_alias: LDPI
+                  }
+                  alternatives {
+                    density_alias: MDPI
+                  }
+                  alternatives {
+                    density_alias: TVDPI
+                  }
+                  alternatives {
+                    density_alias: XHDPI
+                  }
+                  alternatives {
+                    density_alias: XXHDPI
+                  }
+                  alternatives {
+                    density_alias: XXXHDPI
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "1c3b3159-be02-4d17-9356-e637dd9506a8"
+              split_apk_metadata {
+                split_id: "config.hdpi"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                screen_density_targeting {
+                  value {
+                    density_alias: XHDPI
+                  }
+                  alternatives {
+                    density_alias: LDPI
+                  }
+                  alternatives {
+                    density_alias: MDPI
+                  }
+                  alternatives {
+                    density_alias: TVDPI
+                  }
+                  alternatives {
+                    density_alias: HDPI
+                  }
+                  alternatives {
+                    density_alias: XXHDPI
+                  }
+                  alternatives {
+                    density_alias: XXXHDPI
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "d67cf9fc-e442-4db8-a84b-22633f44ccdd"
+              split_apk_metadata {
+                split_id: "config.xhdpi"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                screen_density_targeting {
+                  value {
+                    density_alias: XXHDPI
+                  }
+                  alternatives {
+                    density_alias: LDPI
+                  }
+                  alternatives {
+                    density_alias: MDPI
+                  }
+                  alternatives {
+                    density_alias: TVDPI
+                  }
+                  alternatives {
+                    density_alias: HDPI
+                  }
+                  alternatives {
+                    density_alias: XHDPI
+                  }
+                  alternatives {
+                    density_alias: XXXHDPI
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "c0a064dd-c318-45bd-89cc-ad6410e7f1fc"
+              split_apk_metadata {
+                split_id: "config.xxhdpi"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                screen_density_targeting {
+                  value {
+                    density_alias: XXXHDPI
+                  }
+                  alternatives {
+                    density_alias: LDPI
+                  }
+                  alternatives {
+                    density_alias: MDPI
+                  }
+                  alternatives {
+                    density_alias: TVDPI
+                  }
+                  alternatives {
+                    density_alias: HDPI
+                  }
+                  alternatives {
+                    density_alias: XHDPI
+                  }
+                  alternatives {
+                    density_alias: XXHDPI
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "af177858-84f9-489b-95e3-4341d1ed18ca"
+              split_apk_metadata {
+                split_id: "config.xxxhdpi"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                screen_density_targeting {
+                  value {
+                    density_alias: TVDPI
+                  }
+                  alternatives {
+                    density_alias: LDPI
+                  }
+                  alternatives {
+                    density_alias: MDPI
+                  }
+                  alternatives {
+                    density_alias: HDPI
+                  }
+                  alternatives {
+                    density_alias: XHDPI
+                  }
+                  alternatives {
+                    density_alias: XXHDPI
+                  }
+                  alternatives {
+                    density_alias: XXXHDPI
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "68c149bb-95aa-4753-8a82-82452d537d0f"
+              split_apk_metadata {
+                split_id: "config.tvdpi"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "4c7af872-e43e-4b90-8cae-66e8d85c9efb"
+              split_apk_metadata {
+                is_master_split: true
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                abi_targeting {
+                  value {
+                    alias: ARM64_V8A
+                  }
+                  alternatives {
+                    alias: ARMEABI_V7A
+                  }
+                  alternatives {
+                    alias: X86_64
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "f4276de2-e653-4208-9b31-55f04d475e08"
+              split_apk_metadata {
+                split_id: "config.arm64_v8a"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                abi_targeting {
+                  value {
+                    alias: ARMEABI_V7A
+                  }
+                  alternatives {
+                    alias: ARM64_V8A
+                  }
+                  alternatives {
+                    alias: X86_64
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "1174482a-9588-4977-a09a-819f0d6e8d30"
+              split_apk_metadata {
+                split_id: "config.armeabi_v7a"
+              }
+              signing_description {
+              }
+            }
+            apk_description {
+              targeting {
+                abi_targeting {
+                  value {
+                    alias: X86_64
+                  }
+                  alternatives {
+                    alias: ARMEABI_V7A
+                  }
+                  alternatives {
+                    alias: ARM64_V8A
+                  }
+                }
+                sdk_version_targeting {
+                  value {
+                    min {
+                      value: 26
+                    }
+                  }
+                }
+              }
+              path: "8e7cca9b-facc-434e-b124-3e855bcf70a9"
+              split_apk_metadata {
+                split_id: "config.x86_64"
+              }
+              signing_description {
+              }
+            }
+          }
+          variant_number: 1
+          variant_properties {
+            uncompressed_dex: true
+          }
+        }
+        bundletool {
+          version: "1.18.0"
+        }
+        package_name: "im.molly.app"
+        local_testing_info {
+        }
+      }
+      object_metadata {
+        key: "f4276de2-e653-4208-9b31-55f04d475e08"
+        value {
+          uncompressed_size: 33371256
+        }
+      }
+      object_metadata {
+        key: "1174482a-9588-4977-a09a-819f0d6e8d30"
+        value {
+          uncompressed_size: 30708878
+        }
+      }
+      object_metadata {
+        key: "1c3b3159-be02-4d17-9356-e637dd9506a8"
+        value {
+          uncompressed_size: 190316
+        }
+      }
+      object_metadata {
+        key: "6a722ff6-1aaf-4b6b-bfe5-f14ea4e511a3"
+        value {
+          uncompressed_size: 310793
+        }
+      }
+      object_metadata {
+        key: "4c7af872-e43e-4b90-8cae-66e8d85c9efb"
+        value {
+          uncompressed_size: 80935354
+        }
+      }
+      object_metadata {
+        key: "f96bd9ef-b87d-4de6-ae6f-2aca25b21e70"
+        value {
+          uncompressed_size: 50727354
+        }
+      }
+      object_metadata {
+        key: "7cbffca6-d809-4b6a-ad54-96e648da0038"
+        value {
+          uncompressed_size: 145259
+        }
+      }
+      object_metadata {
+        key: "68c149bb-95aa-4753-8a82-82452d537d0f"
+        value {
+          uncompressed_size: 282655
+        }
+      }
+      object_metadata {
+        key: "8e7cca9b-facc-434e-b124-3e855bcf70a9"
+        value {
+          uncompressed_size: 34522199
+        }
+      }
+      object_metadata {
+        key: "d67cf9fc-e442-4db8-a84b-22633f44ccdd"
+        value {
+          uncompressed_size: 214956
+        }
+      }
+      object_metadata {
+        key: "c0a064dd-c318-45bd-89cc-ad6410e7f1fc"
+        value {
+          uncompressed_size: 296935
+        }
+      }
+      object_metadata {
+        key: "af177858-84f9-489b-95e3-4341d1ed18ca"
+        value {
+          uncompressed_size: 317449
+        }
+      }
+    }
+  }
+}

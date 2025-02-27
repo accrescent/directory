@@ -4,6 +4,7 @@
 
 package app.accrescent.services.directory.data
 
+import app.accrescent.services.directory.RELEASE_CHANNEL_NAME_STABLE
 import io.quarkus.hibernate.reactive.panache.kotlin.PanacheCompanion
 import io.quarkus.hibernate.reactive.panache.kotlin.PanacheEntityBase
 import io.quarkus.runtime.annotations.RegisterForReflection
@@ -66,6 +67,21 @@ class Listing(
         }
 
         /**
+         * Finds all listing IDs for the provided apps
+         *
+         * @param appIds the IDs of the apps to find listing IDs for
+         * @return the list of listing IDs associated with the provided apps
+         */
+        fun findIdsForApps(appIds: Set<String>): Uni<List<ListingId>> {
+            return find(
+                "SELECT listings.id.appId, listings.id.language " +
+                        "FROM Listing listings " +
+                        "WHERE listings.id.appId IN ?1",
+                appIds,
+            ).project(ListingId::class.java).list()
+        }
+
+        /**
          * Finds an app listing by its app ID and language
          *
          * @param appId the ID of the app to find a listing for
@@ -90,6 +106,28 @@ class Listing(
                 appId,
             ).firstResult()
         }
+
+        /**
+         * Finds listings by ID along with their apps' corresponding stable channel metadata
+         *
+         * @param ids the IDs in the form (appId, language) of the listings to find
+         * @return a list of (listing, release channel) pairs ordered in ascending order by app ID
+         */
+        fun findWithStableMetadataByIds(
+            ids: List<Pair<String, String>>,
+        ): Uni<List<ListingWithMetadata>> {
+            return find(
+                "SELECT listings, release_channels " +
+                        "FROM Listing listings " +
+                        "JOIN ReleaseChannel release_channels " +
+                        "ON release_channels.appId = listings.id.appId " +
+                        "WHERE release_channels.name = '$RELEASE_CHANNEL_NAME_STABLE' " +
+                        "AND listings.id IN ?1 " +
+                        "ORDER BY listings.id.appId ASC",
+                ids.map { ListingId(it.first, it.second) },
+            ).project(ListingWithMetadata::class.java).list()
+        }
+
     }
 }
 
@@ -115,3 +153,13 @@ data class ListingId(
  */
 @RegisterForReflection
 data class ListingLanguage(val language: String)
+
+/**
+ * A projection of a [Listing] with its app's corresponding [ReleaseChannel] metadata
+ *
+ * @property listing an app listing
+ * @property releaseChannel release channel metadata associated with the listing's app for a
+ * specific release channel
+ */
+@RegisterForReflection
+data class ListingWithMetadata(val listing: Listing, val releaseChannel: ReleaseChannel)
