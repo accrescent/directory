@@ -505,13 +505,13 @@ class DirectoryServicesImplTest {
             expectedListing: AppListing,
             response: GetAppListingResponse,
         ) {
-            assert(response.hasListing())
+            assertTrue(response.hasListing())
             assertEquals(expectedListing.appId, response.listing.appId)
             assertEquals(expectedListing.language, response.listing.language)
             assertEquals(expectedListing.name, response.listing.name)
             assertEquals(expectedListing.shortDescription, response.listing.shortDescription)
-            assert(response.listing.hasIcon())
-            assert(response.listing.icon.hasUrl())
+            assertTrue(response.listing.hasIcon())
+            assertTrue(response.listing.icon.hasUrl())
             assertEquals(expectedListing.versionName, response.listing.versionName)
             assertEquals(expectedListing.hasCompatibility(), response.listing.hasCompatibility())
             if (expectedListing.hasCompatibility()) {
