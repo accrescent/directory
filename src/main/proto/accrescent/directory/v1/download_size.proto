@@ -1,0 +1,16 @@
+// Copyright 2025 Logan Magee
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
+syntax = "proto3";
+
+package accrescent.directory.v1;
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.v1";
+
+// Download size information for an app.
+message DownloadSize {
+  // The total size in bytes of all uncompressed assets in this download.
+  optional uint32 uncompressed_total = 1;
+}

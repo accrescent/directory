@@ -76,7 +76,11 @@ class ReleaseChannel(
          * @return the release channel for the given app and name, or null if the app does not exist
          */
         fun findByAppIdAndName(appId: String, name: String): Uni<ReleaseChannel?> {
-            return find("appId = ?1 AND name = ?2", appId, name).firstResult()
+            return find(
+                "JOIN FETCH objects WHERE appId = ?1 AND name = ?2",
+                appId,
+                name,
+            ).firstResult()
         }
 
         /**

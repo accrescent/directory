@@ -54,17 +54,3 @@ fun getMatchingApkObjectIds(
 
     return objectIds
 }
-
-/**
- * Returns whether a given app supports a given device
- *
- * @param appMetadata the `BuildApksResult` associated with the app to check
- * @param deviceAttributes the device attributes of the device
- * @return whether the given app supports the given device
- */
-fun appSupportsDevice(
-    appMetadata: Commands.BuildApksResult,
-    deviceAttributes: DeviceAttributes,
-): Boolean {
-    return getMatchingApkObjectIds(appMetadata, deviceAttributes).isNotEmpty()
-}

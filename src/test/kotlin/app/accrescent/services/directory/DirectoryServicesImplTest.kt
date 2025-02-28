@@ -15,6 +15,7 @@ import app.accrescent.directory.v1.Compatibility
 import app.accrescent.directory.v1.CompatibilityLevel
 import app.accrescent.directory.v1.DeviceAttributes
 import app.accrescent.directory.v1.DirectoryService
+import app.accrescent.directory.v1.DownloadSize
 import app.accrescent.directory.v1.GetAppDownloadInfoRequest
 import app.accrescent.directory.v1.GetAppDownloadInfoResponse
 import app.accrescent.directory.v1.GetAppListingRequest
@@ -242,6 +243,24 @@ class DirectoryServicesImplTest {
             .first()
 
         assertTrue(listing.hasCompatibility())
+    }
+
+    @Test
+    fun listAppListingsWithFullViewAndCompatibleDeviceAttributesReturnsValidDownloadSize() {
+        val request = ListAppListingsRequest.newBuilder()
+            .setView(AppListingView.APP_LISTING_VIEW_FULL)
+            .setDeviceAttributes(validDeviceAttributes)
+            .build()
+
+        val listing = internal.createApp(validCreateAppRequest)
+            .chain { -> external.listAppListings(request) }
+            .subscribeAsCompletionStage()
+            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
+            .listingsList
+            .first()
+
+        assertTrue(listing.hasDownloadSize())
+        assertTrue(listing.downloadSize.hasUncompressedTotal())
     }
 
     @Test
@@ -484,6 +503,7 @@ class DirectoryServicesImplTest {
                 Compatibility.newBuilder()
                     .setLevel(CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE),
             )
+            .setDownloadSize(DownloadSize.newBuilder().setUncompressedTotal(4648720))
             .build()
         private val expectedFullAppListingDe = AppListing.newBuilder()
             .setAppId("app.accrescent.client")
@@ -499,6 +519,7 @@ class DirectoryServicesImplTest {
                 Compatibility.newBuilder()
                     .setLevel(CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE),
             )
+            .setDownloadSize(DownloadSize.newBuilder().setUncompressedTotal(4648720))
             .build()
 
         private fun assertGetAppListingResponseMatchesExpected(
@@ -516,6 +537,9 @@ class DirectoryServicesImplTest {
             assertEquals(expectedListing.hasCompatibility(), response.listing.hasCompatibility())
             if (expectedListing.hasCompatibility()) {
                 assertEquals(expectedListing.compatibility, response.listing.compatibility)
+            }
+            if (expectedListing.hasDownloadSize()) {
+                assertEquals(expectedListing.downloadSize, response.listing.downloadSize)
             }
         }
 
@@ -654,9 +678,13 @@ class DirectoryServicesImplTest {
                         }
                         .build(),
                 ),
-                // Without device attributes specified, expected to not set the compatibility field
+                // Without device attributes specified, expected to not set the compatibility or
+                // download size fields
                 Arguments.of(
-                    expectedFullAppListingEn.toBuilder().clearCompatibility().build(),
+                    expectedFullAppListingEn.toBuilder()
+                        .clearCompatibility()
+                        .clearDownloadSize()
+                        .build(),
                     validGetAppListingRequest.toBuilder().clearDeviceAttributes().build(),
                 ),
                 // Without release channel field specified, expected to return the listing for the
@@ -691,6 +719,7 @@ class DirectoryServicesImplTest {
                             Compatibility.newBuilder()
                                 .setLevel(CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE)
                         )
+                        .clearDownloadSize()
                         .build(),
                     validGetAppListingRequest.toBuilder()
                         .apply { deviceAttributesBuilder.specBuilder.clearSupportedAbis() }

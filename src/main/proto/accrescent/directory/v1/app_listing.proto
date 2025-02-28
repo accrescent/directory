@@ -7,6 +7,7 @@ syntax = "proto3";
 package accrescent.directory.v1;
 
 import "accrescent/directory/v1/compatibility.proto";
+import "accrescent/directory/v1/download_size.proto";
 import "accrescent/directory/v1/image.proto";
 
 option java_multiple_files = true;
@@ -38,4 +39,8 @@ message AppListing {
   // specified in the request. If no device attributes were specified, this
   // field is not populated.
   Compatibility compatibility = 7;
+
+  // The download size for this app. If no device attributes were specified or
+  // the app is not compatible, this field is not populated.
+  DownloadSize download_size = 8;
 }

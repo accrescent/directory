@@ -11,6 +11,7 @@ import app.accrescent.directory.v1.AppListingView
 import app.accrescent.directory.v1.Compatibility
 import app.accrescent.directory.v1.CompatibilityLevel
 import app.accrescent.directory.v1.DirectoryService
+import app.accrescent.directory.v1.DownloadSize
 import app.accrescent.directory.v1.GetAppDownloadInfoRequest
 import app.accrescent.directory.v1.GetAppDownloadInfoResponse
 import app.accrescent.directory.v1.GetAppListingRequest
@@ -105,16 +106,26 @@ class DirectoryServiceImpl : DirectoryService {
                             .asRuntimeException()
                     }
 
+                    val matchingApkObjectIds =
+                        getMatchingApkObjectIds(buildApksResult, request.deviceAttributes).toSet()
+
+                    val compatibilityLevel = if (matchingApkObjectIds.isNotEmpty()) {
+                        CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
+                    } else {
+                        CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
+                    }
                     listingBuilder.setCompatibility(
-                        Compatibility.newBuilder()
-                            .setLevel(
-                                if (appSupportsDevice(buildApksResult, request.deviceAttributes)) {
-                                    CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
-                                } else {
-                                    CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
-                                }
-                            ),
+                        Compatibility.newBuilder().setLevel(compatibilityLevel)
                     )
+
+                    if (compatibilityLevel == CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE) {
+                        val totalUncompressedSize = releaseChannel.objects
+                            .filter { matchingApkObjectIds.contains(it.id) }
+                            .sumOf { it.uncompressedSize }
+                        val downloadSize = DownloadSize.newBuilder()
+                            .setUncompressedTotal(totalUncompressedSize.toInt())
+                        listingBuilder.setDownloadSize(downloadSize)
+                    }
                 }
 
                 GetAppListingResponse.newBuilder().setListing(listingBuilder).build()
@@ -211,16 +222,29 @@ class DirectoryServiceImpl : DirectoryService {
                             .asRuntimeException()
                     }
 
+                    val matchingApkObjectIds =
+                        getMatchingApkObjectIds(buildApksResult, request.deviceAttributes).toSet()
+
+                    val compatibilityLevel = if (matchingApkObjectIds.isNotEmpty()) {
+                        CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
+                    } else {
+                        CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
+                    }
                     listingBuilder.setCompatibility(
-                        Compatibility.newBuilder()
-                            .setLevel(
-                                if (appSupportsDevice(buildApksResult, request.deviceAttributes)) {
-                                    CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
-                                } else {
-                                    CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
-                                }
-                            ),
+                        Compatibility.newBuilder().setLevel(compatibilityLevel)
                     )
+
+                    if (
+                        request.view == AppListingView.APP_LISTING_VIEW_FULL &&
+                        compatibilityLevel == CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
+                    ) {
+                        val totalUncompressedSize = releaseChannel.objects
+                            .filter { matchingApkObjectIds.contains(it.id) }
+                            .sumOf { it.uncompressedSize }
+                        val downloadSize = DownloadSize.newBuilder()
+                            .setUncompressedTotal(totalUncompressedSize.toInt())
+                        listingBuilder.setDownloadSize(downloadSize)
+                    }
                 }
 
                 listingBuilder.build()
