@@ -6,9 +6,11 @@ rootProject.name = "directory"
 
 include("directory")
 
-pluginManagement {
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenCentral()
+        google()
         gradlePluginPortal()
         mavenLocal()
     }
