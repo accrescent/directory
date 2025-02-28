@@ -9,4 +9,4 @@ pluginManagement {
         mavenLocal()
     }
 }
-rootProject.name="directory"
+rootProject.name = "directory"

@@ -67,7 +67,8 @@ dokka {
         reportUndocumented = true
 
         perPackageOption {
-            matchingRegex = """^(app\.accrescent\.(com\.android\.bundle|directory\.(internal\.)?v1)|com\.google\.protobuf)"""
+            matchingRegex =
+                """^(app\.accrescent\.(com\.android\.bundle|directory\.(internal\.)?v1)|com\.google\.protobuf)"""
             suppress = true
         }
     }
