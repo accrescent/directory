@@ -12,12 +12,6 @@ plugins {
     alias(libs.plugins.quarkus)
 }
 
-repositories {
-    google()
-    mavenCentral()
-    mavenLocal()
-}
-
 dependencies {
     implementation(enforcedPlatform(libs.quarkus.bom))
     implementation(libs.bundletool)
