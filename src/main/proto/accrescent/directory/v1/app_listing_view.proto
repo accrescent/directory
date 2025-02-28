@@ -14,8 +14,11 @@ enum AppListingView {
   // The unspecified value.
   APP_LISTING_VIEW_UNSPECIFIED = 0;
 
-  // Include the app listing's name, short description, and icon, excluding all
-  // other fields. This is the default.
+  // Include the app listing's ID, language, name, short description, and icon,
+  // excluding all other fields. This is the default.
+  //
+  // Compatibility information will still be included in the response if device
+  // attributes are provided regardless of whether this view is set.
   APP_LISTING_VIEW_BASIC = 1;
 
   // Include all available app listing fields. Note that omitting device
