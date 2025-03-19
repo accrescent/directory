@@ -4,7 +4,7 @@
 
 [versions]
 brotli = "0.1.2"
-bundletool = "1.18.0"
+bundletool = "1.18.1"
 clickhouse = "0.8.2"
 dokka = "2.0.0"
 flyway = "11.6.0"
