@@ -4,7 +4,12 @@
 
 rootProject.name = "directory"
 
-include("directory")
+include(
+    "directory",
+    "quarkus-devservices-clickhouse",
+    "quarkus-jdbc-clickhouse",
+    "quarkus-jdbc-clickhouse-deployment",
+)
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)

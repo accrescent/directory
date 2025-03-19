@@ -26,13 +26,18 @@ import app.accrescent.services.directory.data.Listing
 import app.accrescent.services.directory.data.ListingId
 import app.accrescent.services.directory.data.ReleaseChannel
 import app.accrescent.services.directory.data.StorageObject
+import app.accrescent.services.directory.data.events.Download
+import app.accrescent.services.directory.data.events.EventRepository
 import com.android.bundle.Commands
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.Status
 import io.quarkus.grpc.GrpcService
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
+import jakarta.inject.Inject
 import org.eclipse.microprofile.config.inject.ConfigProperty
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.Base64
 
 private const val DEFAULT_PAGE_SIZE = 50u
@@ -42,7 +47,9 @@ private const val MAX_PAGE_SIZE = 200u
  * The server implementation of [DirectoryService]
  */
 @GrpcService
-class DirectoryServiceImpl : DirectoryService {
+class DirectoryServiceImpl @Inject constructor(
+    private val eventRepository: EventRepository,
+) : DirectoryService {
     @ConfigProperty(name = "artifacts.base-url")
     private lateinit var artifactsBaseUrl: String
 
@@ -322,6 +329,13 @@ class DirectoryServiceImpl : DirectoryService {
                     .withDescription("referenced storage object not found in database")
                     .asRuntimeException()
             }
+
+            eventRepository.addDownload(
+                Download(
+                    date = LocalDate.now(ZoneOffset.UTC),
+                    appId = request.appId,
+                )
+            )
 
             val totalDownloadSize = storageObjects.sumOf { it.uncompressedSize }
 
