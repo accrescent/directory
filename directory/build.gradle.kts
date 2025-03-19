@@ -14,7 +14,9 @@ plugins {
 
 dependencies {
     implementation(enforcedPlatform(libs.quarkus.bom))
+    implementation(project(":quarkus-jdbc-clickhouse"))
     implementation(libs.bundletool)
+    implementation(libs.quarkus.agroal)
     implementation(libs.quarkus.hibernate.reactive)
     implementation(libs.quarkus.hibernate.reactive.panache)
     implementation(libs.quarkus.hibernate.reactive.panache.kotlin)

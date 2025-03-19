@@ -3,15 +3,27 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 [versions]
+brotli = "0.1.2"
 bundletool = "1.18.0"
+clickhouse = "0.8.2"
 dokka = "2.0.0"
 kotlin = "2.1.10"
 quarkus = "3.19.3"
+testcontainers = "1.20.6"
 
 [libraries]
+brotli = { module = "org.brotli:dec", version.ref = "brotli" }
 bundletool = { module = "com.android.tools.build:bundletool", version.ref = "bundletool" }
+clickhouse-jdbc = { module = "com.clickhouse:clickhouse-jdbc", version.ref = "clickhouse" }
+quarkus-agroal = { module = "io.quarkus:quarkus-agroal" }
+quarkus-agroal-deployment = { module = "io.quarkus:quarkus-agroal-deployment" }
+quarkus-agroal-spi = { module = "io.quarkus:quarkus-agroal-spi" }
 quarkus-arc = { module = "io.quarkus:quarkus-arc" }
 quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
+quarkus-datasource-deployment-spi = { module = "io.quarkus:quarkus-datasource-deployment-spi" }
+quarkus-devservices-common = { module = "io.quarkus:quarkus-devservices-common" }
+quarkus-devservices-deployment = { module = "io.quarkus:quarkus-devservices-deployment" }
+quarkus-extension-processor = { module = "io.quarkus:quarkus-extension-processor", version.ref = "quarkus" }
 quarkus-grpc = { module = "io.quarkus:quarkus-grpc" }
 quarkus-hibernate-reactive = { module = "io.quarkus:quarkus-hibernate-reactive" }
 quarkus-hibernate-reactive-panache = { module = "io.quarkus:quarkus-hibernate-reactive-panache" }
@@ -21,10 +33,13 @@ quarkus-kotlin = { module = "io.quarkus:quarkus-kotlin" }
 quarkus-reactive-pg = { module = "io.quarkus:quarkus-reactive-pg-client" }
 quarkus-test-hibernate-reactive-panache = { module = "io.quarkus:quarkus-test-hibernate-reactive-panache" }
 quarkus-test-vertx = { module = "io.quarkus:quarkus-test-vertx" }
+testcontainers-clickhouse = { module = "org.testcontainers:clickhouse", version.ref = "testcontainers" }
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
+quarkus-extension = { id = "io.quarkus.extension", version.ref = "quarkus" }
