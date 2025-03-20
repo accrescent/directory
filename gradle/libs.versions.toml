@@ -7,7 +7,7 @@ brotli = "0.1.2"
 bundletool = "1.18.0"
 clickhouse = "0.8.2"
 dokka = "2.0.0"
-kotlin = "2.1.10"
+kotlin = "2.1.20"
 quarkus = "3.19.3"
 testcontainers = "1.20.6"
 
