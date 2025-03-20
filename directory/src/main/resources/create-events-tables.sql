@@ -5,6 +5,7 @@
 CREATE TABLE events.downloads (
     date Date,
     app_id String,
+    device_sdk_version UInt16,
 )
 ENGINE = MergeTree
 ORDER BY (app_id, date);

@@ -11,5 +11,6 @@ import java.time.LocalDate
  *
  * @property date the date the download occurred
  * @property appId the app ID of the app downloaded
+ * @property deviceSdkVersion the Android SDK version of the requesting device
  */
-data class Download(val date: LocalDate, val appId: String)
+data class Download(val date: LocalDate, val appId: String, val deviceSdkVersion: Int)
