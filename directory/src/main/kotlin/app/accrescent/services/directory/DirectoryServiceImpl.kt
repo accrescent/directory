@@ -32,6 +32,7 @@ import com.android.bundle.Commands
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.Status
 import io.quarkus.grpc.GrpcService
+import io.quarkus.grpc.RegisterInterceptor
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
 import jakarta.inject.Inject
@@ -47,6 +48,7 @@ private const val MAX_PAGE_SIZE = 200u
  * The server implementation of [DirectoryService]
  */
 @GrpcService
+@RegisterInterceptor(RegionMetadataAttacherInterceptor::class)
 class DirectoryServiceImpl @Inject constructor(
     private val eventRepository: EventRepository,
 ) : DirectoryService {
@@ -336,6 +338,7 @@ class DirectoryServiceImpl @Inject constructor(
                     appId = request.appId,
                     versionCode = storageObjects[0].releaseChannel.versionCode,
                     deviceSdkVersion = request.deviceAttributes.spec.sdkVersion.toUInt(),
+                    countryCode = GEO_REGION_CONTEXT_KEY.get(),
                 )
             )
 

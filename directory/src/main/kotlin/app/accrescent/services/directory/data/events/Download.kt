@@ -13,10 +13,12 @@ import java.time.LocalDate
  * @property appId the app ID of the app downloaded
  * @property versionCode the version code of the app downloaded
  * @property deviceSdkVersion the Android SDK version of the requesting device
+ * @property countryCode the ISO 3166-1 alpha-2 country code of the requesting client's geolocation
  */
 data class Download(
     val date: LocalDate,
     val appId: String,
     val versionCode: UInt,
     val deviceSdkVersion: UInt,
+    val countryCode: String?,
 )
