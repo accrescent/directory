@@ -18,5 +18,5 @@ data class Download(
     val date: LocalDate,
     val appId: String,
     val versionCode: UInt,
-    val deviceSdkVersion: Int,
+    val deviceSdkVersion: UInt,
 )

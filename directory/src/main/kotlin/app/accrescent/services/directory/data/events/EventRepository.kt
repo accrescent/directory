@@ -30,8 +30,9 @@ class EventRepository @Inject constructor(
             ).use {
                 it.setObject(1, download.date)
                 it.setString(2, download.appId)
+                // Extend UInts to Longs so that large UInts don't get interpreted as negative
                 it.setLong(3, download.versionCode.toLong())
-                it.setInt(4, download.deviceSdkVersion)
+                it.setLong(4, download.deviceSdkVersion.toLong())
                 it.executeUpdate()
             }
         }

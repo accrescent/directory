@@ -335,7 +335,7 @@ class DirectoryServiceImpl @Inject constructor(
                     date = LocalDate.now(ZoneOffset.UTC),
                     appId = request.appId,
                     versionCode = storageObjects[0].releaseChannel.versionCode,
-                    deviceSdkVersion = request.deviceAttributes.spec.sdkVersion,
+                    deviceSdkVersion = request.deviceAttributes.spec.sdkVersion.toUInt(),
                 )
             )
 
