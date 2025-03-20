@@ -21,6 +21,7 @@ import java.util.UUID
  * @property id this object's unique ID
  * @property releaseChannelId the unique ID of this object's associated release channel
  * @property uncompressedSize the uncompressed size of this object in bytes
+ * @property releaseChannel this object's associated release channel
  */
 @Entity
 @Table(name = "objects")
@@ -37,7 +38,7 @@ class StorageObject(
 ) : PanacheEntityBase {
     @ManyToOne
     @JoinColumn(name = "release_channel_id", insertable = false, updatable = false)
-    private lateinit var releaseChannel: ReleaseChannel
+    lateinit var releaseChannel: ReleaseChannel
 
     /**
      * Container for related methods

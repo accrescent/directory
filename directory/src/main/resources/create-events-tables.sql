@@ -5,6 +5,7 @@
 CREATE TABLE events.downloads (
     date Date,
     app_id String,
+    version_code UInt32,
     device_sdk_version UInt16,
 )
 ENGINE = MergeTree

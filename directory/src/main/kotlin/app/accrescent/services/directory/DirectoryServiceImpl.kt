@@ -334,6 +334,7 @@ class DirectoryServiceImpl @Inject constructor(
                 Download(
                     date = LocalDate.now(ZoneOffset.UTC),
                     appId = request.appId,
+                    versionCode = storageObjects[0].releaseChannel.versionCode,
                     deviceSdkVersion = request.deviceAttributes.spec.sdkVersion,
                 )
             )
