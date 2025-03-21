@@ -10,4 +10,4 @@ CREATE TABLE events.downloads (
     country_code LowCardinality(String),
 )
 ENGINE = MergeTree
-ORDER BY (app_id, date, country_code);
+ORDER BY (app_id, date, version_code, country_code);
