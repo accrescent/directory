@@ -127,9 +127,12 @@ class Listing(
                         "AND listings.id IN ?1 " +
                         "ORDER BY listings.id.appId ASC",
                 ids.map { ListingId(it.first, it.second) },
-            ).project(ListingWithMetadata::class.java).list()
+            )
+                .project(ListingWithMetadata::class.java)
+                .list()
+                // Filter out duplicate rows created by the JOIN FETCH
+                .map { it.distinctBy { it.listing.id } }
         }
-
     }
 }
 

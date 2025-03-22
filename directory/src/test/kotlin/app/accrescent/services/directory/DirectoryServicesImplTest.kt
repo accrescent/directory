@@ -357,6 +357,40 @@ class DirectoryServicesImplTest {
         }
     }
 
+    @Test
+    fun listAppListingsTraversalReturnsNoDuplicates() {
+        val request = ListAppListingsRequest.getDefaultInstance()
+
+        val accumulatedListings = mutableListOf<AppListing>()
+
+        var nextPageToken: String? = internal.createApp(validCreateAppRequest)
+            .chain { -> internal.createApp(validCreateAppRequest2) }
+            .chain { -> internal.createApp(validCreateAppRequest3Incompatible) }
+            .chain { -> external.listAppListings(request) }
+            .subscribeAsCompletionStage()
+            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
+            .let {
+                accumulatedListings.addAll(it.listingsList)
+                it.nextPageToken
+            }
+        while (nextPageToken != null) {
+            val nextRequest = request.toBuilder().setPageToken(nextPageToken).build()
+            val nextResponse = external.listAppListings(nextRequest)
+                .subscribeAsCompletionStage()
+                .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
+
+            accumulatedListings.addAll(nextResponse.listingsList)
+
+            nextPageToken = if (nextResponse.hasNextPageToken()) {
+                nextResponse.nextPageToken
+            } else {
+                null
+            }
+        }
+
+        assertEquals(accumulatedListings.distinctBy { it.appId }.size, accumulatedListings.size)
+    }
+
     @ParameterizedTest
     @MethodSource("generateParamsForListAppListingsRejectsInvalidPageToken")
     fun listAppListingsRejectsInvalidPageToken(pageToken: String) {
