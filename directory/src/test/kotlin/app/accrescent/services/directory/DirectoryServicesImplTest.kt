@@ -181,6 +181,8 @@ class DirectoryServicesImplTest {
         request: GetAppListingRequest,
     ) {
         val response = internal.createApp(validCreateAppRequest)
+            .chain { -> internal.createApp(validCreateAppRequest2) }
+            .chain { -> internal.createApp(validCreateAppRequest3Incompatible) }
             .chain { -> external.getAppListing(request) }
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
@@ -487,7 +489,7 @@ class DirectoryServicesImplTest {
             )
             .build()
 
-        private val expectedFullAppListingEn = AppListing.newBuilder()
+        private val expectedFullAppListingAccrescentEn = AppListing.newBuilder()
             .setAppId("app.accrescent.client")
             .setLanguage("en")
             .setName("Accrescent")
@@ -505,7 +507,7 @@ class DirectoryServicesImplTest {
             )
             .setDownloadSize(DownloadSize.newBuilder().setUncompressedTotal(4648720))
             .build()
-        private val expectedFullAppListingDe = AppListing.newBuilder()
+        private val expectedFullAppListingAccrescentDe = AppListing.newBuilder()
             .setAppId("app.accrescent.client")
             .setLanguage("de")
             .setName("Accrescent")
@@ -520,6 +522,22 @@ class DirectoryServicesImplTest {
                     .setLevel(CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE),
             )
             .setDownloadSize(DownloadSize.newBuilder().setUncompressedTotal(4648720))
+            .build()
+        private val expectedFullAppListingExifEraserEn = AppListing.newBuilder()
+            .setAppId("com.none.tom.exiferaser")
+            .setLanguage("en")
+            .setName("ExifEraser")
+            .setShortDescription("Permissionless image metadata erasing application for Android")
+            .setIcon(
+                Image.newBuilder()
+                    .setUrl("https://not.real.cdn/file/57297a7-6f2c-4a04-9656-497af21bf6b2"),
+            )
+            .setVersionName("6.3.0")
+            .setCompatibility(
+                Compatibility.newBuilder()
+                    .setLevel(CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE),
+            )
+            .setDownloadSize(DownloadSize.newBuilder().setUncompressedTotal(3849948))
             .build()
 
         private fun assertGetAppListingResponseMatchesExpected(
@@ -644,10 +662,10 @@ class DirectoryServicesImplTest {
                 : Stream<Arguments> {
             return Stream.of(
                 // With the "en-US" locale, expected to fall back to the "en" listing
-                Arguments.of(expectedFullAppListingEn, validGetAppListingRequest),
+                Arguments.of(expectedFullAppListingAccrescentEn, validGetAppListingRequest),
                 // With the "en" locale, expected to choose the "en" listing
                 Arguments.of(
-                    expectedFullAppListingEn,
+                    expectedFullAppListingAccrescentEn,
                     validGetAppListingRequest.toBuilder()
                         .apply {
                             deviceAttributesBuilder.specBuilder
@@ -658,7 +676,7 @@ class DirectoryServicesImplTest {
                 ),
                 // With the "de" locale, expected to choose the "de" listing
                 Arguments.of(
-                    expectedFullAppListingDe,
+                    expectedFullAppListingAccrescentDe,
                     validGetAppListingRequest.toBuilder()
                         .apply {
                             deviceAttributesBuilder.specBuilder
@@ -669,7 +687,7 @@ class DirectoryServicesImplTest {
                 ),
                 // With the "de" and "en" locales in that order, expected to choose the "de" listing
                 Arguments.of(
-                    expectedFullAppListingDe,
+                    expectedFullAppListingAccrescentDe,
                     validGetAppListingRequest.toBuilder()
                         .apply {
                             deviceAttributesBuilder.specBuilder
@@ -681,7 +699,7 @@ class DirectoryServicesImplTest {
                 // Without device attributes specified, expected to not set the compatibility or
                 // download size fields
                 Arguments.of(
-                    expectedFullAppListingEn.toBuilder()
+                    expectedFullAppListingAccrescentEn.toBuilder()
                         .clearCompatibility()
                         .clearDownloadSize()
                         .build(),
@@ -690,13 +708,13 @@ class DirectoryServicesImplTest {
                 // Without release channel field specified, expected to return the listing for the
                 // stable channel
                 Arguments.of(
-                    expectedFullAppListingEn,
+                    expectedFullAppListingAccrescentEn,
                     validGetAppListingRequest.toBuilder().clearReleaseChannel().build(),
                 ),
                 // Without the release channel's well known field specified, expected to return the
                 // listing for the stable channel
                 Arguments.of(
-                    expectedFullAppListingEn,
+                    expectedFullAppListingAccrescentEn,
                     validGetAppListingRequest.toBuilder()
                         .setReleaseChannel(ReleaseChannel.getDefaultInstance())
                         .build(),
@@ -704,7 +722,7 @@ class DirectoryServicesImplTest {
                 // With the unspecified well known release channel value, expected to return the
                 // listing for the stable channel
                 Arguments.of(
-                    expectedFullAppListingEn,
+                    expectedFullAppListingAccrescentEn,
                     validGetAppListingRequest.toBuilder()
                         .apply {
                             releaseChannelBuilder
@@ -714,7 +732,7 @@ class DirectoryServicesImplTest {
                 ),
                 // Without support for a required ABI, expected to return an incompatible listing
                 Arguments.of(
-                    expectedFullAppListingEn.toBuilder()
+                    expectedFullAppListingAccrescentEn.toBuilder()
                         .setCompatibility(
                             Compatibility.newBuilder()
                                 .setLevel(CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE)
@@ -723,6 +741,13 @@ class DirectoryServicesImplTest {
                         .build(),
                     validGetAppListingRequest.toBuilder()
                         .apply { deviceAttributesBuilder.specBuilder.clearSupportedAbis() }
+                        .build(),
+                ),
+                // With a different requested app ID
+                Arguments.of(
+                    expectedFullAppListingExifEraserEn,
+                    validGetAppListingRequest.toBuilder()
+                        .setAppId("com.none.tom.exiferaser")
                         .build(),
                 ),
             )
