@@ -2,7 +2,7 @@
 --
 -- SPDX-License-Identifier: AGPL-3.0-only
 
-CREATE TABLE events.downloads (
+CREATE TABLE downloads (
     date Date,
     app_id String,
     version_code UInt32,
