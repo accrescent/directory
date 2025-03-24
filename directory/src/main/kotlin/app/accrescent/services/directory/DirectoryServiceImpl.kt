@@ -28,6 +28,7 @@ import app.accrescent.services.directory.data.ReleaseChannel
 import app.accrescent.services.directory.data.StorageObject
 import app.accrescent.services.directory.data.events.Download
 import app.accrescent.services.directory.data.events.EventRepository
+import app.accrescent.services.directory.data.events.ListingView
 import com.android.bundle.Commands
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.Status
@@ -136,6 +137,16 @@ class DirectoryServiceImpl @Inject constructor(
                         listingBuilder.setDownloadSize(downloadSize)
                     }
                 }
+
+                eventRepository.addListingView(
+                    ListingView(
+                        date = LocalDate.now(ZoneOffset.UTC),
+                        appId = request.appId,
+                        languageCode = listing.id.language,
+                        deviceSdkVersion = request.deviceAttributes.spec.sdkVersion.toUInt(),
+                        countryCode = GEO_REGION_CONTEXT_KEY.get(),
+                    )
+                )
 
                 GetAppListingResponse.newBuilder().setListing(listingBuilder).build()
             }

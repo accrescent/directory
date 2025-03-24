@@ -34,6 +34,30 @@ class EventRepository @Inject constructor(
                 it.setLong(3, download.versionCode.toLong())
                 it.setLong(4, download.deviceSdkVersion.toLong())
                 it.setString(5, download.countryCode ?: "")
+
+                it.executeUpdate()
+            }
+        }
+    }
+
+    /**
+     * Adds a listing view event to the database
+     *
+     * @param view the view event to add
+     */
+    fun addListingView(view: ListingView) {
+        dataSource.connection.use {
+            it.prepareStatement(
+                "INSERT INTO listing_views (date, app_id, language_code, device_sdk_version, country_code) " +
+                        "VALUES (?, ?, ?, ?, ?)"
+            ).use {
+                it.setObject(1, view.date)
+                it.setString(2, view.appId)
+                it.setString(3, view.languageCode)
+                // Extend UInts to Longs so that large UInts don't get interpreted as negative
+                it.setLong(4, view.deviceSdkVersion.toLong())
+                it.setString(5, view.countryCode ?: "")
+
                 it.executeUpdate()
             }
         }
