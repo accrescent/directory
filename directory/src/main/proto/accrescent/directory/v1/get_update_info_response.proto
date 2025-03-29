@@ -1,0 +1,19 @@
+// Copyright 2025 Logan Magee
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
+syntax = "proto3";
+
+package accrescent.directory.v1;
+
+import "accrescent/directory/v1/update_info.proto";
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.v1";
+
+// Response to requesting an app's update info.
+message GetUpdateInfoResponse {
+  // The update info provided by the API. Populated if and only if an update is
+  // available.
+  UpdateInfo update_info = 1;
+}

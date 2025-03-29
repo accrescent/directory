@@ -20,6 +20,7 @@ import app.accrescent.directory.v1.GetAppDownloadInfoRequest
 import app.accrescent.directory.v1.GetAppDownloadInfoResponse
 import app.accrescent.directory.v1.GetAppListingRequest
 import app.accrescent.directory.v1.GetAppListingResponse
+import app.accrescent.directory.v1.GetUpdateInfoRequest
 import app.accrescent.directory.v1.Image
 import app.accrescent.directory.v1.ListAppListingsRequest
 import app.accrescent.directory.v1.ReleaseChannel
@@ -443,6 +444,55 @@ class DirectoryServicesImplTest {
         assertEquals(getExpectedAppDownloadInfoResponse(), response)
     }
 
+    @ParameterizedTest
+    @MethodSource("generateParamsForGetUpdateInfoValidatesRequest")
+    fun getUpdateInfoValidatesRequest(request: GetUpdateInfoRequest) {
+        val status = CompletableFuture<Status.Code>()
+
+        internal.createApp(validCreateAppRequest)
+            .chain { -> external.getUpdateInfo(request) }
+            .subscribe()
+            .with(
+                { status.complete(Status.Code.OK) },
+                {
+                    require(it is StatusRuntimeException)
+                    status.complete(it.status.code)
+                },
+            )
+
+        assertEquals(
+            Status.Code.INVALID_ARGUMENT,
+            status.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS),
+        )
+    }
+
+    @Test
+    fun getUpdateInfoForUnknownAppReturnsNotFound() {
+        val status = CompletableFuture<Status.Code>()
+
+        external.getUpdateInfo(validGetUpdateInfoRequest)
+            .subscribe()
+            .with(
+                { status.complete(Status.Code.OK) },
+                {
+                    require(it is StatusRuntimeException)
+                    status.complete(it.status.code)
+                },
+            )
+
+        assertEquals(Status.Code.NOT_FOUND, status.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS))
+    }
+
+    @Test
+    fun getUpdateInfoWithDeviceAttributesReturnsCompatibility() {
+        val response = internal.createApp(validCreateAppRequest)
+            .chain { -> external.getUpdateInfo(validGetUpdateInfoRequest) }
+            .subscribeAsCompletionStage()
+            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
+
+        assertTrue(response.updateInfo.hasCompatibility())
+    }
+
     private fun getExpectedAppDownloadInfoResponse() = GetAppDownloadInfoResponse.newBuilder()
         .setAppDownloadInfo(
             AppDownloadInfo.newBuilder()
@@ -517,6 +567,15 @@ class DirectoryServicesImplTest {
 
         private val validGetAppDownloadInfoRequest = GetAppDownloadInfoRequest.newBuilder()
             .setAppId("app.accrescent.client")
+            .setDeviceAttributes(validDeviceAttributes)
+            .setReleaseChannel(
+                ReleaseChannel.newBuilder().setWellKnown(ReleaseChannel.WellKnown.WELL_KNOWN_STABLE)
+            )
+            .build()
+
+        private val validGetUpdateInfoRequest = GetUpdateInfoRequest.newBuilder()
+            .setAppId("app.accrescent.client")
+            .setBaseVersionCode(48)
             .setDeviceAttributes(validDeviceAttributes)
             .setReleaseChannel(
                 ReleaseChannel.newBuilder().setWellKnown(ReleaseChannel.WellKnown.WELL_KNOWN_STABLE)
@@ -808,6 +867,16 @@ class DirectoryServicesImplTest {
                 validGetAppDownloadInfoRequest.toBuilder().clearAppId().build(),
                 // Missing device attributes
                 validGetAppDownloadInfoRequest.toBuilder().clearDeviceAttributes().build(),
+            )
+        }
+
+        @JvmStatic
+        fun generateParamsForGetUpdateInfoValidatesRequest(): Stream<GetUpdateInfoRequest> {
+            return Stream.of(
+                // Missing the app ID
+                validGetUpdateInfoRequest.toBuilder().clearAppId().build(),
+                // Missing the base version code
+                validGetUpdateInfoRequest.toBuilder().clearBaseVersionCode().build(),
             )
         }
     }

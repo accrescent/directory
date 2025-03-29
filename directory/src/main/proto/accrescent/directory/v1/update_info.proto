@@ -1,0 +1,20 @@
+// Copyright 2025 Logan Magee
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
+syntax = "proto3";
+
+package accrescent.directory.v1;
+
+import "accrescent/directory/v1/compatibility.proto";
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.directory.v1";
+
+// Update information for a given app.
+message UpdateInfo {
+  // Compatibility information between the update and the device attributes
+  // specified in the request. If no device attributes were specified, this
+  // field is not populated.
+  Compatibility compatibility = 1;
+}

@@ -16,10 +16,13 @@ import app.accrescent.directory.v1.GetAppDownloadInfoRequest
 import app.accrescent.directory.v1.GetAppDownloadInfoResponse
 import app.accrescent.directory.v1.GetAppListingRequest
 import app.accrescent.directory.v1.GetAppListingResponse
+import app.accrescent.directory.v1.GetUpdateInfoRequest
+import app.accrescent.directory.v1.GetUpdateInfoResponse
 import app.accrescent.directory.v1.Image
 import app.accrescent.directory.v1.ListAppListingsRequest
 import app.accrescent.directory.v1.ListAppListingsResponse
 import app.accrescent.directory.v1.SplitDownloadInfo
+import app.accrescent.directory.v1.UpdateInfo
 import app.accrescent.services.directory.data.App
 import app.accrescent.services.directory.data.AppDefaultListingLanguage
 import app.accrescent.services.directory.data.Listing
@@ -29,6 +32,7 @@ import app.accrescent.services.directory.data.StorageObject
 import app.accrescent.services.directory.data.events.Download
 import app.accrescent.services.directory.data.events.EventRepository
 import app.accrescent.services.directory.data.events.ListingView
+import app.accrescent.services.directory.data.events.UpdateCheck
 import com.android.bundle.Commands
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.Status
@@ -369,6 +373,75 @@ class DirectoryServiceImpl @Inject constructor(
                         ),
                 )
                 .build()
+        }
+
+        return response
+    }
+
+    @WithTransaction
+    override fun getUpdateInfo(request: GetUpdateInfoRequest): Uni<GetUpdateInfoResponse> {
+        if (!request.hasAppId()) {
+            throw Status.fromCode(Status.Code.INVALID_ARGUMENT)
+                .withDescription("app ID is missing but required")
+                .asRuntimeException()
+        } else if (!request.hasBaseVersionCode()) {
+            throw Status.fromCode(Status.Code.INVALID_ARGUMENT)
+                .withDescription("base version code is missing but required")
+                .asRuntimeException()
+        }
+
+        val response = ReleaseChannel.findByAppIdAndName(
+            request.appId,
+            request.releaseChannel.canonicalForm(),
+        ).map { releaseChannel ->
+            if (releaseChannel == null) {
+                throw Status.fromCode(Status.Code.NOT_FOUND)
+                    .withDescription("provided app ID or release channel does not exist")
+                    .asRuntimeException()
+            }
+
+            val responseBuilder = GetUpdateInfoResponse.newBuilder()
+
+            val updateIsAvailable = releaseChannel.versionCode > request.baseVersionCode.toUInt()
+            if (updateIsAvailable) {
+                val updateInfoBuilder = UpdateInfo.newBuilder()
+
+                if (request.hasDeviceAttributes()) {
+                    val buildApksResult = try {
+                        Commands.BuildApksResult.parseFrom(releaseChannel.buildApksResult)
+                    } catch (_: InvalidProtocolBufferException) {
+                        throw Status.fromCode(Status.Code.INTERNAL)
+                            .withDescription("stored BuildApksResult is not a valid message")
+                            .asRuntimeException()
+                    }
+
+                    val matchingApkObjectIds =
+                        getMatchingApkObjectIds(buildApksResult, request.deviceAttributes)
+
+                    val compatibilityLevel = if (matchingApkObjectIds.isNotEmpty()) {
+                        CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
+                    } else {
+                        CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
+                    }
+                    updateInfoBuilder.setCompatibility(
+                        Compatibility.newBuilder().setLevel(compatibilityLevel)
+                    )
+                }
+
+                responseBuilder.setUpdateInfo(updateInfoBuilder)
+            }
+
+            eventRepository.addUpdateCheck(
+                UpdateCheck(
+                    date = LocalDate.now(ZoneOffset.UTC),
+                    appId = request.appId,
+                    releaseChannel = request.releaseChannel.canonicalForm(),
+                    deviceSdkVersion = request.deviceAttributes.spec.sdkVersion.toUInt(),
+                    countryCode = GEO_REGION_CONTEXT_KEY.get(),
+                )
+            )
+
+            responseBuilder.build()
         }
 
         return response

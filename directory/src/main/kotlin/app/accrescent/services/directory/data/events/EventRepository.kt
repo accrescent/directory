@@ -62,4 +62,27 @@ class EventRepository @Inject constructor(
             }
         }
     }
+
+    /**
+     * Adds an update check event to the database
+     *
+     * @param check the update check event to add
+     */
+    fun addUpdateCheck(check: UpdateCheck) {
+        dataSource.connection.use {
+            it.prepareStatement(
+                "INSERT INTO update_checks (date, app_id, release_channel, device_sdk_version, country_code) " +
+                        "VALUES (?, ?, ?, ?, ?)"
+            ).use {
+                it.setObject(1, check.date)
+                it.setString(2, check.appId)
+                it.setString(3, check.releaseChannel)
+                // Extend UInts to Longs so that large UInts don't get interpreted as negative
+                it.setLong(4, check.deviceSdkVersion.toLong())
+                it.setString(5, check.countryCode ?: "")
+
+                it.executeUpdate()
+            }
+        }
+    }
 }

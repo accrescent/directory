@@ -21,3 +21,13 @@ CREATE TABLE listing_views (
 )
 ENGINE = MergeTree
 ORDER BY (app_id, date, language_code, country_code);
+
+CREATE TABLE update_checks (
+    date Date,
+    app_id String,
+    release_channel LowCardinality(String),
+    device_sdk_version UInt16,
+    country_code FixedString(2),
+)
+ENGINE = MergeTree
+ORDER BY (app_id, date, release_channel, country_code);
