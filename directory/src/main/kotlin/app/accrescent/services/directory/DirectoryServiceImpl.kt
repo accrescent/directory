@@ -30,6 +30,7 @@ import app.accrescent.services.directory.data.ListingId
 import app.accrescent.services.directory.data.ReleaseChannel
 import app.accrescent.services.directory.data.StorageObject
 import app.accrescent.services.directory.data.events.Download
+import app.accrescent.services.directory.data.events.DownloadType
 import app.accrescent.services.directory.data.events.EventRepository
 import app.accrescent.services.directory.data.events.ListingView
 import app.accrescent.services.directory.data.events.UpdateCheck
@@ -352,6 +353,11 @@ class DirectoryServiceImpl @Inject constructor(
                     date = LocalDate.now(ZoneOffset.UTC),
                     appId = request.appId,
                     versionCode = storageObjects[0].releaseChannel.versionCode,
+                    downloadType = if (request.hasBaseVersionCode()) {
+                        DownloadType.UPDATE
+                    } else {
+                        DownloadType.INITIAL
+                    },
                     deviceSdkVersion = request.deviceAttributes.spec.sdkVersion.toUInt(),
                     countryCode = GEO_REGION_CONTEXT_KEY.get(),
                 )

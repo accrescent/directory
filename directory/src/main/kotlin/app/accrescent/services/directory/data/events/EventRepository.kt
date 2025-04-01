@@ -25,15 +25,16 @@ class EventRepository @Inject constructor(
     fun addDownload(download: Download) {
         dataSource.connection.use {
             it.prepareStatement(
-                "INSERT INTO downloads (date, app_id, version_code, device_sdk_version, country_code) " +
-                        "VALUES (?, ?, ?, ?, ?)"
+                "INSERT INTO downloads (date, app_id, version_code, download_type, device_sdk_version, country_code) " +
+                        "VALUES (?, ?, ?, ?, ?, ?)"
             ).use {
                 it.setObject(1, download.date)
                 it.setString(2, download.appId)
                 // Extend UInts to Longs so that large UInts don't get interpreted as negative
                 it.setLong(3, download.versionCode.toLong())
-                it.setLong(4, download.deviceSdkVersion.toLong())
-                it.setString(5, download.countryCode ?: "")
+                it.setShort(4, download.downloadType.dbValue)
+                it.setLong(5, download.deviceSdkVersion.toLong())
+                it.setString(6, download.countryCode ?: "")
 
                 it.executeUpdate()
             }

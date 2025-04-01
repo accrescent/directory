@@ -6,6 +6,7 @@ CREATE TABLE downloads (
     date Date,
     app_id String,
     version_code UInt32,
+    download_type Enum8('initial' = 1, 'update' = 2),
     device_sdk_version UInt16,
     country_code FixedString(2),
 )
