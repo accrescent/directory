@@ -4,19 +4,19 @@
 
 syntax = "proto3";
 
-package accrescent.directory.v1;
+package accrescent.directory.v1beta1;
 
-import "accrescent/directory/v1/get_app_download_info_request.proto";
-import "accrescent/directory/v1/get_app_download_info_response.proto";
-import "accrescent/directory/v1/get_app_listing_request.proto";
-import "accrescent/directory/v1/get_app_listing_response.proto";
-import "accrescent/directory/v1/get_update_info_request.proto";
-import "accrescent/directory/v1/get_update_info_response.proto";
-import "accrescent/directory/v1/list_app_listings_request.proto";
-import "accrescent/directory/v1/list_app_listings_response.proto";
+import "accrescent/directory/v1beta1/get_app_download_info_request.proto";
+import "accrescent/directory/v1beta1/get_app_download_info_response.proto";
+import "accrescent/directory/v1beta1/get_app_listing_request.proto";
+import "accrescent/directory/v1beta1/get_app_listing_response.proto";
+import "accrescent/directory/v1beta1/get_update_info_request.proto";
+import "accrescent/directory/v1beta1/get_update_info_response.proto";
+import "accrescent/directory/v1beta1/list_app_listings_request.proto";
+import "accrescent/directory/v1beta1/list_app_listings_response.proto";
 
 option java_multiple_files = true;
-option java_package = "app.accrescent.directory.v1";
+option java_package = "app.accrescent.directory.v1beta1";
 
 // Service providing a directory of all Accrescent apps.
 service DirectoryService {

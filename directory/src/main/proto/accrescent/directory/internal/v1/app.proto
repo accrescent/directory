@@ -8,7 +8,7 @@ package accrescent.directory.internal.v1;
 
 import "accrescent/directory/internal/v1/app_listing.proto";
 import "accrescent/directory/internal/v1/package_metadata.proto";
-import "accrescent/directory/v1/release_channel.proto";
+import "accrescent/directory/v1beta1/release_channel.proto";
 
 option java_multiple_files = true;
 option java_package = "app.accrescent.directory.internal.v1";
@@ -23,7 +23,7 @@ message App {
 
   // Map of a release channel to corresponding package metadata
   message PackageMetadataEntry {
-    accrescent.directory.v1.ReleaseChannel release_channel = 1;
+    accrescent.directory.v1beta1.ReleaseChannel release_channel = 1;
     PackageMetadata package_metadata = 2;
   }
 

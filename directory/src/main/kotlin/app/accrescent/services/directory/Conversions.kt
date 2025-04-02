@@ -4,7 +4,7 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.directory.v1.ReleaseChannel
+import app.accrescent.directory.v1beta1.ReleaseChannel
 
 /**
  * The permanent, canonical name of the stable release channel

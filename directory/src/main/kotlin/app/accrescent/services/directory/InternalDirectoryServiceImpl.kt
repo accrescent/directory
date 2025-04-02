@@ -27,7 +27,7 @@ import jakarta.inject.Inject
 import java.util.UUID
 import app.accrescent.directory.internal.v1.App as AppProto
 import app.accrescent.directory.internal.v1.Image as ImageProto
-import app.accrescent.directory.v1.ReleaseChannel as ReleaseChannelProto
+import app.accrescent.directory.v1beta1.ReleaseChannel as ReleaseChannelProto
 
 /**
  * The server implementation of [DirectoryService]

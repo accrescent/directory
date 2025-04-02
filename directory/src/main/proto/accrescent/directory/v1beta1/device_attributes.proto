@@ -4,12 +4,12 @@
 
 syntax = "proto3";
 
-package accrescent.directory.v1;
+package accrescent.directory.v1beta1;
 
 import "android/bundle/devices.proto";
 
 option java_multiple_files = true;
-option java_package = "app.accrescent.directory.v1";
+option java_package = "app.accrescent.directory.v1beta1";
 
 // A client device's hardware and OS attributes.
 message DeviceAttributes {

@@ -4,13 +4,13 @@
 
 syntax = "proto3";
 
-package accrescent.directory.v1;
+package accrescent.directory.v1beta1;
 
-import "accrescent/directory/v1/app_listing_view.proto";
-import "accrescent/directory/v1/device_attributes.proto";
+import "accrescent/directory/v1beta1/app_listing_view.proto";
+import "accrescent/directory/v1beta1/device_attributes.proto";
 
 option java_multiple_files = true;
-option java_package = "app.accrescent.directory.v1";
+option java_package = "app.accrescent.directory.v1beta1";
 
 // Request defining parameters for retrieving multiple app listings.
 message ListAppListingsRequest {

@@ -4,7 +4,7 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.directory.v1.DeviceAttributes
+import app.accrescent.directory.v1beta1.DeviceAttributes
 import com.android.bundle.Commands
 import com.android.bundle.Devices
 import com.android.tools.build.bundletool.device.ApkMatcher

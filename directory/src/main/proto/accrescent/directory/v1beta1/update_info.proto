@@ -4,12 +4,12 @@
 
 syntax = "proto3";
 
-package accrescent.directory.v1;
+package accrescent.directory.v1beta1;
 
-import "accrescent/directory/v1/compatibility.proto";
+import "accrescent/directory/v1beta1/compatibility.proto";
 
 option java_multiple_files = true;
-option java_package = "app.accrescent.directory.v1";
+option java_package = "app.accrescent.directory.v1beta1";
 
 // Update information for a given app.
 message UpdateInfo {

@@ -4,10 +4,10 @@
 
 syntax = "proto3";
 
-package accrescent.directory.v1;
+package accrescent.directory.v1beta1;
 
 option java_multiple_files = true;
-option java_package = "app.accrescent.directory.v1";
+option java_package = "app.accrescent.directory.v1beta1";
 
 // Level of compatibility of an app with a given device specification.
 enum CompatibilityLevel {
