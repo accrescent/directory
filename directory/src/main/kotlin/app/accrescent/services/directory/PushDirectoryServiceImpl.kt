@@ -9,9 +9,9 @@ import app.accrescent.directory.push.v1.App.PackageMetadataEntry
 import app.accrescent.directory.push.v1.AppListing
 import app.accrescent.directory.push.v1.CreateAppRequest
 import app.accrescent.directory.push.v1.CreateAppResponse
-import app.accrescent.directory.push.v1.DirectoryService
 import app.accrescent.directory.push.v1.ObjectMetadata
 import app.accrescent.directory.push.v1.PackageMetadata
+import app.accrescent.directory.push.v1.PushDirectoryService
 import app.accrescent.services.directory.data.App
 import app.accrescent.services.directory.data.AppRepository
 import app.accrescent.services.directory.data.Image
@@ -30,10 +30,10 @@ import app.accrescent.directory.push.v1.Image as ImageProto
 import app.accrescent.directory.v1beta1.ReleaseChannel as ReleaseChannelProto
 
 /**
- * The server implementation of [DirectoryService]
+ * The server implementation of [PushDirectoryService]
  */
 @GrpcService
-class PushDirectoryServiceImpl : DirectoryService {
+class PushDirectoryServiceImpl : PushDirectoryService {
     @Inject
     private lateinit var appRepository: AppRepository
 

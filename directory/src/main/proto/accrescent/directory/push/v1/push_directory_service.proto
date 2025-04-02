@@ -12,7 +12,7 @@ import "accrescent/directory/push/v1/create_app_response.proto";
 option java_multiple_files = true;
 option java_package = "app.accrescent.directory.push.v1";
 
-service DirectoryService {
+service PushDirectoryService {
   // Creates an app.
   rpc CreateApp(CreateAppRequest) returns (CreateAppResponse);
 }

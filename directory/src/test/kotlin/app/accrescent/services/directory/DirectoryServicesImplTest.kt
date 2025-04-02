@@ -8,6 +8,7 @@ import app.accrescent.directory.priv.v1.ListAppListingsPageToken
 import app.accrescent.directory.push.v1.CreateAppRequest
 import app.accrescent.directory.push.v1.CreateAppResponse
 import app.accrescent.directory.push.v1.ObjectMetadata
+import app.accrescent.directory.push.v1.PushDirectoryService
 import app.accrescent.directory.v1beta1.AppDownloadInfo
 import app.accrescent.directory.v1beta1.AppListing
 import app.accrescent.directory.v1beta1.AppListingView
@@ -50,7 +51,6 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 import java.util.stream.Stream
-import app.accrescent.directory.push.v1.DirectoryService as PushDirectoryService
 
 private const val REQUEST_TIMEOUT_SECS: Long = 5
 
