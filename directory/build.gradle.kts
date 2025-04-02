@@ -64,7 +64,7 @@ dokka {
 
         perPackageOption {
             matchingRegex =
-                """^(app\.accrescent\.(com\.android\.bundle|directory\.(internal\.)?v1(beta1)?)|com\.google\.protobuf)"""
+                """^(app\.accrescent\.(com\.android\.bundle|directory\.(priv\.|push\.)?v1(beta1)?)|com\.google\.protobuf)"""
             suppress = true
         }
     }

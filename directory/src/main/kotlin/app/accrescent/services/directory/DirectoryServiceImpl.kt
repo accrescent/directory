@@ -4,7 +4,7 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.directory.internal.v1.ListAppListingsPageToken
+import app.accrescent.directory.priv.v1.ListAppListingsPageToken
 import app.accrescent.directory.v1beta1.AppDownloadInfo
 import app.accrescent.directory.v1beta1.AppListing
 import app.accrescent.directory.v1beta1.AppListingView

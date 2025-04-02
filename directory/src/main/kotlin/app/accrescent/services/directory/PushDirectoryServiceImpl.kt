@@ -5,13 +5,13 @@
 package app.accrescent.services.directory
 
 import app.accrescent.com.android.bundle.Commands
-import app.accrescent.directory.internal.v1.App.PackageMetadataEntry
-import app.accrescent.directory.internal.v1.AppListing
-import app.accrescent.directory.internal.v1.CreateAppRequest
-import app.accrescent.directory.internal.v1.CreateAppResponse
-import app.accrescent.directory.internal.v1.DirectoryService
-import app.accrescent.directory.internal.v1.ObjectMetadata
-import app.accrescent.directory.internal.v1.PackageMetadata
+import app.accrescent.directory.push.v1.App.PackageMetadataEntry
+import app.accrescent.directory.push.v1.AppListing
+import app.accrescent.directory.push.v1.CreateAppRequest
+import app.accrescent.directory.push.v1.CreateAppResponse
+import app.accrescent.directory.push.v1.DirectoryService
+import app.accrescent.directory.push.v1.ObjectMetadata
+import app.accrescent.directory.push.v1.PackageMetadata
 import app.accrescent.services.directory.data.App
 import app.accrescent.services.directory.data.AppRepository
 import app.accrescent.services.directory.data.Image
@@ -25,15 +25,15 @@ import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
 import jakarta.inject.Inject
 import java.util.UUID
-import app.accrescent.directory.internal.v1.App as AppProto
-import app.accrescent.directory.internal.v1.Image as ImageProto
+import app.accrescent.directory.push.v1.App as AppProto
+import app.accrescent.directory.push.v1.Image as ImageProto
 import app.accrescent.directory.v1beta1.ReleaseChannel as ReleaseChannelProto
 
 /**
  * The server implementation of [DirectoryService]
  */
 @GrpcService
-class InternalDirectoryServiceImpl : DirectoryService {
+class PushDirectoryServiceImpl : DirectoryService {
     @Inject
     private lateinit var appRepository: AppRepository
 

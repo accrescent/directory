@@ -4,10 +4,10 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.directory.internal.v1.CreateAppRequest
-import app.accrescent.directory.internal.v1.CreateAppResponse
-import app.accrescent.directory.internal.v1.ListAppListingsPageToken
-import app.accrescent.directory.internal.v1.ObjectMetadata
+import app.accrescent.directory.priv.v1.ListAppListingsPageToken
+import app.accrescent.directory.push.v1.CreateAppRequest
+import app.accrescent.directory.push.v1.CreateAppResponse
+import app.accrescent.directory.push.v1.ObjectMetadata
 import app.accrescent.directory.v1beta1.AppDownloadInfo
 import app.accrescent.directory.v1beta1.AppListing
 import app.accrescent.directory.v1beta1.AppListingView
@@ -50,17 +50,17 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 import java.util.stream.Stream
-import app.accrescent.directory.internal.v1.DirectoryService as InternalDirectoryService
+import app.accrescent.directory.push.v1.DirectoryService as PushDirectoryService
 
 private const val REQUEST_TIMEOUT_SECS: Long = 5
 
 @QuarkusTest
 class DirectoryServicesImplTest {
     @GrpcClient
-    lateinit var internal: InternalDirectoryService
+    lateinit var push: PushDirectoryService
 
     @GrpcClient
-    lateinit var external: DirectoryService
+    lateinit var directory: DirectoryService
 
     @Inject
     private lateinit var appRepository: AppRepository
@@ -84,7 +84,7 @@ class DirectoryServicesImplTest {
     fun createAppValidatesRequest(request: CreateAppRequest) {
         val response = CompletableFuture<Status.Code>()
 
-        internal.createApp(request).subscribe().with(
+        push.createApp(request).subscribe().with(
             { response.complete(Status.Code.OK) },
             {
                 require(it is StatusRuntimeException)
@@ -100,7 +100,7 @@ class DirectoryServicesImplTest {
 
     @Test
     fun createAppWithValidRequestReturnsApp() {
-        val response = internal.createApp(validCreateAppRequest)
+        val response = push.createApp(validCreateAppRequest)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -112,12 +112,12 @@ class DirectoryServicesImplTest {
         val firstResponse = CompletableFuture<CreateAppResponse?>()
         val secondResponse = CompletableFuture<CreateAppResponse?>()
 
-        internal.createApp(validCreateAppRequest)
+        push.createApp(validCreateAppRequest)
             .onFailure()
             .invoke(Runnable { firstResponse.complete(null) })
             .chain { response ->
                 firstResponse.complete(response)
-                internal.createApp(validCreateAppRequest)
+                push.createApp(validCreateAppRequest)
             }
             .subscribe()
             .with(
@@ -141,8 +141,8 @@ class DirectoryServicesImplTest {
 
         val request = validGetAppListingRequest.toBuilder().clearAppId().build()
 
-        internal.createApp(validCreateAppRequest)
-            .chain { -> external.getAppListing(request) }
+        push.createApp(validCreateAppRequest)
+            .chain { -> directory.getAppListing(request) }
             .subscribe()
             .with(
                 { status.complete(Status.Code.OK) },
@@ -162,7 +162,7 @@ class DirectoryServicesImplTest {
     fun getAppListingForUnknownAppIdReturnsNotFound() {
         val status = CompletableFuture<Status.Code>()
 
-        external.getAppListing(validGetAppListingRequest)
+        directory.getAppListing(validGetAppListingRequest)
             .subscribe()
             .with(
                 { status.complete(Status.Code.OK) },
@@ -181,10 +181,10 @@ class DirectoryServicesImplTest {
         expectedAppListing: AppListing,
         request: GetAppListingRequest,
     ) {
-        val response = internal.createApp(validCreateAppRequest)
-            .chain { -> internal.createApp(validCreateAppRequest2) }
-            .chain { -> internal.createApp(validCreateAppRequest3Incompatible) }
-            .chain { -> external.getAppListing(request) }
+        val response = push.createApp(validCreateAppRequest)
+            .chain { -> push.createApp(validCreateAppRequest2) }
+            .chain { -> push.createApp(validCreateAppRequest3Incompatible) }
+            .chain { -> directory.getAppListing(request) }
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -197,8 +197,8 @@ class DirectoryServicesImplTest {
             .setView(AppListingView.APP_LISTING_VIEW_BASIC)
             .build()
 
-        val listing = internal.createApp(validCreateAppRequest)
-            .chain { -> external.listAppListings(request) }
+        val listing = push.createApp(validCreateAppRequest)
+            .chain { -> directory.listAppListings(request) }
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
             .listingsList
@@ -217,8 +217,8 @@ class DirectoryServicesImplTest {
             .setView(AppListingView.APP_LISTING_VIEW_FULL)
             .build()
 
-        val listing = internal.createApp(validCreateAppRequest)
-            .chain { -> external.listAppListings(request) }
+        val listing = push.createApp(validCreateAppRequest)
+            .chain { -> directory.listAppListings(request) }
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
             .listingsList
@@ -238,8 +238,8 @@ class DirectoryServicesImplTest {
             .setDeviceAttributes(validDeviceAttributes)
             .build()
 
-        val listing = internal.createApp(validCreateAppRequest)
-            .chain { -> external.listAppListings(request) }
+        val listing = push.createApp(validCreateAppRequest)
+            .chain { -> directory.listAppListings(request) }
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
             .listingsList
@@ -255,8 +255,8 @@ class DirectoryServicesImplTest {
             .setDeviceAttributes(validDeviceAttributes)
             .build()
 
-        val listing = internal.createApp(validCreateAppRequest)
-            .chain { -> external.listAppListings(request) }
+        val listing = push.createApp(validCreateAppRequest)
+            .chain { -> directory.listAppListings(request) }
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
             .listingsList
@@ -272,8 +272,8 @@ class DirectoryServicesImplTest {
             .setSkip(Int.MAX_VALUE)
             .build()
 
-        val response = internal.createApp(validCreateAppRequest)
-            .chain { -> external.listAppListings(request) }
+        val response = push.createApp(validCreateAppRequest)
+            .chain { -> directory.listAppListings(request) }
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -287,9 +287,9 @@ class DirectoryServicesImplTest {
             .setPageSize(1)
             .build()
 
-        val response = internal.createApp(validCreateAppRequest)
-            .chain { -> internal.createApp(validCreateAppRequest2) }
-            .chain { -> external.listAppListings(listAppListingsRequest) }
+        val response = push.createApp(validCreateAppRequest)
+            .chain { -> push.createApp(validCreateAppRequest2) }
+            .chain { -> directory.listAppListings(listAppListingsRequest) }
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -304,9 +304,9 @@ class DirectoryServicesImplTest {
 
         val accumulatedListings = mutableListOf<AppListing>()
 
-        var nextPageToken: String? = internal.createApp(validCreateAppRequest)
-            .chain { -> internal.createApp(validCreateAppRequest2) }
-            .chain { -> external.listAppListings(request) }
+        var nextPageToken: String? = push.createApp(validCreateAppRequest)
+            .chain { -> push.createApp(validCreateAppRequest2) }
+            .chain { -> directory.listAppListings(request) }
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
             .let {
@@ -316,7 +316,7 @@ class DirectoryServicesImplTest {
             }
         while (nextPageToken != null) {
             val nextRequest = request.toBuilder().setPageToken(nextPageToken).build()
-            val nextResponse = external.listAppListings(nextRequest)
+            val nextResponse = directory.listAppListings(nextRequest)
                 .subscribeAsCompletionStage()
                 .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -344,10 +344,10 @@ class DirectoryServicesImplTest {
             .setDeviceAttributes(validDeviceAttributes)
             .build()
 
-        val response = internal.createApp(validCreateAppRequest)
-            .chain { -> internal.createApp(validCreateAppRequest2) }
-            .chain { -> internal.createApp(validCreateAppRequest3Incompatible) }
-            .chain { -> external.listAppListings(request) }
+        val response = push.createApp(validCreateAppRequest)
+            .chain { -> push.createApp(validCreateAppRequest2) }
+            .chain { -> push.createApp(validCreateAppRequest3Incompatible) }
+            .chain { -> directory.listAppListings(request) }
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -364,10 +364,10 @@ class DirectoryServicesImplTest {
 
         val accumulatedListings = mutableListOf<AppListing>()
 
-        var nextPageToken: String? = internal.createApp(validCreateAppRequest)
-            .chain { -> internal.createApp(validCreateAppRequest2) }
-            .chain { -> internal.createApp(validCreateAppRequest3Incompatible) }
-            .chain { -> external.listAppListings(request) }
+        var nextPageToken: String? = push.createApp(validCreateAppRequest)
+            .chain { -> push.createApp(validCreateAppRequest2) }
+            .chain { -> push.createApp(validCreateAppRequest3Incompatible) }
+            .chain { -> directory.listAppListings(request) }
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
             .let {
@@ -376,7 +376,7 @@ class DirectoryServicesImplTest {
             }
         while (nextPageToken != null) {
             val nextRequest = request.toBuilder().setPageToken(nextPageToken).build()
-            val nextResponse = external.listAppListings(nextRequest)
+            val nextResponse = directory.listAppListings(nextRequest)
                 .subscribeAsCompletionStage()
                 .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -399,7 +399,7 @@ class DirectoryServicesImplTest {
 
         val request = ListAppListingsRequest.newBuilder().setPageToken(pageToken).build()
 
-        external.listAppListings(request)
+        directory.listAppListings(request)
             .subscribe()
             .with(
                 { response.complete(Status.Code.OK) },
@@ -420,7 +420,7 @@ class DirectoryServicesImplTest {
     fun getAppDownloadInfoValidatesRequest(request: GetAppDownloadInfoRequest) {
         val response = CompletableFuture<Status.Code>()
 
-        external.getAppDownloadInfo(request).subscribe().with(
+        directory.getAppDownloadInfo(request).subscribe().with(
             { response.complete(Status.Code.OK) },
             {
                 require(it is StatusRuntimeException)
@@ -436,8 +436,8 @@ class DirectoryServicesImplTest {
 
     @Test
     fun getAppDownloadInfoReturnsExpected() {
-        val response = internal.createApp(validCreateAppRequest)
-            .chain { -> external.getAppDownloadInfo(validGetAppDownloadInfoRequest) }
+        val response = push.createApp(validCreateAppRequest)
+            .chain { -> directory.getAppDownloadInfo(validGetAppDownloadInfoRequest) }
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -449,8 +449,8 @@ class DirectoryServicesImplTest {
     fun getUpdateInfoValidatesRequest(request: GetUpdateInfoRequest) {
         val status = CompletableFuture<Status.Code>()
 
-        internal.createApp(validCreateAppRequest)
-            .chain { -> external.getUpdateInfo(request) }
+        push.createApp(validCreateAppRequest)
+            .chain { -> directory.getUpdateInfo(request) }
             .subscribe()
             .with(
                 { status.complete(Status.Code.OK) },
@@ -470,7 +470,7 @@ class DirectoryServicesImplTest {
     fun getUpdateInfoForUnknownAppReturnsNotFound() {
         val status = CompletableFuture<Status.Code>()
 
-        external.getUpdateInfo(validGetUpdateInfoRequest)
+        directory.getUpdateInfo(validGetUpdateInfoRequest)
             .subscribe()
             .with(
                 { status.complete(Status.Code.OK) },
@@ -485,8 +485,8 @@ class DirectoryServicesImplTest {
 
     @Test
     fun getUpdateInfoWithDeviceAttributesReturnsCompatibility() {
-        val response = internal.createApp(validCreateAppRequest)
-            .chain { -> external.getUpdateInfo(validGetUpdateInfoRequest) }
+        val response = push.createApp(validCreateAppRequest)
+            .chain { -> directory.getUpdateInfo(validGetUpdateInfoRequest) }
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 

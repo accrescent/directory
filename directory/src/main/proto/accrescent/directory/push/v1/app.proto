@@ -4,14 +4,14 @@
 
 syntax = "proto3";
 
-package accrescent.directory.internal.v1;
+package accrescent.directory.push.v1;
 
-import "accrescent/directory/internal/v1/app_listing.proto";
-import "accrescent/directory/internal/v1/package_metadata.proto";
+import "accrescent/directory/push/v1/app_listing.proto";
+import "accrescent/directory/push/v1/package_metadata.proto";
 import "accrescent/directory/v1beta1/release_channel.proto";
 
 option java_multiple_files = true;
-option java_package = "app.accrescent.directory.internal.v1";
+option java_package = "app.accrescent.directory.push.v1";
 
 message App {
   // The default listing language of this app as a BCP-47 tag. Required.
