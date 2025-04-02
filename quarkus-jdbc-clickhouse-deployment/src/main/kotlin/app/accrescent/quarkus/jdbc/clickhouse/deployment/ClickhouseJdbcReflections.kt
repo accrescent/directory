@@ -12,19 +12,15 @@ class ClickhouseJdbcReflections {
     @BuildStep
     fun build(items: BuildProducer<ReflectiveClassBuildItem>) {
         items.produce(
-            ReflectiveClassBuildItem.builder(DRIVER_NAME)
-                .methods(false)
-                .fields(false)
-                .build()
-        )
-        items.produce(
-            ReflectiveClassBuildItem.builder(DATA_SOURCE_NAME)
-                .methods(false)
-                .fields(false)
-                .build()
-        )
-        items.produce(
             listOf(
+                ReflectiveClassBuildItem.builder(DRIVER_NAME)
+                    .methods(false)
+                    .fields(false)
+                    .build(),
+                ReflectiveClassBuildItem.builder(DATA_SOURCE_NAME)
+                    .methods(false)
+                    .fields(false)
+                    .build(),
                 ReflectiveClassBuildItem.builder("net.jpountz.lz4.LZ4HCJavaSafeCompressor")
                     .fields(true)
                     .build(),
