@@ -23,5 +23,21 @@ class ClickhouseJdbcReflections {
                 .fields(false)
                 .build()
         )
+        items.produce(
+            listOf(
+                ReflectiveClassBuildItem.builder("net.jpountz.lz4.LZ4HCJavaSafeCompressor")
+                    .fields(true)
+                    .build(),
+                ReflectiveClassBuildItem.builder("net.jpountz.lz4.LZ4JavaSafeCompressor")
+                    .fields(true)
+                    .build(),
+                ReflectiveClassBuildItem.builder("net.jpountz.lz4.LZ4JavaSafeFastDecompressor")
+                    .fields(true)
+                    .build(),
+                ReflectiveClassBuildItem.builder("net.jpountz.lz4.LZ4JavaSafeSafeDecompressor")
+                    .fields(true)
+                    .build(),
+            )
+        )
     }
 }
