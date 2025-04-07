@@ -33,10 +33,9 @@ import app.accrescent.directory.v1beta1.ReleaseChannel as ReleaseChannelProto
  * The server implementation of [PushDirectoryService]
  */
 @GrpcService
-class PushDirectoryServiceImpl : PushDirectoryService {
-    @Inject
-    private lateinit var appRepository: AppRepository
-
+class PushDirectoryServiceImpl @Inject constructor(
+    private val appRepository: AppRepository,
+) : PushDirectoryService {
     @WithTransaction
     override fun createApp(request: CreateAppRequest): Uni<CreateAppResponse> {
         val error = validateCreateAppRequest(request)

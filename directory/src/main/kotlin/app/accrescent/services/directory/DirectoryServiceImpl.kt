@@ -57,10 +57,10 @@ private const val MAX_PAGE_SIZE = 200u
 @RegisterInterceptor(RegionMetadataAttacherInterceptor::class)
 class DirectoryServiceImpl @Inject constructor(
     private val eventRepository: EventRepository,
-) : DirectoryService {
-    @ConfigProperty(name = "artifacts.base-url")
-    private lateinit var artifactsBaseUrl: String
 
+    @ConfigProperty(name = "artifacts.base-url")
+    private val artifactsBaseUrl: String,
+) : DirectoryService {
     @WithTransaction
     override fun getAppListing(request: GetAppListingRequest): Uni<GetAppListingResponse> {
         if (!request.hasAppId()) {
