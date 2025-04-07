@@ -7,6 +7,7 @@ brotli = "0.1.2"
 bundletool = "1.18.0"
 clickhouse = "0.8.2"
 dokka = "2.0.0"
+flyway = "11.6.0"
 kotlin = "2.1.20"
 quarkus = "3.19.3"
 testcontainers = "1.20.6"
@@ -15,6 +16,7 @@ testcontainers = "1.20.6"
 brotli = { module = "org.brotli:dec", version.ref = "brotli" }
 bundletool = { module = "com.android.tools.build:bundletool", version.ref = "bundletool" }
 clickhouse-jdbc = { module = "com.clickhouse:clickhouse-jdbc", version.ref = "clickhouse" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 quarkus-agroal = { module = "io.quarkus:quarkus-agroal" }
 quarkus-agroal-deployment = { module = "io.quarkus:quarkus-agroal-deployment" }
 quarkus-agroal-spi = { module = "io.quarkus:quarkus-agroal-spi" }
@@ -24,10 +26,12 @@ quarkus-datasource-deployment-spi = { module = "io.quarkus:quarkus-datasource-de
 quarkus-devservices-common = { module = "io.quarkus:quarkus-devservices-common" }
 quarkus-devservices-deployment = { module = "io.quarkus:quarkus-devservices-deployment" }
 quarkus-extension-processor = { module = "io.quarkus:quarkus-extension-processor", version.ref = "quarkus" }
+quarkus-flyway = { module = "io.quarkus:quarkus-flyway" }
 quarkus-grpc = { module = "io.quarkus:quarkus-grpc" }
 quarkus-hibernate-reactive = { module = "io.quarkus:quarkus-hibernate-reactive" }
 quarkus-hibernate-reactive-panache = { module = "io.quarkus:quarkus-hibernate-reactive-panache" }
 quarkus-hibernate-reactive-panache-kotlin = { module = "io.quarkus:quarkus-hibernate-reactive-panache-kotlin" }
+quarkus-jdbc-postgresql = { module = "io.quarkus:quarkus-jdbc-postgresql" }
 quarkus-junit5 = { module = "io.quarkus:quarkus-junit5" }
 quarkus-kotlin = { module = "io.quarkus:quarkus-kotlin" }
 quarkus-reactive-pg = { module = "io.quarkus:quarkus-reactive-pg-client" }
