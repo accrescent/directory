@@ -5,13 +5,16 @@
 package app.accrescent.services.directory
 
 import app.accrescent.com.android.bundle.Commands
-import app.accrescent.directory.push.v1.App.PackageMetadataEntry
-import app.accrescent.directory.push.v1.AppListing
+import app.accrescent.directory.push.v1.AppKt.packageMetadataEntry
 import app.accrescent.directory.push.v1.CreateAppRequest
 import app.accrescent.directory.push.v1.CreateAppResponse
-import app.accrescent.directory.push.v1.ObjectMetadata
-import app.accrescent.directory.push.v1.PackageMetadata
 import app.accrescent.directory.push.v1.PushDirectoryService
+import app.accrescent.directory.push.v1.app
+import app.accrescent.directory.push.v1.appListing
+import app.accrescent.directory.push.v1.createAppResponse
+import app.accrescent.directory.push.v1.image
+import app.accrescent.directory.push.v1.objectMetadata
+import app.accrescent.directory.push.v1.packageMetadata
 import app.accrescent.services.directory.data.App
 import app.accrescent.services.directory.data.AppRepository
 import app.accrescent.services.directory.data.Image
@@ -25,8 +28,6 @@ import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
 import jakarta.inject.Inject
 import java.util.UUID
-import app.accrescent.directory.push.v1.App as AppProto
-import app.accrescent.directory.push.v1.Image as ImageProto
 import app.accrescent.directory.v1beta1.ReleaseChannel as ReleaseChannelProto
 
 /**
@@ -84,47 +85,35 @@ class PushDirectoryServiceImpl @Inject constructor(
         val result = appRepository.deleteById(app.id)
             .chain { -> appRepository.persist(app) }
             .map { dbApp ->
-                CreateAppResponse.newBuilder().setApp(
-                    AppProto.newBuilder().apply {
+                createAppResponse {
+                    this.app = app {
                         defaultListingLanguage = dbApp.defaultListingLanguage
-                        dbApp.listings.forEach { dbListing ->
-                            addListings(
-                                AppListing.newBuilder()
-                                    .setLanguage(dbListing.id.language)
-                                    .setName(dbListing.name)
-                                    .setShortDescription(dbListing.shortDescription)
-                                    .setIcon(
-                                        ImageProto.newBuilder()
-                                            .setObjectId(dbListing.icon.objectId)
-                                    )
-                            )
-                        }
-                        dbApp.releaseChannels.forEach { dbReleaseChannel ->
-                            addPackageMetadata(
-                                PackageMetadataEntry.newBuilder()
-                                    .setReleaseChannel(
-                                        releaseChannelFromCanonicalForm(dbReleaseChannel.name)
-                                    )
-                                    .setPackageMetadata(
-                                        PackageMetadata.newBuilder()
-                                            .setVersionCode(dbReleaseChannel.versionCode.toInt())
-                                            .setVersionName(dbReleaseChannel.versionName)
-                                            .setBuildApksResult(
-                                                Commands.BuildApksResult
-                                                    .parseFrom(dbReleaseChannel.buildApksResult)
-                                            )
-                                            .putAllObjectMetadata(dbReleaseChannel.objects.associate {
-                                                it.id to ObjectMetadata
-                                                    .newBuilder()
-                                                    .setUncompressedSize(it.uncompressedSize.toInt())
-                                                    .build()
-                                            })
-                                    )
-                                    .build()
-                            )
-                        }
-                    }.build()
-                ).build()
+                        listings.addAll(dbApp.listings.map {
+                            appListing {
+                                language = it.id.language
+                                name = it.name
+                                shortDescription = it.shortDescription
+                                icon = image { objectId = it.icon.objectId }
+                            }
+                        })
+                        packageMetadata.addAll(dbApp.releaseChannels.map {
+                            packageMetadataEntry {
+                                releaseChannel = releaseChannelFromCanonicalForm(it.name)
+                                packageMetadata = packageMetadata {
+                                    versionCode = it.versionCode.toInt()
+                                    versionName = it.versionName
+                                    buildApksResult =
+                                        Commands.BuildApksResult.parseFrom(it.buildApksResult)
+                                    objectMetadata.putAll(it.objects.associate {
+                                        it.id to objectMetadata {
+                                            uncompressedSize = it.uncompressedSize.toInt()
+                                        }
+                                    })
+                                }
+                            }
+                        })
+                    }
+                }
             }
 
         return result

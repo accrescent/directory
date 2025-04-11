@@ -4,28 +4,35 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.directory.priv.v1.ListAppListingsPageToken
+import app.accrescent.directory.priv.v1.listAppListingsPageToken
 import app.accrescent.directory.push.v1.CreateAppRequest
 import app.accrescent.directory.push.v1.CreateAppResponse
-import app.accrescent.directory.push.v1.ObjectMetadata
 import app.accrescent.directory.push.v1.PushDirectoryService
-import app.accrescent.directory.v1beta1.AppDownloadInfo
+import app.accrescent.directory.push.v1.copy
+import app.accrescent.directory.push.v1.objectMetadata
 import app.accrescent.directory.v1beta1.AppListing
 import app.accrescent.directory.v1beta1.AppListingView
-import app.accrescent.directory.v1beta1.Compatibility
 import app.accrescent.directory.v1beta1.CompatibilityLevel
 import app.accrescent.directory.v1beta1.DeviceAttributes
 import app.accrescent.directory.v1beta1.DirectoryService
-import app.accrescent.directory.v1beta1.DownloadSize
 import app.accrescent.directory.v1beta1.GetAppDownloadInfoRequest
-import app.accrescent.directory.v1beta1.GetAppDownloadInfoResponse
 import app.accrescent.directory.v1beta1.GetAppListingRequest
 import app.accrescent.directory.v1beta1.GetAppListingResponse
 import app.accrescent.directory.v1beta1.GetUpdateInfoRequest
-import app.accrescent.directory.v1beta1.Image
-import app.accrescent.directory.v1beta1.ListAppListingsRequest
 import app.accrescent.directory.v1beta1.ReleaseChannel
-import app.accrescent.directory.v1beta1.SplitDownloadInfo
+import app.accrescent.directory.v1beta1.appDownloadInfo
+import app.accrescent.directory.v1beta1.appListing
+import app.accrescent.directory.v1beta1.compatibility
+import app.accrescent.directory.v1beta1.copy
+import app.accrescent.directory.v1beta1.downloadSize
+import app.accrescent.directory.v1beta1.getAppDownloadInfoRequest
+import app.accrescent.directory.v1beta1.getAppDownloadInfoResponse
+import app.accrescent.directory.v1beta1.getAppListingRequest
+import app.accrescent.directory.v1beta1.getUpdateInfoRequest
+import app.accrescent.directory.v1beta1.image
+import app.accrescent.directory.v1beta1.listAppListingsRequest
+import app.accrescent.directory.v1beta1.releaseChannel
+import app.accrescent.directory.v1beta1.splitDownloadInfo
 import app.accrescent.services.directory.data.AppRepository
 import com.google.protobuf.TextFormat
 import io.grpc.Status
@@ -139,7 +146,7 @@ class DirectoryServicesImplTest {
     fun getAppListingRequiresAppId() {
         val status = CompletableFuture<Status.Code>()
 
-        val request = validGetAppListingRequest.toBuilder().clearAppId().build()
+        val request = validGetAppListingRequest.copy { clearAppId() }
 
         push.createApp(validCreateAppRequest)
             .chain { -> directory.getAppListing(request) }
@@ -193,9 +200,7 @@ class DirectoryServicesImplTest {
 
     @Test
     fun listAppListingsWithBasicViewReturnsRequiredFields() {
-        val request = ListAppListingsRequest.newBuilder()
-            .setView(AppListingView.APP_LISTING_VIEW_BASIC)
-            .build()
+        val request = listAppListingsRequest { view = AppListingView.APP_LISTING_VIEW_BASIC }
 
         val listing = push.createApp(validCreateAppRequest)
             .chain { -> directory.listAppListings(request) }
@@ -213,9 +218,7 @@ class DirectoryServicesImplTest {
 
     @Test
     fun listAppListingsWithFullViewReturnsAllFields() {
-        val request = ListAppListingsRequest.newBuilder()
-            .setView(AppListingView.APP_LISTING_VIEW_FULL)
-            .build()
+        val request = listAppListingsRequest { view = AppListingView.APP_LISTING_VIEW_FULL }
 
         val listing = push.createApp(validCreateAppRequest)
             .chain { -> directory.listAppListings(request) }
@@ -234,9 +237,7 @@ class DirectoryServicesImplTest {
 
     @Test
     fun listAppListingsWithDeviceAttributesReturnsCompatibility() {
-        val request = ListAppListingsRequest.newBuilder()
-            .setDeviceAttributes(validDeviceAttributes)
-            .build()
+        val request = listAppListingsRequest { deviceAttributes = validDeviceAttributes }
 
         val listing = push.createApp(validCreateAppRequest)
             .chain { -> directory.listAppListings(request) }
@@ -250,10 +251,10 @@ class DirectoryServicesImplTest {
 
     @Test
     fun listAppListingsWithFullViewAndCompatibleDeviceAttributesReturnsValidDownloadSize() {
-        val request = ListAppListingsRequest.newBuilder()
-            .setView(AppListingView.APP_LISTING_VIEW_FULL)
-            .setDeviceAttributes(validDeviceAttributes)
-            .build()
+        val request = listAppListingsRequest {
+            view = AppListingView.APP_LISTING_VIEW_FULL
+            deviceAttributes = validDeviceAttributes
+        }
 
         val listing = push.createApp(validCreateAppRequest)
             .chain { -> directory.listAppListings(request) }
@@ -268,9 +269,7 @@ class DirectoryServicesImplTest {
 
     @Test
     fun listAppListingsReturnsEmptySetAndNoPageTokenWhenSkipOvershoots() {
-        val request = ListAppListingsRequest.newBuilder()
-            .setSkip(Int.MAX_VALUE)
-            .build()
+        val request = listAppListingsRequest { skip = Int.MAX_VALUE }
 
         val response = push.createApp(validCreateAppRequest)
             .chain { -> directory.listAppListings(request) }
@@ -283,9 +282,7 @@ class DirectoryServicesImplTest {
 
     @Test
     fun listAppListingsReturnsPageTokenWhenItemsRemain() {
-        val listAppListingsRequest = ListAppListingsRequest.newBuilder()
-            .setPageSize(1)
-            .build()
+        val listAppListingsRequest = listAppListingsRequest { pageSize = 1 }
 
         val response = push.createApp(validCreateAppRequest)
             .chain { -> push.createApp(validCreateAppRequest2) }
@@ -298,9 +295,7 @@ class DirectoryServicesImplTest {
 
     @Test
     fun listAppListingsWithPageTokenTraversesAll() {
-        val request = ListAppListingsRequest.newBuilder()
-            .setPageSize(1)
-            .build()
+        val request = listAppListingsRequest { pageSize = 1 }
 
         val accumulatedListings = mutableListOf<AppListing>()
 
@@ -315,7 +310,7 @@ class DirectoryServicesImplTest {
                 it.nextPageToken
             }
         while (nextPageToken != null) {
-            val nextRequest = request.toBuilder().setPageToken(nextPageToken).build()
+            val nextRequest = request.copy { pageToken = nextPageToken }
             val nextResponse = directory.listAppListings(nextRequest)
                 .subscribeAsCompletionStage()
                 .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
@@ -340,9 +335,7 @@ class DirectoryServicesImplTest {
     // is how the API currently behaves, so it should be fine unless we change that behavior.
     @Test
     fun listAppListingsReturnsOnlyCompatibleApps() {
-        val request = ListAppListingsRequest.newBuilder()
-            .setDeviceAttributes(validDeviceAttributes)
-            .build()
+        val request = listAppListingsRequest { deviceAttributes = validDeviceAttributes }
 
         val response = push.createApp(validCreateAppRequest)
             .chain { -> push.createApp(validCreateAppRequest2) }
@@ -360,7 +353,7 @@ class DirectoryServicesImplTest {
 
     @Test
     fun listAppListingsTraversalReturnsNoDuplicates() {
-        val request = ListAppListingsRequest.getDefaultInstance()
+        val request = listAppListingsRequest {}
 
         val accumulatedListings = mutableListOf<AppListing>()
 
@@ -375,7 +368,7 @@ class DirectoryServicesImplTest {
                 it.nextPageToken
             }
         while (nextPageToken != null) {
-            val nextRequest = request.toBuilder().setPageToken(nextPageToken).build()
+            val nextRequest = request.copy { pageToken = nextPageToken }
             val nextResponse = directory.listAppListings(nextRequest)
                 .subscribeAsCompletionStage()
                 .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
@@ -397,7 +390,7 @@ class DirectoryServicesImplTest {
     fun listAppListingsRejectsInvalidPageToken(pageToken: String) {
         val response = CompletableFuture<Status.Code>()
 
-        val request = ListAppListingsRequest.newBuilder().setPageToken(pageToken).build()
+        val request = listAppListingsRequest { this.pageToken = pageToken }
 
         directory.listAppListings(request)
             .subscribe()
@@ -493,28 +486,27 @@ class DirectoryServicesImplTest {
         assertTrue(response.updateInfo.hasCompatibility())
     }
 
-    private fun getExpectedAppDownloadInfoResponse() = GetAppDownloadInfoResponse.newBuilder()
-        .setAppDownloadInfo(
-            AppDownloadInfo.newBuilder()
-                .setDownloadSize(4648720)
-                .addAllSplitDownloadInfo(
-                    listOf(
-                        SplitDownloadInfo.newBuilder()
-                            .setDownloadSize(44897)
-                            .setUrl("$artifactsBaseUrl/a4f60d94-e402-475d-9e6e-f4585ef13da2")
-                            .build(),
-                        SplitDownloadInfo.newBuilder()
-                            .setDownloadSize(4558309)
-                            .setUrl("$artifactsBaseUrl/38119a8c-1163-4c7d-89c6-cc5c902a6ca1")
-                            .build(),
-                        SplitDownloadInfo.newBuilder()
-                            .setDownloadSize(45514)
-                            .setUrl("$artifactsBaseUrl/d24e0b69-a011-42ed-835e-17d1557fd10a")
-                            .build(),
-                    ),
-                ),
-        )
-        .build()
+    private fun getExpectedAppDownloadInfoResponse() = getAppDownloadInfoResponse {
+        appDownloadInfo = appDownloadInfo {
+            downloadSize = 4648720
+            splitDownloadInfo.addAll(
+                listOf(
+                    splitDownloadInfo {
+                        downloadSize = 44897
+                        url = "$artifactsBaseUrl/a4f60d94-e402-475d-9e6e-f4585ef13da2"
+                    },
+                    splitDownloadInfo {
+                        downloadSize = 4558309
+                        url = "$artifactsBaseUrl/38119a8c-1163-4c7d-89c6-cc5c902a6ca1"
+                    },
+                    splitDownloadInfo {
+                        downloadSize = 45514
+                        url = "$artifactsBaseUrl/d24e0b69-a011-42ed-835e-17d1557fd10a"
+                    },
+                )
+            )
+        }
+    }
 
     companion object {
         private val validCreateAppRequest = javaClass.classLoader
@@ -556,82 +548,71 @@ class DirectoryServicesImplTest {
             }
             .build()
 
-        private val validGetAppListingRequest: GetAppListingRequest = GetAppListingRequest.newBuilder()
-            .setAppId("app.accrescent.client")
-            .setDeviceAttributes(validDeviceAttributes)
-            .setReleaseChannel(
-                ReleaseChannel.newBuilder()
-                    .setWellKnown(ReleaseChannel.WellKnown.WELL_KNOWN_STABLE),
-            )
-            .build()
+        private val validGetAppListingRequest = getAppListingRequest {
+            appId = "app.accrescent.client"
+            deviceAttributes = validDeviceAttributes
+            releaseChannel = releaseChannel {
+                wellKnown = ReleaseChannel.WellKnown.WELL_KNOWN_STABLE
+            }
+        }
 
-        private val validGetAppDownloadInfoRequest = GetAppDownloadInfoRequest.newBuilder()
-            .setAppId("app.accrescent.client")
-            .setDeviceAttributes(validDeviceAttributes)
-            .setReleaseChannel(
-                ReleaseChannel.newBuilder().setWellKnown(ReleaseChannel.WellKnown.WELL_KNOWN_STABLE)
-            )
-            .build()
+        private val validGetAppDownloadInfoRequest = getAppDownloadInfoRequest {
+            appId = "app.accrescent.client"
+            deviceAttributes = validDeviceAttributes
+            releaseChannel = releaseChannel {
+                wellKnown = ReleaseChannel.WellKnown.WELL_KNOWN_STABLE
+            }
+        }
 
-        private val validGetUpdateInfoRequest = GetUpdateInfoRequest.newBuilder()
-            .setAppId("app.accrescent.client")
-            .setBaseVersionCode(48)
-            .setDeviceAttributes(validDeviceAttributes)
-            .setReleaseChannel(
-                ReleaseChannel.newBuilder().setWellKnown(ReleaseChannel.WellKnown.WELL_KNOWN_STABLE)
-            )
-            .build()
+        private val validGetUpdateInfoRequest = getUpdateInfoRequest {
+            appId = "app.accrescent.client"
+            baseVersionCode = 48
+            deviceAttributes = validDeviceAttributes
+            releaseChannel = releaseChannel {
+                wellKnown = ReleaseChannel.WellKnown.WELL_KNOWN_STABLE
+            }
+        }
 
-        private val expectedFullAppListingAccrescentEn = AppListing.newBuilder()
-            .setAppId("app.accrescent.client")
-            .setLanguage("en")
-            .setName("Accrescent")
-            .setShortDescription("A private and secure Android app store")
-            .setIcon(
+        private val expectedFullAppListingAccrescentEn = appListing {
+            appId = "app.accrescent.client"
+            language = "en"
+            name = "Accrescent"
+            shortDescription = "A private and secure Android app store"
+            icon = image {
                 // The URL here is arbitrary and can be assumed to change at any time. What's
                 // necessary is that it is populated (and of course a valid URL).
-                Image.newBuilder()
-                    .setUrl("https://not.real.cdn/file/57297a7-6f2c-4a04-9656-497af21bf6b2"),
-            )
-            .setVersionName("0.25.0")
-            .setCompatibility(
-                Compatibility.newBuilder()
-                    .setLevel(CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE),
-            )
-            .setDownloadSize(DownloadSize.newBuilder().setUncompressedTotal(4648720))
-            .build()
-        private val expectedFullAppListingAccrescentDe = AppListing.newBuilder()
-            .setAppId("app.accrescent.client")
-            .setLanguage("de")
-            .setName("Accrescent")
-            .setShortDescription("Ein privater und sicherer Android App Store")
-            .setIcon(
-                Image.newBuilder()
-                    .setUrl("https://not.real.cdn/file/57297a7-6f2c-4a04-9656-497af21bf6b2"),
-            )
-            .setVersionName("0.25.0")
-            .setCompatibility(
-                Compatibility.newBuilder()
-                    .setLevel(CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE),
-            )
-            .setDownloadSize(DownloadSize.newBuilder().setUncompressedTotal(4648720))
-            .build()
-        private val expectedFullAppListingExifEraserEn = AppListing.newBuilder()
-            .setAppId("com.none.tom.exiferaser")
-            .setLanguage("en")
-            .setName("ExifEraser")
-            .setShortDescription("Permissionless image metadata erasing application for Android")
-            .setIcon(
-                Image.newBuilder()
-                    .setUrl("https://not.real.cdn/file/57297a7-6f2c-4a04-9656-497af21bf6b2"),
-            )
-            .setVersionName("6.3.0")
-            .setCompatibility(
-                Compatibility.newBuilder()
-                    .setLevel(CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE),
-            )
-            .setDownloadSize(DownloadSize.newBuilder().setUncompressedTotal(3849948))
-            .build()
+                url = "https://not.real.cdn/file/57297a7-6f2c-4a04-9656-497af21bf6b2"
+            }
+            versionName = "0.25.0"
+            compatibility = compatibility {
+                level = CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
+            }
+            downloadSize = downloadSize { uncompressedTotal = 4648720 }
+        }
+        private val expectedFullAppListingAccrescentDe = appListing {
+            appId = "app.accrescent.client"
+            language = "de"
+            name = "Accrescent"
+            shortDescription = "Ein privater und sicherer Android App Store"
+            icon = image { url = "https://not.real.cdn/file/57297a7-6f2c-4a04-9656-497af21bf6b2" }
+            versionName = "0.25.0"
+            compatibility = compatibility {
+                level = CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
+            }
+            downloadSize = downloadSize { uncompressedTotal = 4648720 }
+        }
+        private val expectedFullAppListingExifEraserEn = appListing {
+            appId = "com.none.tom.exiferaser"
+            language = "en"
+            name = "ExifEraser"
+            shortDescription = "Permissionless image metadata erasing application for Android"
+            icon = image { url = "https://not.real.cdn/file/57297a7-6f2c-4a04-9656-497af21bf6b2" }
+            versionName = "6.3.0"
+            compatibility = compatibility {
+                level = CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
+            }
+            downloadSize = downloadSize { uncompressedTotal = 3849948 }
+        }
 
         private fun assertGetAppListingResponseMatchesExpected(
             expectedListing: AppListing,
@@ -658,13 +639,13 @@ class DirectoryServicesImplTest {
         fun generateParamsForCreateAppValidatesRequest(): Stream<CreateAppRequest> {
             return Stream.of(
                 // Missing the app ID
-                validCreateAppRequest.toBuilder().clearAppId().build(),
+                validCreateAppRequest.copy { clearAppId() },
                 // Missing the app metadata
-                validCreateAppRequest.toBuilder().clearApp().build(),
+                validCreateAppRequest.copy { clearApp() },
                 // Missing the default listing language
-                validCreateAppRequest.toBuilder()
-                    .apply { appBuilder.clearDefaultListingLanguage() }
-                    .build(),
+                validCreateAppRequest.copy {
+                    app = app.copy { clearDefaultListingLanguage() }
+                },
                 // Listing list doesn't contain the default listing language
                 validCreateAppRequest.toBuilder()
                     .apply {
@@ -743,7 +724,7 @@ class DirectoryServicesImplTest {
                         appBuilder.packageMetadataBuilderList[0].packageMetadataBuilder
                             .putObjectMetadata(
                                 "nonexistent-object",
-                                ObjectMetadata.newBuilder().setUncompressedSize(4096).build()
+                                objectMetadata { uncompressedSize = 4096 }
                             )
                     }
                     .build(),
@@ -792,46 +773,42 @@ class DirectoryServicesImplTest {
                 // Without device attributes specified, expected to not set the compatibility or
                 // download size fields
                 Arguments.of(
-                    expectedFullAppListingAccrescentEn.toBuilder()
-                        .clearCompatibility()
-                        .clearDownloadSize()
-                        .build(),
-                    validGetAppListingRequest.toBuilder().clearDeviceAttributes().build(),
+                    expectedFullAppListingAccrescentEn.copy {
+                        clearCompatibility()
+                        clearDownloadSize()
+                    },
+                    validGetAppListingRequest.copy { clearDeviceAttributes() },
                 ),
                 // Without release channel field specified, expected to return the listing for the
                 // stable channel
                 Arguments.of(
                     expectedFullAppListingAccrescentEn,
-                    validGetAppListingRequest.toBuilder().clearReleaseChannel().build(),
+                    validGetAppListingRequest.copy { clearReleaseChannel() },
                 ),
                 // Without the release channel's well known field specified, expected to return the
                 // listing for the stable channel
                 Arguments.of(
                     expectedFullAppListingAccrescentEn,
-                    validGetAppListingRequest.toBuilder()
-                        .setReleaseChannel(ReleaseChannel.getDefaultInstance())
-                        .build(),
+                    validGetAppListingRequest.copy { releaseChannel = releaseChannel {} }
                 ),
                 // With the unspecified well known release channel value, expected to return the
                 // listing for the stable channel
                 Arguments.of(
                     expectedFullAppListingAccrescentEn,
-                    validGetAppListingRequest.toBuilder()
-                        .apply {
-                            releaseChannelBuilder
-                                .setWellKnown(ReleaseChannel.WellKnown.WELL_KNOWN_UNSPECIFIED)
+                    validGetAppListingRequest.copy {
+                        releaseChannel = releaseChannel.copy {
+                            wellKnown = ReleaseChannel.WellKnown.WELL_KNOWN_UNSPECIFIED
                         }
-                        .build(),
+                    },
                 ),
                 // Without support for a required ABI, expected to return an incompatible listing
                 Arguments.of(
-                    expectedFullAppListingAccrescentEn.toBuilder()
-                        .setCompatibility(
-                            Compatibility.newBuilder()
-                                .setLevel(CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE)
-                        )
-                        .clearDownloadSize()
-                        .build(),
+                    expectedFullAppListingAccrescentEn.copy {
+                        compatibility = compatibility {
+                            level = CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
+                        }
+                        clearDownloadSize()
+                    },
                     validGetAppListingRequest.toBuilder()
                         .apply { deviceAttributesBuilder.specBuilder.clearSupportedAbis() }
                         .build(),
@@ -839,9 +816,7 @@ class DirectoryServicesImplTest {
                 // With a different requested app ID
                 Arguments.of(
                     expectedFullAppListingExifEraserEn,
-                    validGetAppListingRequest.toBuilder()
-                        .setAppId("com.none.tom.exiferaser")
-                        .build(),
+                    validGetAppListingRequest.copy { appId = "com.none.tom.exiferaser" },
                 ),
             )
         }
@@ -854,8 +829,7 @@ class DirectoryServicesImplTest {
                 // Valid base64url, but invalid ListAppListingsPageToken protobuf
                 "base64url",
                 // Valid ListAppListingsPageToken protobuf, but missing the last_app_id field
-                Base64.getUrlEncoder()
-                    .encodeToString(ListAppListingsPageToken.getDefaultInstance().toByteArray()),
+                Base64.getUrlEncoder().encodeToString(listAppListingsPageToken {}.toByteArray()),
             )
         }
 
@@ -864,9 +838,9 @@ class DirectoryServicesImplTest {
                 : Stream<GetAppDownloadInfoRequest> {
             return Stream.of(
                 // Missing the app ID
-                validGetAppDownloadInfoRequest.toBuilder().clearAppId().build(),
+                validGetAppDownloadInfoRequest.copy { clearAppId() },
                 // Missing device attributes
-                validGetAppDownloadInfoRequest.toBuilder().clearDeviceAttributes().build(),
+                validGetAppDownloadInfoRequest.copy { clearDeviceAttributes() },
             )
         }
 
@@ -874,9 +848,9 @@ class DirectoryServicesImplTest {
         fun generateParamsForGetUpdateInfoValidatesRequest(): Stream<GetUpdateInfoRequest> {
             return Stream.of(
                 // Missing the app ID
-                validGetUpdateInfoRequest.toBuilder().clearAppId().build(),
+                validGetUpdateInfoRequest.copy { clearAppId() },
                 // Missing the base version code
-                validGetUpdateInfoRequest.toBuilder().clearBaseVersionCode().build(),
+                validGetUpdateInfoRequest.copy { clearBaseVersionCode() },
             )
         }
     }

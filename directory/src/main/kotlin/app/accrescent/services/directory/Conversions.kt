@@ -5,6 +5,7 @@
 package app.accrescent.services.directory
 
 import app.accrescent.directory.v1beta1.ReleaseChannel
+import app.accrescent.directory.v1beta1.releaseChannel
 
 /**
  * The permanent, canonical name of the stable release channel
@@ -29,7 +30,5 @@ fun ReleaseChannel.WellKnown.canonicalForm(): String = when (this) {
  * Maps a canonical release channel string into its corresponding release channel
  */
 fun releaseChannelFromCanonicalForm(canonicalForm: String): ReleaseChannel {
-    return ReleaseChannel.newBuilder()
-        .setWellKnown(ReleaseChannel.WellKnown.WELL_KNOWN_STABLE)
-        .build()
+    return releaseChannel { wellKnown = ReleaseChannel.WellKnown.WELL_KNOWN_STABLE }
 }

@@ -5,24 +5,29 @@
 package app.accrescent.services.directory
 
 import app.accrescent.directory.priv.v1.ListAppListingsPageToken
-import app.accrescent.directory.v1beta1.AppDownloadInfo
-import app.accrescent.directory.v1beta1.AppListing
+import app.accrescent.directory.priv.v1.listAppListingsPageToken
 import app.accrescent.directory.v1beta1.AppListingView
-import app.accrescent.directory.v1beta1.Compatibility
 import app.accrescent.directory.v1beta1.CompatibilityLevel
 import app.accrescent.directory.v1beta1.DirectoryService
-import app.accrescent.directory.v1beta1.DownloadSize
 import app.accrescent.directory.v1beta1.GetAppDownloadInfoRequest
 import app.accrescent.directory.v1beta1.GetAppDownloadInfoResponse
 import app.accrescent.directory.v1beta1.GetAppListingRequest
 import app.accrescent.directory.v1beta1.GetAppListingResponse
 import app.accrescent.directory.v1beta1.GetUpdateInfoRequest
 import app.accrescent.directory.v1beta1.GetUpdateInfoResponse
-import app.accrescent.directory.v1beta1.Image
 import app.accrescent.directory.v1beta1.ListAppListingsRequest
 import app.accrescent.directory.v1beta1.ListAppListingsResponse
-import app.accrescent.directory.v1beta1.SplitDownloadInfo
-import app.accrescent.directory.v1beta1.UpdateInfo
+import app.accrescent.directory.v1beta1.appDownloadInfo
+import app.accrescent.directory.v1beta1.appListing
+import app.accrescent.directory.v1beta1.compatibility
+import app.accrescent.directory.v1beta1.downloadSize
+import app.accrescent.directory.v1beta1.getAppDownloadInfoResponse
+import app.accrescent.directory.v1beta1.getAppListingResponse
+import app.accrescent.directory.v1beta1.getUpdateInfoResponse
+import app.accrescent.directory.v1beta1.image
+import app.accrescent.directory.v1beta1.listAppListingsResponse
+import app.accrescent.directory.v1beta1.splitDownloadInfo
+import app.accrescent.directory.v1beta1.updateInfo
 import app.accrescent.services.directory.data.App
 import app.accrescent.services.directory.data.AppDefaultListingLanguage
 import app.accrescent.services.directory.data.Listing
@@ -101,18 +106,16 @@ class DirectoryServiceImpl @Inject constructor(
                         .asRuntimeException()
                 }
 
-                val listingBuilder = AppListing.newBuilder()
-                    .setAppId(listing.id.appId)
-                    .setLanguage(listing.id.language)
-                    .setName(listing.name)
-                    .setShortDescription(listing.shortDescription)
-                    .setIcon(
-                        Image.newBuilder()
-                            .setUrl("${artifactsBaseUrl}/${listing.icon.objectId}"),
-                    )
-                    .setVersionName(releaseChannel.versionName)
+                val appListing = appListing {
+                    appId = listing.id.appId
+                    language = listing.id.language
+                    name = listing.name
+                    shortDescription = listing.shortDescription
+                    icon = image { url = "${artifactsBaseUrl}/${listing.icon.objectId}" }
+                    versionName = releaseChannel.versionName
 
-                if (request.hasDeviceAttributes()) {
+                    if (!request.hasDeviceAttributes()) return@appListing
+
                     val buildApksResult = try {
                         Commands.BuildApksResult.parseFrom(releaseChannel.buildApksResult)
                     } catch (_: InvalidProtocolBufferException) {
@@ -129,17 +132,15 @@ class DirectoryServiceImpl @Inject constructor(
                     } else {
                         CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
                     }
-                    listingBuilder.setCompatibility(
-                        Compatibility.newBuilder().setLevel(compatibilityLevel)
-                    )
+                    compatibility = compatibility { level = compatibilityLevel }
 
                     if (compatibilityLevel == CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE) {
-                        val totalUncompressedSize = releaseChannel.objects
-                            .filter { matchingApkObjectIds.contains(it.id) }
-                            .sumOf { it.uncompressedSize }
-                        val downloadSize = DownloadSize.newBuilder()
-                            .setUncompressedTotal(totalUncompressedSize.toInt())
-                        listingBuilder.setDownloadSize(downloadSize)
+                        downloadSize = downloadSize {
+                            uncompressedTotal = releaseChannel.objects
+                                .filter { matchingApkObjectIds.contains(it.id) }
+                                .sumOf { it.uncompressedSize }
+                                .toInt()
+                        }
                     }
                 }
 
@@ -153,7 +154,7 @@ class DirectoryServiceImpl @Inject constructor(
                     )
                 )
 
-                GetAppListingResponse.newBuilder().setListing(listingBuilder).build()
+                getAppListingResponse { this.listing = appListing }
             }
 
         return response
@@ -224,21 +225,19 @@ class DirectoryServiceImpl @Inject constructor(
             Listing.findWithStableMetadataByIds(bestMatchingLanguages)
         }.map {
             val listings = it.map { (listing, releaseChannel) ->
-                val listingBuilder = AppListing.newBuilder()
-                    .setAppId(listing.id.appId)
-                    .setLanguage(listing.id.language)
-                    .setName(listing.name)
-                    .setShortDescription(listing.shortDescription)
-                    .setIcon(
-                        Image.newBuilder()
-                            .setUrl("${artifactsBaseUrl}/${listing.icon.objectId}"),
-                    )
+                appListing {
+                    appId = listing.id.appId
+                    language = listing.id.language
+                    name = listing.name
+                    shortDescription = listing.shortDescription
+                    icon = image { url = "${artifactsBaseUrl}/${listing.icon.objectId}" }
 
-                if (request.hasView() && request.view == AppListingView.APP_LISTING_VIEW_FULL) {
-                    listingBuilder.setVersionName(releaseChannel.versionName)
-                }
+                    if (request.hasView() && request.view == AppListingView.APP_LISTING_VIEW_FULL) {
+                        versionName = releaseChannel.versionName
+                    }
 
-                if (request.hasDeviceAttributes()) {
+                    if (!request.hasDeviceAttributes()) return@appListing
+
                     val buildApksResult = try {
                         Commands.BuildApksResult.parseFrom(releaseChannel.buildApksResult)
                     } catch (_: InvalidProtocolBufferException) {
@@ -255,24 +254,20 @@ class DirectoryServiceImpl @Inject constructor(
                     } else {
                         CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
                     }
-                    listingBuilder.setCompatibility(
-                        Compatibility.newBuilder().setLevel(compatibilityLevel)
-                    )
+                    compatibility = compatibility { level = compatibilityLevel }
 
                     if (
                         request.view == AppListingView.APP_LISTING_VIEW_FULL &&
                         compatibilityLevel == CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
                     ) {
-                        val totalUncompressedSize = releaseChannel.objects
-                            .filter { matchingApkObjectIds.contains(it.id) }
-                            .sumOf { it.uncompressedSize }
-                        val downloadSize = DownloadSize.newBuilder()
-                            .setUncompressedTotal(totalUncompressedSize.toInt())
-                        listingBuilder.setDownloadSize(downloadSize)
+                        downloadSize = downloadSize {
+                            uncompressedTotal = releaseChannel.objects
+                                .filter { matchingApkObjectIds.contains(it.id) }
+                                .sumOf { it.uncompressedSize }
+                                .toInt()
+                        }
                     }
                 }
-
-                listingBuilder.build()
             }.filter {
                 !it.hasCompatibility() ||
                         it.compatibility.level == CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
@@ -280,17 +275,15 @@ class DirectoryServiceImpl @Inject constructor(
 
             if (listings.isNotEmpty()) {
                 // Set a page token indicating that there may be more results
-                val pageToken = ListAppListingsPageToken.newBuilder()
-                    .setLastAppId(listings.last().appId)
-                    .build()
+                val pageToken = listAppListingsPageToken { lastAppId = listings.last().appId }
                 val encodedPageToken = Base64.getUrlEncoder().encodeToString(pageToken.toByteArray())
 
-                ListAppListingsResponse.newBuilder()
-                    .addAllListings(listings)
-                    .setNextPageToken(encodedPageToken)
-                    .build()
+                listAppListingsResponse {
+                    this.listings.addAll(listings)
+                    nextPageToken = encodedPageToken
+                }
             } else {
-                ListAppListingsResponse.getDefaultInstance()
+                listAppListingsResponse {}
             }
         }
 
@@ -365,20 +358,17 @@ class DirectoryServiceImpl @Inject constructor(
 
             val totalDownloadSize = storageObjects.sumOf { it.uncompressedSize }
 
-            GetAppDownloadInfoResponse.newBuilder()
-                .setAppDownloadInfo(
-                    AppDownloadInfo.newBuilder()
-                        .setDownloadSize(totalDownloadSize.toInt())
-                        .addAllSplitDownloadInfo(
-                            storageObjects.map {
-                                SplitDownloadInfo.newBuilder()
-                                    .setDownloadSize(it.uncompressedSize.toInt())
-                                    .setUrl("${artifactsBaseUrl}/${it.id}")
-                                    .build()
-                            },
-                        ),
-                )
-                .build()
+            getAppDownloadInfoResponse {
+                appDownloadInfo = appDownloadInfo {
+                    downloadSize = totalDownloadSize.toInt()
+                    splitDownloadInfo.addAll(storageObjects.map {
+                        splitDownloadInfo {
+                            downloadSize = it.uncompressedSize.toInt()
+                            url = "${artifactsBaseUrl}/${it.id}"
+                        }
+                    })
+                }
+            }
         }
 
         return response
@@ -406,13 +396,14 @@ class DirectoryServiceImpl @Inject constructor(
                     .asRuntimeException()
             }
 
-            val responseBuilder = GetUpdateInfoResponse.newBuilder()
-
             val updateIsAvailable = releaseChannel.versionCode > request.baseVersionCode.toUInt()
-            if (updateIsAvailable) {
-                val updateInfoBuilder = UpdateInfo.newBuilder()
 
-                if (request.hasDeviceAttributes()) {
+            val response = getUpdateInfoResponse {
+                if (!updateIsAvailable) return@getUpdateInfoResponse
+
+                updateInfo = updateInfo {
+                    if (!request.hasDeviceAttributes()) return@updateInfo
+
                     val buildApksResult = try {
                         Commands.BuildApksResult.parseFrom(releaseChannel.buildApksResult)
                     } catch (_: InvalidProtocolBufferException) {
@@ -429,12 +420,9 @@ class DirectoryServiceImpl @Inject constructor(
                     } else {
                         CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
                     }
-                    updateInfoBuilder.setCompatibility(
-                        Compatibility.newBuilder().setLevel(compatibilityLevel)
-                    )
-                }
 
-                responseBuilder.setUpdateInfo(updateInfoBuilder)
+                    compatibility = compatibility { level = compatibilityLevel }
+                }
             }
 
             eventRepository.addUpdateCheck(
@@ -447,7 +435,7 @@ class DirectoryServiceImpl @Inject constructor(
                 )
             )
 
-            responseBuilder.build()
+            response
         }
 
         return response

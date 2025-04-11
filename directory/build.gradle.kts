@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":quarkus-jdbc-clickhouse"))
     implementation(libs.bundletool)
     implementation(libs.flyway.postgresql)
+    implementation(libs.protobuf.kotlin)
     implementation(libs.quarkus.agroal)
     implementation(libs.quarkus.flyway)
     implementation(libs.quarkus.hibernate.reactive)

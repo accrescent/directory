@@ -17,6 +17,7 @@ brotli = { module = "org.brotli:dec", version.ref = "brotli" }
 bundletool = { module = "com.android.tools.build:bundletool", version.ref = "bundletool" }
 clickhouse-jdbc = { module = "com.clickhouse:clickhouse-jdbc", version.ref = "clickhouse" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin" }
 quarkus-agroal = { module = "io.quarkus:quarkus-agroal" }
 quarkus-agroal-deployment = { module = "io.quarkus:quarkus-agroal-deployment" }
 quarkus-agroal-spi = { module = "io.quarkus:quarkus-agroal-spi" }
