@@ -17,4 +17,11 @@ message AppDownloadInfo {
 
   // Download info for each individual split APK
   repeated SplitDownloadInfo split_download_info = 2;
+
+  // Verification info for the APKs. Instance of a SignedVerificationInfo message.
+  // Uses the bytes type instead of the message type because protobuf encoding
+  // is not canonical.
+  // TODO: Clean up the comment here, the message name, and the verification info
+  // stuff in general
+  optional bytes signed_verification_info = 3;
 }

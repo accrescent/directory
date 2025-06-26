@@ -4,63 +4,33 @@ Copyright 2024 Logan Magee
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
-# directory
+# Accrescent Directory Service
 
-> The Accrescent directory server
+The backend server which powers Accrescent's app directory.
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+## About
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+The directory service is Accrescent's server technology which powers Accrescent's app directory
+capabilities. This primarily includes serving the app directory API, which allows Accrescent clients
+to:
 
-## Running the application in dev mode
+- List apps available for installation in the store
+- Retrieve localized app listings for specific apps
+- Retrieve app download information based on the requesting device's needs
+- Check for app updates
+- Check whether an app is compatible with the current Android device
 
-You can run your application in dev mode that enables live coding using:
+The directory service also supports collecting metrics over time in a privacy-preserving way,
+including:
 
-```shell script
-./gradlew quarkusDev
-```
+- App downloads
+- App listing views
+- App update checks (to estimate active users)
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+The directory service is still in development but is almost ready for production use. It is intended
+to replace Accrescent's current repository model to offer significant improvements in features,
+network efficiency, and development simplicity.
 
-## Packaging and running the application
+If you're interested in helping us reach that goal, consider [donating] to support the project.
 
-The application can be packaged using:
-
-```shell script
-./gradlew build
-```
-
-It produces the `quarkus-run.jar` file in the `build/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `build/quarkus-app/lib/` directory.
-
-The application is now runnable using `java -jar build/quarkus-app/quarkus-run.jar`.
-
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./gradlew build -Dquarkus.package.jar.type=uber-jar
-```
-
-The application, packaged as an _über-jar_, is now runnable using `java -jar build/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./gradlew build -Dquarkus.native.enabled=true
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-```shell script
-./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./build/directory-0.0.0-runner`
-
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/gradle-tooling>.
-
-## Related Guides
-
-- Kotlin ([guide](https://quarkus.io/guides/kotlin)): Write your services in Kotlin
+[donating]: https://accrescent.app/donate
