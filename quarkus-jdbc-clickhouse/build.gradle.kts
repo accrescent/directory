@@ -20,4 +20,6 @@ dependencies {
     implementation(libs.brotli)
     implementation(libs.clickhouse.jdbc)
     implementation(libs.quarkus.agroal)
+    implementation(libs.xz)
+    implementation(libs.zstd)
 }
