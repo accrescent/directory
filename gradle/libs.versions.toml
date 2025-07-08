@@ -10,7 +10,7 @@ dokka = "2.0.0"
 flyway = "11.10.0"
 kotlin = "2.2.0"
 quarkus = "3.24.2"
-testcontainers = "1.21.2"
+testcontainers = "1.21.3"
 xz = "1.10"
 zstd = "1.5.7-3"
 
