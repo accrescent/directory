@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 // Copyright 2025 Logan Magee
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -8,6 +10,15 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+        nativeImageCapable = true
+    }
+
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
+    }
+
     explicitApi()
 }
 

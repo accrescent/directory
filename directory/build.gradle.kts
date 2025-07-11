@@ -42,6 +42,11 @@ java {
 }
 
 kotlin {
+    jvmToolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+        nativeImageCapable = true
+    }
+
     compilerOptions {
         jvmTarget = JvmTarget.JVM_21
         javaParameters = true
