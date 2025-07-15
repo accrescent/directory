@@ -14,7 +14,6 @@ plugins {
 
 dependencies {
     implementation(enforcedPlatform(libs.quarkus.bom))
-    implementation(project(":quarkus-jdbc-clickhouse"))
     implementation(libs.bundletool)
     implementation(libs.flyway.postgresql)
     implementation(libs.protobuf.kotlin)
@@ -25,6 +24,7 @@ dependencies {
     implementation(libs.quarkus.hibernate.reactive.panache.kotlin)
     implementation(libs.quarkus.jdbc.postgresql)
     implementation(libs.quarkus.kotlin)
+    implementation(libs.quarkus.messaging.kafka)
     implementation(libs.quarkus.arc)
     implementation(libs.quarkus.grpc)
     implementation(libs.quarkus.reactive.pg)
@@ -73,7 +73,7 @@ dokka {
 
         perPackageOption {
             matchingRegex =
-                """^(app\.accrescent\.(com\.android\.bundle|directory\.(priv\.|push\.)?v1(beta1)?)|com\.google\.protobuf)"""
+                """^(app\.accrescent\.(com\.android\.bundle|directory\.(priv\.|push\.)?v1(beta1)?|events\.v1)|com\.google\.protobuf)"""
             suppress = true
         }
     }
