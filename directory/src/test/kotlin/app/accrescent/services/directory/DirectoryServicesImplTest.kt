@@ -509,7 +509,7 @@ class DirectoryServicesImplTest {
     }
 
     companion object {
-        private val validCreateAppRequest = javaClass.classLoader
+        private val validCreateAppRequest = DirectoryServicesImplTest::class.java.classLoader
             .getResourceAsStream("valid-create-app-request.txtpb")!!
             .use {
                 val builder = CreateAppRequest.newBuilder()
@@ -517,7 +517,7 @@ class DirectoryServicesImplTest {
                 builder
             }
             .build()
-        private val validCreateAppRequest2 = javaClass.classLoader
+        private val validCreateAppRequest2 = DirectoryServicesImplTest::class.java.classLoader
             .getResourceAsStream("valid-create-app-request-2.txtpb")!!
             .use {
                 val builder = CreateAppRequest.newBuilder()
@@ -525,7 +525,8 @@ class DirectoryServicesImplTest {
                 builder
             }
             .build()
-        private val validCreateAppRequest3Incompatible = javaClass.classLoader
+        private val validCreateAppRequest3Incompatible = DirectoryServicesImplTest::class.java
+            .classLoader
             .getResourceAsStream("valid-create-app-request-3-incompatible.txtpb")!!
             .use {
                 val builder = CreateAppRequest.newBuilder()
@@ -539,7 +540,7 @@ class DirectoryServicesImplTest {
         //
         // Has all known fields set as of bundletool 1.18.0 except device_tier, device_groups, and
         // country_set.
-        private val validDeviceAttributes = javaClass.classLoader
+        private val validDeviceAttributes = DirectoryServicesImplTest::class.java.classLoader
             .getResourceAsStream("valid-device-attributes.txtpb")!!
             .use {
                 val builder = DeviceAttributes.newBuilder()
