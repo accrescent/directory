@@ -7,18 +7,18 @@ package app.accrescent.services.directory.data.events
 import java.time.LocalDate
 
 /**
- * An app listing view event
+ * An event representing a client having checked an app for available updates.
  *
- * @property date the date the view occurred
- * @property appId the app ID of the listing viewed
- * @property languageCode the BCP-47 language code of the listing viewed
+ * @property date the UTC date the check occurred
+ * @property appId the unique app ID of the app checked for updates
+ * @property releaseChannel the canonical name of the release channel checked for updates
  * @property deviceSdkVersion the Android SDK version of the requesting device
  * @property countryCode the ISO 3166-1 alpha-2 country code of the requesting client's geolocation
  */
-data class ListingView(
+data class AppUpdateAvailabilityChecked(
     val date: LocalDate,
     val appId: String,
-    val languageCode: String,
+    val releaseChannel: String,
     val deviceSdkVersion: UInt,
     val countryCode: String?,
 )

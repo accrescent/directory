@@ -34,10 +34,10 @@ import app.accrescent.services.directory.data.Listing
 import app.accrescent.services.directory.data.ListingId
 import app.accrescent.services.directory.data.ReleaseChannel
 import app.accrescent.services.directory.data.StorageObject
-import app.accrescent.services.directory.data.events.Download
+import app.accrescent.services.directory.data.events.AppDownloaded
+import app.accrescent.services.directory.data.events.AppListingViewed
+import app.accrescent.services.directory.data.events.AppUpdateAvailabilityChecked
 import app.accrescent.services.directory.data.events.DownloadType
-import app.accrescent.services.directory.data.events.ListingView
-import app.accrescent.services.directory.data.events.UpdateCheck
 import com.android.bundle.Commands
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.Status
@@ -145,8 +145,8 @@ class DirectoryServiceImpl @Inject constructor(
 
                 getAppListingResponse { this.listing = appListing }
             }.call { response ->
-                messageEmitterProvider.appListingViewEventEmitter.send(
-                    ListingView(
+                messageEmitterProvider.appListingViewedEmitter.send(
+                    AppListingViewed(
                         date = LocalDate.now(ZoneOffset.UTC),
                         appId = request.appId,
                         languageCode = response.listing.language,
@@ -355,9 +355,9 @@ class DirectoryServiceImpl @Inject constructor(
             }
 
             messageEmitterProvider
-                .appDownloadEventEmitter
+                .appDownloadedEmitter
                 .send(
-                    Download(
+                    AppDownloaded(
                         date = LocalDate.now(ZoneOffset.UTC),
                         appId = request.appId,
                         versionCode = storageObjects[0].releaseChannel.versionCode,
@@ -429,8 +429,8 @@ class DirectoryServiceImpl @Inject constructor(
 
             response
         }.call { ->
-            messageEmitterProvider.appUpdateCheckEventEmitter.send(
-                UpdateCheck(
+            messageEmitterProvider.appUpdateAvailabilityCheckedEmitter.send(
+                AppUpdateAvailabilityChecked(
                     date = LocalDate.now(ZoneOffset.UTC),
                     appId = request.appId,
                     releaseChannel = request.releaseChannel.canonicalForm(),

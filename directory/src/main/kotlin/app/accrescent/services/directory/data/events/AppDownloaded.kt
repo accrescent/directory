@@ -7,16 +7,16 @@ package app.accrescent.services.directory.data.events
 import java.time.LocalDate
 
 /**
- * An app download event
+ * An event representing a client having downloaded an app.
  *
- * @property date the date the download occurred
- * @property appId the app ID of the app downloaded
+ * @property date the UTC date the download occurred
+ * @property appId the unique app ID of the app downloaded
  * @property versionCode the version code of the app downloaded
- * @property downloadType the type of download requested
+ * @property downloadType the type of download, such as "update"
  * @property deviceSdkVersion the Android SDK version of the requesting device
  * @property countryCode the ISO 3166-1 alpha-2 country code of the requesting client's geolocation
  */
-data class Download(
+data class AppDownloaded(
     val date: LocalDate,
     val appId: String,
     val versionCode: UInt,

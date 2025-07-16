@@ -4,24 +4,21 @@
 
 package app.accrescent.services.directory.data.events
 
-import app.accrescent.events.v1.AppListingViewed
-import app.accrescent.events.v1.appListingViewed
+import app.accrescent.events.v1.appUpdateAvailabilityChecked
 import org.apache.kafka.common.serialization.Serializer
 
 /**
- * Kafka serializer for app [ListingView] events.
- *
- * Serializes to protobuf instances of [AppListingViewed].
+ * Kafka serializer for app [AppUpdateAvailabilityChecked] events.
  */
-class ListingViewSerializer : Serializer<ListingView> {
+class AppUpdateAvailabilityCheckedSerializer : Serializer<AppUpdateAvailabilityChecked> {
     /**
      * @suppress
      */
-    override fun serialize(topic: String, data: ListingView): ByteArray {
-        return appListingViewed {
+    override fun serialize(topic: String, data: AppUpdateAvailabilityChecked): ByteArray {
+        return appUpdateAvailabilityChecked {
             date = data.date.toString()
             appId = data.appId
-            languageCode = data.languageCode
+            releaseChannel = data.releaseChannel
             deviceSdkVersion = data.deviceSdkVersion.toInt()
             if (data.countryCode != null) {
                 countryCode = data.countryCode
