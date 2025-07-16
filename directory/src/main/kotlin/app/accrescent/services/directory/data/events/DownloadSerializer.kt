@@ -4,22 +4,22 @@
 
 package app.accrescent.services.directory.data.events
 
-import app.accrescent.events.v1.AppDownloadEvent
 import app.accrescent.events.v1.AppDownloadType
-import app.accrescent.events.v1.appDownloadEvent
+import app.accrescent.events.v1.AppDownloaded
+import app.accrescent.events.v1.appDownloaded
 import org.apache.kafka.common.serialization.Serializer
 
 /**
  * Kafka serializer for app [Download] events.
  *
- * Serializes to protobuf instances of [AppDownloadEvent].
+ * Serializes to protobuf instances of [AppDownloaded].
  */
 class DownloadSerializer : Serializer<Download> {
     /**
      * @suppress
      */
     override fun serialize(topic: String, data: Download): ByteArray {
-        return appDownloadEvent {
+        return appDownloaded {
             date = data.date.toString()
             appId = data.appId
             versionCode = data.versionCode.toInt()

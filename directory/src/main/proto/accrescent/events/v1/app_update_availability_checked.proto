@@ -9,15 +9,15 @@ package accrescent.events.v1;
 option java_multiple_files = true;
 option java_package = "app.accrescent.events.v1";
 
-// An event representing a client checking for available app updates.
-message AppUpdateCheckEvent {
+// An event representing a client having checked an app for available updates.
+message AppUpdateAvailabilityChecked {
   // The UTC date the check occurred in ISO 8601 format.
   optional string date = 1;
 
-  // The unique app ID of the app being checked for updates.
+  // The unique app ID of the app checked for updates.
   optional string app_id = 2;
 
-  // The canonical name of the release channel being checked for updates.
+  // The canonical name of the release channel checked for updates.
   optional string release_channel = 3;
 
   // The Android SDK version of the requesting device.

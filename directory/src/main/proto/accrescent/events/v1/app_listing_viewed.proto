@@ -9,8 +9,8 @@ package accrescent.events.v1;
 option java_multiple_files = true;
 option java_package = "app.accrescent.events.v1";
 
-// An event representing a client viewing an app listing.
-message AppListingViewEvent {
+// An event representing a client having viewed an app listing.
+message AppListingViewed {
   // The UTC date the listing view occurred in ISO 8601 format.
   optional string date = 1;
 

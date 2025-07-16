@@ -11,8 +11,8 @@ import "accrescent/events/v1/app_download_type.proto";
 option java_multiple_files = true;
 option java_package = "app.accrescent.events.v1";
 
-// An event representing a client downloading an app.
-message AppDownloadEvent {
+// An event representing a client having downloaded an app.
+message AppDownloaded {
   // The UTC date the download occurred in ISO 8601 format.
   optional string date = 1;
 
