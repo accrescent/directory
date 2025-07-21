@@ -2,10 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-package app.accrescent.services.directory.data.events
+package app.accrescent.services.directory.serde
 
 import app.accrescent.events.v1.AppDownloadType
 import app.accrescent.events.v1.appDownloaded
+import app.accrescent.services.directory.data.events.AppDownloaded
+import app.accrescent.services.directory.data.events.DownloadType
 import org.apache.kafka.common.serialization.Serializer
 
 /**

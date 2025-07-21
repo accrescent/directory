@@ -5,11 +5,6 @@
 package app.accrescent.services.directory
 
 import app.accrescent.directory.priv.v1.listAppListingsPageToken
-import app.accrescent.directory.push.v1.CreateAppRequest
-import app.accrescent.directory.push.v1.CreateAppResponse
-import app.accrescent.directory.push.v1.PushDirectoryService
-import app.accrescent.directory.push.v1.copy
-import app.accrescent.directory.push.v1.objectMetadata
 import app.accrescent.directory.v1beta1.AppListing
 import app.accrescent.directory.v1beta1.AppListingView
 import app.accrescent.directory.v1beta1.CompatibilityLevel
@@ -19,7 +14,6 @@ import app.accrescent.directory.v1beta1.GetAppDownloadInfoRequest
 import app.accrescent.directory.v1beta1.GetAppListingRequest
 import app.accrescent.directory.v1beta1.GetAppListingResponse
 import app.accrescent.directory.v1beta1.GetUpdateInfoRequest
-import app.accrescent.directory.v1beta1.ReleaseChannel
 import app.accrescent.directory.v1beta1.appDownloadInfo
 import app.accrescent.directory.v1beta1.appListing
 import app.accrescent.directory.v1beta1.compatibility
@@ -33,18 +27,34 @@ import app.accrescent.directory.v1beta1.image
 import app.accrescent.directory.v1beta1.listAppListingsRequest
 import app.accrescent.directory.v1beta1.releaseChannel
 import app.accrescent.directory.v1beta1.splitDownloadInfo
+import app.accrescent.events.v1.AppPublicationRequested
+import app.accrescent.events.v1.AppPublished
+import app.accrescent.events.v1.copy
+import app.accrescent.events.v1.objectMetadata
 import app.accrescent.services.directory.data.AppRepository
+import app.accrescent.services.directory.serde.AppPublicationRequestedSerializer
+import app.accrescent.services.directory.serde.AppPublishedSerializer
+import app.accrescent.services.directory.serde.TestAppPublicationRequestedDeserializer
+import app.accrescent.services.directory.serde.TestAppPublishedDeserializer
 import com.google.protobuf.TextFormat
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.quarkus.grpc.GrpcClient
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
+import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.hibernate.reactive.panache.TransactionalUniAsserter
 import io.quarkus.test.junit.QuarkusTest
+import io.quarkus.test.kafka.InjectKafkaCompanion
+import io.quarkus.test.kafka.KafkaCompanionResource
 import io.quarkus.test.vertx.RunOnVertxContext
 import io.smallrye.mutiny.Uni
+import io.smallrye.reactive.messaging.kafka.companion.ConsumerTask
+import io.smallrye.reactive.messaging.kafka.companion.KafkaCompanion
 import jakarta.inject.Inject
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.errors.RecordDeserializationException
 import org.eclipse.microprofile.config.inject.ConfigProperty
+import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -54,17 +64,21 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.Base64
+import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 import java.util.stream.Stream
+import app.accrescent.directory.v1beta1.ReleaseChannel as DirectoryReleaseChannel
+import app.accrescent.events.v1.ReleaseChannel as EventsReleaseChannel
 
 private const val REQUEST_TIMEOUT_SECS: Long = 5
 
 @QuarkusTest
+@QuarkusTestResource(KafkaCompanionResource::class)
 class DirectoryServicesImplTest {
-    @GrpcClient
-    lateinit var push: PushDirectoryService
+    @InjectKafkaCompanion
+    lateinit var kafka: KafkaCompanion
 
     @GrpcClient
     lateinit var directory: DirectoryService
@@ -77,7 +91,7 @@ class DirectoryServicesImplTest {
 
     @BeforeEach
     @RunOnVertxContext
-    fun beforeEach(asserter: TransactionalUniAsserter) {
+    fun cleanDatabase(asserter: TransactionalUniAsserter) {
         asserter.execute(Supplier { cleanDatabase() })
     }
 
@@ -86,60 +100,105 @@ class DirectoryServicesImplTest {
         return appRepository.deleteAll()
     }
 
+    @BeforeEach
+    fun registerKafkaSerdes() {
+        kafka.registerSerde(
+            AppPublicationRequested::class.java,
+            AppPublicationRequestedSerializer(),
+            TestAppPublicationRequestedDeserializer(),
+        )
+        kafka.registerSerde(
+            AppPublished::class.java,
+            AppPublishedSerializer(),
+            TestAppPublishedDeserializer(),
+        )
+    }
+
+    private fun publishApps(
+        vararg events: AppPublicationRequested,
+    ): ConsumerTask<String, AppPublished> {
+        kafka.produce(AppPublicationRequested::class.java)
+            .fromRecords(events.map { ProducerRecord("app-publication-requested", it) })
+            .awaitCompletion()
+
+        return kafka
+            .consume(AppPublished::class.java)
+            .withAutoCommit()
+            .withGroupId(kafkaConsumerGroupId)
+            .fromTopics("app-published", events.size.toLong())
+            .awaitCompletion()
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun appPublicationRequestedDeserializerRejectsInvalidBytes() {
+        val invalidByteSequence = "ffffffffdeadbeef".hexToByteArray()
+
+        kafka
+            .produce(ByteArray::class.java)
+            .fromRecords(ProducerRecord("app-publication-requested", invalidByteSequence))
+            .awaitCompletion()
+
+        val badRecord = kafka
+            .consume(ByteArray::class.java)
+            .withAutoCommit()
+            .withGroupId(kafkaConsumerGroupId)
+            .fromTopics("dead-letter-topic-app-publication-requested", 1)
+            .awaitCompletion()
+            .firstRecord
+
+        val errorType = badRecord
+            .headers()
+            .lastHeader("dead-letter-exception-class-name")
+            ?.value()
+            ?.toString(Charsets.UTF_8)
+
+        assertArrayEquals(invalidByteSequence, badRecord.value())
+        assertEquals(RecordDeserializationException::class.qualifiedName, errorType)
+    }
+
     @ParameterizedTest
-    @MethodSource("generateParamsForCreateAppValidatesRequest")
-    fun createAppValidatesRequest(request: CreateAppRequest) {
-        val response = CompletableFuture<Status.Code>()
+    @MethodSource("generateParamsForAppPublicationRequestedDeserializerValidatesFields")
+    fun appPublicationRequestedDeserializerValidatesFields(event: AppPublicationRequested) {
+        kafka
+            .produce(AppPublicationRequested::class.java)
+            .fromRecords(ProducerRecord("app-publication-requested", event))
+            .awaitCompletion()
 
-        push.createApp(request).subscribe().with(
-            { response.complete(Status.Code.OK) },
-            {
-                require(it is StatusRuntimeException)
-                response.complete(it.status.code)
-            },
-        )
+        val badRecord = kafka
+            .consume(AppPublicationRequested::class.java)
+            .withAutoCommit()
+            .withGroupId(kafkaConsumerGroupId)
+            .fromTopics("dead-letter-topic-app-publication-requested", 1)
+            .awaitCompletion()
+            .firstRecord
 
-        assertEquals(
-            Status.Code.INVALID_ARGUMENT,
-            response.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS),
-        )
+        val errorType = badRecord
+            .headers()
+            .lastHeader("dead-letter-exception-class-name")
+            ?.value()
+            ?.toString(Charsets.UTF_8)
+
+        assertEquals(event.app, badRecord.value().app)
+        assertEquals(RecordDeserializationException::class.qualifiedName, errorType)
     }
 
     @Test
-    fun createAppWithValidRequestReturnsApp() {
-        val response = push.createApp(validCreateAppRequest)
-            .subscribeAsCompletionStage()
-            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
+    fun appPublicationRequestedProcessorProducesCorrectAppPublished() {
+        val appPublished = publishApps(validAppPublicationRequested).firstRecord.value()
 
-        assertEquals(validCreateAppRequest.app, response.app)
+        assertEquals(validAppPublicationRequested.app, appPublished.app)
     }
 
     @Test
-    fun createAppCanBeCalledTwiceWithSameRequest() {
-        val firstResponse = CompletableFuture<CreateAppResponse?>()
-        val secondResponse = CompletableFuture<CreateAppResponse?>()
+    fun appPublicationRequestedProcessorIsIdempotent() {
+        val appPublishedEvents =
+            publishApps(validAppPublicationRequested, validAppPublicationRequested)
+                .records
+                .map { it.value() }
 
-        push.createApp(validCreateAppRequest)
-            .onFailure()
-            .invoke(Runnable { firstResponse.complete(null) })
-            .chain { response ->
-                firstResponse.complete(response)
-                push.createApp(validCreateAppRequest)
-            }
-            .subscribe()
-            .with(
-                { secondResponse.complete(it) },
-                { secondResponse.complete(null) },
-            )
-
-        assertEquals(
-            validCreateAppRequest.app,
-            firstResponse.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)?.app,
-        )
-        assertEquals(
-            validCreateAppRequest.app,
-            secondResponse.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)?.app,
-        )
+        assertEquals(validAppPublicationRequested.app, appPublishedEvents[0].app)
+        assertEquals(validAppPublicationRequested.app, appPublishedEvents[1].app)
     }
 
     @Test
@@ -148,8 +207,9 @@ class DirectoryServicesImplTest {
 
         val request = validGetAppListingRequest.copy { clearAppId() }
 
-        push.createApp(validCreateAppRequest)
-            .chain { -> directory.getAppListing(request) }
+        publishApps(validAppPublicationRequested)
+
+        directory.getAppListing(request)
             .subscribe()
             .with(
                 { status.complete(Status.Code.OK) },
@@ -188,10 +248,13 @@ class DirectoryServicesImplTest {
         expectedAppListing: AppListing,
         request: GetAppListingRequest,
     ) {
-        val response = push.createApp(validCreateAppRequest)
-            .chain { -> push.createApp(validCreateAppRequest2) }
-            .chain { -> push.createApp(validCreateAppRequest3Incompatible) }
-            .chain { -> directory.getAppListing(request) }
+        publishApps(
+            validAppPublicationRequested,
+            validAppPublicationRequested2,
+            validAppPublicationRequested3Incompatible,
+        )
+
+        val response = directory.getAppListing(request)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -202,8 +265,9 @@ class DirectoryServicesImplTest {
     fun listAppListingsWithBasicViewReturnsRequiredFields() {
         val request = listAppListingsRequest { view = AppListingView.APP_LISTING_VIEW_BASIC }
 
-        val listing = push.createApp(validCreateAppRequest)
-            .chain { -> directory.listAppListings(request) }
+        publishApps(validAppPublicationRequested)
+
+        val listing = directory.listAppListings(request)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
             .listingsList
@@ -220,8 +284,9 @@ class DirectoryServicesImplTest {
     fun listAppListingsWithFullViewReturnsAllFields() {
         val request = listAppListingsRequest { view = AppListingView.APP_LISTING_VIEW_FULL }
 
-        val listing = push.createApp(validCreateAppRequest)
-            .chain { -> directory.listAppListings(request) }
+        publishApps(validAppPublicationRequested)
+
+        val listing = directory.listAppListings(request)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
             .listingsList
@@ -239,8 +304,9 @@ class DirectoryServicesImplTest {
     fun listAppListingsWithDeviceAttributesReturnsCompatibility() {
         val request = listAppListingsRequest { deviceAttributes = validDeviceAttributes }
 
-        val listing = push.createApp(validCreateAppRequest)
-            .chain { -> directory.listAppListings(request) }
+        publishApps(validAppPublicationRequested)
+
+        val listing = directory.listAppListings(request)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
             .listingsList
@@ -256,8 +322,9 @@ class DirectoryServicesImplTest {
             deviceAttributes = validDeviceAttributes
         }
 
-        val listing = push.createApp(validCreateAppRequest)
-            .chain { -> directory.listAppListings(request) }
+        publishApps(validAppPublicationRequested)
+
+        val listing = directory.listAppListings(request)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
             .listingsList
@@ -271,8 +338,9 @@ class DirectoryServicesImplTest {
     fun listAppListingsReturnsEmptySetAndNoPageTokenWhenSkipOvershoots() {
         val request = listAppListingsRequest { skip = Int.MAX_VALUE }
 
-        val response = push.createApp(validCreateAppRequest)
-            .chain { -> directory.listAppListings(request) }
+        publishApps(validAppPublicationRequested)
+
+        val response = directory.listAppListings(request)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -284,9 +352,9 @@ class DirectoryServicesImplTest {
     fun listAppListingsReturnsPageTokenWhenItemsRemain() {
         val listAppListingsRequest = listAppListingsRequest { pageSize = 1 }
 
-        val response = push.createApp(validCreateAppRequest)
-            .chain { -> push.createApp(validCreateAppRequest2) }
-            .chain { -> directory.listAppListings(listAppListingsRequest) }
+        publishApps(validAppPublicationRequested, validAppPublicationRequested2)
+
+        val response = directory.listAppListings(listAppListingsRequest)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -299,9 +367,9 @@ class DirectoryServicesImplTest {
 
         val accumulatedListings = mutableListOf<AppListing>()
 
-        var nextPageToken: String? = push.createApp(validCreateAppRequest)
-            .chain { -> push.createApp(validCreateAppRequest2) }
-            .chain { -> directory.listAppListings(request) }
+        publishApps(validAppPublicationRequested, validAppPublicationRequested2)
+
+        var nextPageToken: String? = directory.listAppListings(request)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
             .let {
@@ -337,10 +405,13 @@ class DirectoryServicesImplTest {
     fun listAppListingsReturnsOnlyCompatibleApps() {
         val request = listAppListingsRequest { deviceAttributes = validDeviceAttributes }
 
-        val response = push.createApp(validCreateAppRequest)
-            .chain { -> push.createApp(validCreateAppRequest2) }
-            .chain { -> push.createApp(validCreateAppRequest3Incompatible) }
-            .chain { -> directory.listAppListings(request) }
+        publishApps(
+            validAppPublicationRequested,
+            validAppPublicationRequested2,
+            validAppPublicationRequested3Incompatible,
+        )
+
+        val response = directory.listAppListings(request)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -357,10 +428,13 @@ class DirectoryServicesImplTest {
 
         val accumulatedListings = mutableListOf<AppListing>()
 
-        var nextPageToken: String? = push.createApp(validCreateAppRequest)
-            .chain { -> push.createApp(validCreateAppRequest2) }
-            .chain { -> push.createApp(validCreateAppRequest3Incompatible) }
-            .chain { -> directory.listAppListings(request) }
+        publishApps(
+            validAppPublicationRequested,
+            validAppPublicationRequested2,
+            validAppPublicationRequested3Incompatible,
+        )
+
+        var nextPageToken: String? = directory.listAppListings(request)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
             .let {
@@ -429,8 +503,9 @@ class DirectoryServicesImplTest {
 
     @Test
     fun getAppDownloadInfoReturnsExpected() {
-        val response = push.createApp(validCreateAppRequest)
-            .chain { -> directory.getAppDownloadInfo(validGetAppDownloadInfoRequest) }
+        publishApps(validAppPublicationRequested)
+
+        val response = directory.getAppDownloadInfo(validGetAppDownloadInfoRequest)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -442,8 +517,9 @@ class DirectoryServicesImplTest {
     fun getUpdateInfoValidatesRequest(request: GetUpdateInfoRequest) {
         val status = CompletableFuture<Status.Code>()
 
-        push.createApp(validCreateAppRequest)
-            .chain { -> directory.getUpdateInfo(request) }
+        publishApps(validAppPublicationRequested)
+
+        directory.getUpdateInfo(request)
             .subscribe()
             .with(
                 { status.complete(Status.Code.OK) },
@@ -478,8 +554,9 @@ class DirectoryServicesImplTest {
 
     @Test
     fun getUpdateInfoWithDeviceAttributesReturnsCompatibility() {
-        val response = push.createApp(validCreateAppRequest)
-            .chain { -> directory.getUpdateInfo(validGetUpdateInfoRequest) }
+        publishApps(validAppPublicationRequested)
+
+        val response = directory.getUpdateInfo(validGetUpdateInfoRequest)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -509,27 +586,29 @@ class DirectoryServicesImplTest {
     }
 
     companion object {
-        private val validCreateAppRequest = DirectoryServicesImplTest::class.java.classLoader
-            .getResourceAsStream("valid-create-app-request.txtpb")!!
+        private val kafkaConsumerGroupId = UUID.randomUUID().toString()
+
+        private val validAppPublicationRequested = DirectoryServicesImplTest::class.java.classLoader
+            .getResourceAsStream("valid-app-publication-requested.txtpb")!!
             .use {
-                val builder = CreateAppRequest.newBuilder()
+                val builder = AppPublicationRequested.newBuilder()
                 it.reader().use { TextFormat.merge(it, builder) }
                 builder
             }
             .build()
-        private val validCreateAppRequest2 = DirectoryServicesImplTest::class.java.classLoader
-            .getResourceAsStream("valid-create-app-request-2.txtpb")!!
+        private val validAppPublicationRequested2 = DirectoryServicesImplTest::class.java.classLoader
+            .getResourceAsStream("valid-app-publication-requested-2.txtpb")!!
             .use {
-                val builder = CreateAppRequest.newBuilder()
+                val builder = AppPublicationRequested.newBuilder()
                 it.reader().use { TextFormat.merge(it, builder) }
                 builder
             }
             .build()
-        private val validCreateAppRequest3Incompatible = DirectoryServicesImplTest::class.java
+        private val validAppPublicationRequested3Incompatible = DirectoryServicesImplTest::class.java
             .classLoader
-            .getResourceAsStream("valid-create-app-request-3-incompatible.txtpb")!!
+            .getResourceAsStream("valid-app-publication-requested-3-incompatible.txtpb")!!
             .use {
-                val builder = CreateAppRequest.newBuilder()
+                val builder = AppPublicationRequested.newBuilder()
                 it.reader().use { TextFormat.merge(it, builder) }
                 builder
             }
@@ -553,7 +632,7 @@ class DirectoryServicesImplTest {
             appId = "app.accrescent.client"
             deviceAttributes = validDeviceAttributes
             releaseChannel = releaseChannel {
-                wellKnown = ReleaseChannel.WellKnown.WELL_KNOWN_STABLE
+                wellKnown = DirectoryReleaseChannel.WellKnown.WELL_KNOWN_STABLE
             }
         }
 
@@ -561,7 +640,7 @@ class DirectoryServicesImplTest {
             appId = "app.accrescent.client"
             deviceAttributes = validDeviceAttributes
             releaseChannel = releaseChannel {
-                wellKnown = ReleaseChannel.WellKnown.WELL_KNOWN_STABLE
+                wellKnown = DirectoryReleaseChannel.WellKnown.WELL_KNOWN_STABLE
             }
         }
 
@@ -570,7 +649,7 @@ class DirectoryServicesImplTest {
             baseVersionCode = 48
             deviceAttributes = validDeviceAttributes
             releaseChannel = releaseChannel {
-                wellKnown = ReleaseChannel.WellKnown.WELL_KNOWN_STABLE
+                wellKnown = DirectoryReleaseChannel.WellKnown.WELL_KNOWN_STABLE
             }
         }
 
@@ -637,18 +716,19 @@ class DirectoryServicesImplTest {
         }
 
         @JvmStatic
-        fun generateParamsForCreateAppValidatesRequest(): Stream<CreateAppRequest> {
+        fun generateParamsForAppPublicationRequestedDeserializerValidatesFields():
+                Stream<AppPublicationRequested> {
             return Stream.of(
                 // Missing the app ID
-                validCreateAppRequest.copy { clearAppId() },
+                validAppPublicationRequested.copy { app = app.copy { clearAppId() } },
                 // Missing the app metadata
-                validCreateAppRequest.copy { clearApp() },
+                validAppPublicationRequested.copy { clearApp() },
                 // Missing the default listing language
-                validCreateAppRequest.copy {
+                validAppPublicationRequested.copy {
                     app = app.copy { clearDefaultListingLanguage() }
                 },
                 // Listing list doesn't contain the default listing language
-                validCreateAppRequest.toBuilder()
+                validAppPublicationRequested.toBuilder()
                     .apply {
                         appBuilder.removeListings(app.listingsList.indexOfFirst {
                             it.language == app.defaultListingLanguage
@@ -656,55 +736,55 @@ class DirectoryServicesImplTest {
                     }
                     .build(),
                 // Listing contains duplicate languages
-                validCreateAppRequest.toBuilder()
-                    .apply { appBuilder.addListings(validCreateAppRequest.app.listingsList[0]) }
+                validAppPublicationRequested.toBuilder()
+                    .apply { appBuilder.addListings(validAppPublicationRequested.app.listingsList[0]) }
                     .build(),
                 // Listings don't have a language set
-                validCreateAppRequest.toBuilder()
+                validAppPublicationRequested.toBuilder()
                     .apply { appBuilder.listingsBuilderList.forEach { it.clearLanguage() } }
                     .build(),
                 // Listings don't have a name set
-                validCreateAppRequest.toBuilder()
+                validAppPublicationRequested.toBuilder()
                     .apply { appBuilder.listingsBuilderList.forEach { it.clearName() } }
                     .build(),
                 // Listings don't have a short description set
-                validCreateAppRequest.toBuilder()
+                validAppPublicationRequested.toBuilder()
                     .apply { appBuilder.listingsBuilderList.forEach { it.clearShortDescription() } }
                     .build(),
                 // Listings don't have an icon set
-                validCreateAppRequest.toBuilder()
+                validAppPublicationRequested.toBuilder()
                     .apply { appBuilder.listingsBuilderList.forEach { it.clearIcon() } }
                     .build(),
                 // Listing icons don't have an object ID set
-                validCreateAppRequest.toBuilder()
+                validAppPublicationRequested.toBuilder()
                     .apply {
                         appBuilder.listingsBuilderList.forEach { it.iconBuilder.clearObjectId() }
                     }
                     .build(),
                 // Package metadata doesn't exist for the stable release channel
-                validCreateAppRequest.toBuilder()
+                validAppPublicationRequested.toBuilder()
                     .apply {
                         appBuilder.removePackageMetadata(app.packageMetadataList.indexOfFirst {
-                            it.releaseChannel.wellKnown == ReleaseChannel.WellKnown.WELL_KNOWN_STABLE
+                            it.releaseChannel.wellKnown == EventsReleaseChannel.WellKnown.WELL_KNOWN_STABLE
                         })
                     }
                     .build(),
                 // Package metadata contains duplicate release channels
-                validCreateAppRequest.toBuilder()
+                validAppPublicationRequested.toBuilder()
                     .apply {
                         appBuilder
-                            .addPackageMetadata(validCreateAppRequest.app.packageMetadataList[0])
+                            .addPackageMetadata(validAppPublicationRequested.app.packageMetadataList[0])
                     }
                     .build(),
                 // Package metadata is missing metadata for an object
-                validCreateAppRequest.toBuilder()
+                validAppPublicationRequested.toBuilder()
                     .apply {
                         appBuilder.packageMetadataBuilderList[0].packageMetadataBuilder
                             .removeObjectMetadata("38119a8c-1163-4c7d-89c6-cc5c902a6ca1")
                     }
                     .build(),
                 // An object's metadata doesn't have uncompressed size set
-                validCreateAppRequest.toBuilder()
+                validAppPublicationRequested.toBuilder()
                     .apply {
                         val packageMetadataBuilder = appBuilder
                             .packageMetadataBuilderList[0]
@@ -720,7 +800,7 @@ class DirectoryServicesImplTest {
                     }
                     .build(),
                 // Object metadata is specified for an object not found in the build-apks result
-                validCreateAppRequest.toBuilder()
+                validAppPublicationRequested.toBuilder()
                     .apply {
                         appBuilder.packageMetadataBuilderList[0].packageMetadataBuilder
                             .putObjectMetadata(
@@ -798,7 +878,7 @@ class DirectoryServicesImplTest {
                     expectedFullAppListingAccrescentEn,
                     validGetAppListingRequest.copy {
                         releaseChannel = releaseChannel.copy {
-                            wellKnown = ReleaseChannel.WellKnown.WELL_KNOWN_UNSPECIFIED
+                            wellKnown = DirectoryReleaseChannel.WellKnown.WELL_KNOWN_UNSPECIFIED
                         }
                     },
                 ),

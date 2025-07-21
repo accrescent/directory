@@ -1,0 +1,35 @@
+// Copyright 2025 Logan Magee
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
+syntax = "proto3";
+
+package accrescent.events.v1;
+
+import "accrescent/events/v1/app_listing.proto";
+import "accrescent/events/v1/package_metadata.proto";
+import "accrescent/events/v1/release_channel.proto";
+
+option java_multiple_files = true;
+option java_package = "app.accrescent.events.v1";
+
+// An Android app
+message App {
+  // The app's unique Android application ID.
+  optional string app_id = 1;
+
+  // The default listing language of this app as a BCP-47 tag.
+  optional string default_listing_language = 2;
+
+  // The app's listings to be displayed in client UI.
+  repeated AppListing listings = 3;
+
+  // Map of a release channel to corresponding package metadata.
+  message PackageMetadataEntry {
+    ReleaseChannel release_channel = 1;
+    PackageMetadata package_metadata = 2;
+  }
+
+  // The package metadata of the app's latest versions for each release channel.
+  repeated PackageMetadataEntry package_metadata = 4;
+}

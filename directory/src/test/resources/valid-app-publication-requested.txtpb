@@ -2,11 +2,11 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# proto-file: accrescent/directory/push/v1/create_app_request.proto
-# proto-message: CreateAppRequest
+# proto-file: accrescent/events/v1/app_publication_requested.proto
+# proto-message: AppPublicationRequested
 
-app_id: "app.accrescent.client"
 app {
+  app_id: "app.accrescent.client"
   default_listing_language: "en"
   listings {
     language: "en"

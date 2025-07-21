@@ -30,6 +30,7 @@ dependencies {
     implementation(libs.quarkus.reactive.pg)
     testImplementation(libs.quarkus.junit5)
     testImplementation(libs.quarkus.test.hibernate.reactive.panache)
+    testImplementation(libs.quarkus.test.kafka.companion)
     testImplementation(libs.quarkus.test.vertx)
 }
 

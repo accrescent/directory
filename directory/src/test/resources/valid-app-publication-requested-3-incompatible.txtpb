@@ -2,13 +2,13 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# proto-file: accrescent/directory/push/v1/create_app_request.proto
-# proto-message: CreateAppRequest
+# proto-file: accrescent/events/v1/app_publication_requested.proto
+# proto-message: AppPublicationRequested
 
 # Molly (https://github.com/mollyim/mollyim-android/tree/b7bdead) made incompatible with the testing
 # device by artificially increasing every variant's minimum SDK to 999
-app_id: "im.molly.app"
 app {
+  app_id: "im.molly.app"
   default_listing_language: "en"
   listings {
     language: "en"

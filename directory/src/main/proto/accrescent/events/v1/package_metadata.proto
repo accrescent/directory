@@ -1,34 +1,32 @@
-// Copyright 2024 Logan Magee
+// Copyright 2025 Logan Magee
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
 syntax = "proto3";
 
-package accrescent.directory.push.v1;
+package accrescent.events.v1;
 
-import "accrescent/directory/push/v1/object_metadata.proto";
+import "accrescent/events/v1/object_metadata.proto";
 import "android/bundle/commands.proto";
 
 option java_multiple_files = true;
-option java_package = "app.accrescent.directory.push.v1";
+option java_package = "app.accrescent.events.v1";
 
 // Metadata for a specific version of an Android package.
 message PackageMetadata {
-  // The version code of the app's latest version. Required.
+  // The version code of the app's latest version.
   optional uint32 version_code = 1;
 
-  // The display name of the app's latest version, e.g., "1.4.2". Required.
+  // The display name of the app's latest version, e.g., "1.4.2".
   optional string version_name = 2;
 
   // The resulting metadata of building the app's APK set, modified to point to
   // the object IDs of each APK in the repository bucket. That is, each
   // build_apks_result.[variant].[apk_set].[apk_description].path is actually
-  // the object ID of the respective APK in the repository bucket. Required.
+  // the object ID of the respective APK in the repository bucket.
   android.bundle.BuildApksResult build_apks_result = 3;
 
   // A map between each object ID and its corresponding metadata such as
-  // uncompressed size. An entry is required for each object ID in
-  // build_apks_result.[variant].[apk_description].path. Entries not found in
-  // build_apks_result are forbidden.
+  // uncompressed size.
   map<string, ObjectMetadata> object_metadata = 4;
 }

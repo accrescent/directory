@@ -2,9 +2,10 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
-package app.accrescent.services.directory.data.events
+package app.accrescent.services.directory.serde
 
 import app.accrescent.events.v1.appUpdateAvailabilityChecked
+import app.accrescent.services.directory.data.events.AppUpdateAvailabilityChecked
 import org.apache.kafka.common.serialization.Serializer
 
 /**

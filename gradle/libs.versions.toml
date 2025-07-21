@@ -40,6 +40,7 @@ quarkus-kotlin = { module = "io.quarkus:quarkus-kotlin" }
 quarkus-messaging-kafka = { module = "io.quarkus:quarkus-messaging-kafka" }
 quarkus-reactive-pg = { module = "io.quarkus:quarkus-reactive-pg-client" }
 quarkus-test-hibernate-reactive-panache = { module = "io.quarkus:quarkus-test-hibernate-reactive-panache" }
+quarkus-test-kafka-companion = { module = "io.quarkus:quarkus-test-kafka-companion" }
 quarkus-test-vertx = { module = "io.quarkus:quarkus-test-vertx" }
 testcontainers-clickhouse = { module = "org.testcontainers:clickhouse", version.ref = "testcontainers" }
 xz = { module = "org.tukaani:xz", version.ref = "xz" }

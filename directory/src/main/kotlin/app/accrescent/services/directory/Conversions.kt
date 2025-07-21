@@ -4,8 +4,10 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.directory.v1beta1.ReleaseChannel
-import app.accrescent.directory.v1beta1.releaseChannel
+import app.accrescent.directory.v1beta1.ReleaseChannel as DirectoryReleaseChannel
+import app.accrescent.directory.v1beta1.releaseChannel as directoryReleaseChannel
+import app.accrescent.events.v1.ReleaseChannel as EventsReleaseChannel
+import app.accrescent.events.v1.releaseChannel as eventsReleaseChannel
 
 /**
  * The permanent, canonical name of the stable release channel
@@ -15,20 +17,42 @@ const val RELEASE_CHANNEL_NAME_STABLE = "well_known_stable"
 /**
  * Maps a release channel into its canonical string form
  */
-fun ReleaseChannel.canonicalForm(): String = this.wellKnown.canonicalForm()
+fun DirectoryReleaseChannel.canonicalForm(): String = this.wellKnown.canonicalForm()
+
+/**
+ * Maps a release channel into its canonical string form
+ */
+fun EventsReleaseChannel.canonicalForm(): String = this.wellKnown.canonicalForm()
 
 /**
  * Maps a well-known release channel into its canonical string form
  */
-fun ReleaseChannel.WellKnown.canonicalForm(): String = when (this) {
-    ReleaseChannel.WellKnown.UNRECOGNIZED,
-    ReleaseChannel.WellKnown.WELL_KNOWN_UNSPECIFIED,
-    ReleaseChannel.WellKnown.WELL_KNOWN_STABLE -> RELEASE_CHANNEL_NAME_STABLE
+fun DirectoryReleaseChannel.WellKnown.canonicalForm(): String = when (this) {
+    DirectoryReleaseChannel.WellKnown.UNRECOGNIZED,
+    DirectoryReleaseChannel.WellKnown.WELL_KNOWN_UNSPECIFIED,
+    DirectoryReleaseChannel.WellKnown.WELL_KNOWN_STABLE -> RELEASE_CHANNEL_NAME_STABLE
 }
 
 /**
- * Maps a canonical release channel string into its corresponding release channel
+ * Maps a well-known release channel into its canonical string form
  */
-fun releaseChannelFromCanonicalForm(canonicalForm: String): ReleaseChannel {
-    return releaseChannel { wellKnown = ReleaseChannel.WellKnown.WELL_KNOWN_STABLE }
+fun EventsReleaseChannel.WellKnown.canonicalForm(): String = when (this) {
+    EventsReleaseChannel.WellKnown.UNRECOGNIZED,
+    EventsReleaseChannel.WellKnown.WELL_KNOWN_UNSPECIFIED,
+    EventsReleaseChannel.WellKnown.WELL_KNOWN_STABLE -> RELEASE_CHANNEL_NAME_STABLE
+}
+
+/**
+ * Converts a canonical release channel name into a release channel.
+ *
+ * @return the release channel corresponding to this canonical name.
+ * @throws IllegalArgumentException if this string is not a known canonical release channel name.
+ */
+fun String.toEventsReleaseChannel(): EventsReleaseChannel {
+    val channel = when (this) {
+        RELEASE_CHANNEL_NAME_STABLE -> EventsReleaseChannel.WellKnown.WELL_KNOWN_STABLE
+        else -> throw IllegalArgumentException("")
+    }
+
+    return eventsReleaseChannel { wellKnown = channel }
 }

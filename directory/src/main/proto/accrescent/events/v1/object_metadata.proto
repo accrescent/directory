@@ -4,13 +4,13 @@
 
 syntax = "proto3";
 
-package accrescent.directory.push.v1;
+package accrescent.events.v1;
 
 option java_multiple_files = true;
-option java_package = "app.accrescent.directory.push.v1";
+option java_package = "app.accrescent.events.v1";
 
 // Associated metadata for an object in object storage
 message ObjectMetadata {
-  // The uncompressed size of the object in bytes. Required.
+  // The uncompressed size of the object in bytes.
   optional uint32 uncompressed_size = 1;
 }
