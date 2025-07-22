@@ -27,15 +27,7 @@ import app.accrescent.directory.v1beta1.image
 import app.accrescent.directory.v1beta1.listAppListingsRequest
 import app.accrescent.directory.v1beta1.releaseChannel
 import app.accrescent.directory.v1beta1.splitDownloadInfo
-import app.accrescent.events.v1.AppPublicationRequested
-import app.accrescent.events.v1.AppPublished
-import app.accrescent.events.v1.copy
-import app.accrescent.events.v1.objectMetadata
 import app.accrescent.services.directory.data.AppRepository
-import app.accrescent.services.directory.serde.AppPublicationRequestedSerializer
-import app.accrescent.services.directory.serde.AppPublishedSerializer
-import app.accrescent.services.directory.serde.TestAppPublicationRequestedDeserializer
-import app.accrescent.services.directory.serde.TestAppPublishedDeserializer
 import com.google.protobuf.TextFormat
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -48,13 +40,9 @@ import io.quarkus.test.kafka.InjectKafkaCompanion
 import io.quarkus.test.kafka.KafkaCompanionResource
 import io.quarkus.test.vertx.RunOnVertxContext
 import io.smallrye.mutiny.Uni
-import io.smallrye.reactive.messaging.kafka.companion.ConsumerTask
 import io.smallrye.reactive.messaging.kafka.companion.KafkaCompanion
 import jakarta.inject.Inject
-import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.errors.RecordDeserializationException
 import org.eclipse.microprofile.config.inject.ConfigProperty
-import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -64,13 +52,11 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.Base64
-import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 import java.util.stream.Stream
 import app.accrescent.directory.v1beta1.ReleaseChannel as DirectoryReleaseChannel
-import app.accrescent.events.v1.ReleaseChannel as EventsReleaseChannel
 
 private const val REQUEST_TIMEOUT_SECS: Long = 5
 
@@ -102,103 +88,7 @@ class DirectoryServiceImplTest {
 
     @BeforeEach
     fun registerKafkaSerdes() {
-        kafka.registerSerde(
-            AppPublicationRequested::class.java,
-            AppPublicationRequestedSerializer(),
-            TestAppPublicationRequestedDeserializer(),
-        )
-        kafka.registerSerde(
-            AppPublished::class.java,
-            AppPublishedSerializer(),
-            TestAppPublishedDeserializer(),
-        )
-    }
-
-    private fun publishApps(
-        vararg events: AppPublicationRequested,
-    ): ConsumerTask<String, AppPublished> {
-        kafka.produce(AppPublicationRequested::class.java)
-            .fromRecords(events.map { ProducerRecord("app-publication-requested", it) })
-            .awaitCompletion()
-
-        return kafka
-            .consume(AppPublished::class.java)
-            .withAutoCommit()
-            .withGroupId(kafkaConsumerGroupId)
-            .fromTopics("app-published", events.size.toLong())
-            .awaitCompletion()
-    }
-
-    @OptIn(ExperimentalStdlibApi::class)
-    @Test
-    fun appPublicationRequestedDeserializerRejectsInvalidBytes() {
-        val invalidByteSequence = "ffffffffdeadbeef".hexToByteArray()
-
-        kafka
-            .produce(ByteArray::class.java)
-            .fromRecords(ProducerRecord("app-publication-requested", invalidByteSequence))
-            .awaitCompletion()
-
-        val badRecord = kafka
-            .consume(ByteArray::class.java)
-            .withAutoCommit()
-            .withGroupId(kafkaConsumerGroupId)
-            .fromTopics("dead-letter-topic-app-publication-requested", 1)
-            .awaitCompletion()
-            .firstRecord
-
-        val errorType = badRecord
-            .headers()
-            .lastHeader("dead-letter-exception-class-name")
-            ?.value()
-            ?.toString(Charsets.UTF_8)
-
-        assertArrayEquals(invalidByteSequence, badRecord.value())
-        assertEquals(RecordDeserializationException::class.qualifiedName, errorType)
-    }
-
-    @ParameterizedTest
-    @MethodSource("generateParamsForAppPublicationRequestedDeserializerValidatesFields")
-    fun appPublicationRequestedDeserializerValidatesFields(event: AppPublicationRequested) {
-        kafka
-            .produce(AppPublicationRequested::class.java)
-            .fromRecords(ProducerRecord("app-publication-requested", event))
-            .awaitCompletion()
-
-        val badRecord = kafka
-            .consume(AppPublicationRequested::class.java)
-            .withAutoCommit()
-            .withGroupId(kafkaConsumerGroupId)
-            .fromTopics("dead-letter-topic-app-publication-requested", 1)
-            .awaitCompletion()
-            .firstRecord
-
-        val errorType = badRecord
-            .headers()
-            .lastHeader("dead-letter-exception-class-name")
-            ?.value()
-            ?.toString(Charsets.UTF_8)
-
-        assertEquals(event.app, badRecord.value().app)
-        assertEquals(RecordDeserializationException::class.qualifiedName, errorType)
-    }
-
-    @Test
-    fun appPublicationRequestedProcessorProducesCorrectAppPublished() {
-        val appPublished = publishApps(validAppPublicationRequested).firstRecord.value()
-
-        assertEquals(validAppPublicationRequested.app, appPublished.app)
-    }
-
-    @Test
-    fun appPublicationRequestedProcessorIsIdempotent() {
-        val appPublishedEvents =
-            publishApps(validAppPublicationRequested, validAppPublicationRequested)
-                .records
-                .map { it.value() }
-
-        assertEquals(validAppPublicationRequested.app, appPublishedEvents[0].app)
-        assertEquals(validAppPublicationRequested.app, appPublishedEvents[1].app)
+        KafkaHelper.registerSerdes(kafka)
     }
 
     @Test
@@ -207,7 +97,7 @@ class DirectoryServiceImplTest {
 
         val request = validGetAppListingRequest.copy { clearAppId() }
 
-        publishApps(validAppPublicationRequested)
+        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
 
         directory.getAppListing(request)
             .subscribe()
@@ -248,10 +138,11 @@ class DirectoryServiceImplTest {
         expectedAppListing: AppListing,
         request: GetAppListingRequest,
     ) {
-        publishApps(
-            validAppPublicationRequested,
-            validAppPublicationRequested2,
-            validAppPublicationRequested3Incompatible,
+        KafkaHelper.publishApps(
+            kafka,
+            TestDataHelper.validAppPublicationRequested,
+            TestDataHelper.validAppPublicationRequested2,
+            TestDataHelper.validAppPublicationRequested3Incompatible,
         )
 
         val response = directory.getAppListing(request)
@@ -265,7 +156,7 @@ class DirectoryServiceImplTest {
     fun listAppListingsWithBasicViewReturnsRequiredFields() {
         val request = listAppListingsRequest { view = AppListingView.APP_LISTING_VIEW_BASIC }
 
-        publishApps(validAppPublicationRequested)
+        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
 
         val listing = directory.listAppListings(request)
             .subscribeAsCompletionStage()
@@ -284,7 +175,7 @@ class DirectoryServiceImplTest {
     fun listAppListingsWithFullViewReturnsAllFields() {
         val request = listAppListingsRequest { view = AppListingView.APP_LISTING_VIEW_FULL }
 
-        publishApps(validAppPublicationRequested)
+        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
 
         val listing = directory.listAppListings(request)
             .subscribeAsCompletionStage()
@@ -304,7 +195,7 @@ class DirectoryServiceImplTest {
     fun listAppListingsWithDeviceAttributesReturnsCompatibility() {
         val request = listAppListingsRequest { deviceAttributes = validDeviceAttributes }
 
-        publishApps(validAppPublicationRequested)
+        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
 
         val listing = directory.listAppListings(request)
             .subscribeAsCompletionStage()
@@ -322,7 +213,7 @@ class DirectoryServiceImplTest {
             deviceAttributes = validDeviceAttributes
         }
 
-        publishApps(validAppPublicationRequested)
+        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
 
         val listing = directory.listAppListings(request)
             .subscribeAsCompletionStage()
@@ -338,7 +229,7 @@ class DirectoryServiceImplTest {
     fun listAppListingsReturnsEmptySetAndNoPageTokenWhenSkipOvershoots() {
         val request = listAppListingsRequest { skip = Int.MAX_VALUE }
 
-        publishApps(validAppPublicationRequested)
+        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
 
         val response = directory.listAppListings(request)
             .subscribeAsCompletionStage()
@@ -352,7 +243,11 @@ class DirectoryServiceImplTest {
     fun listAppListingsReturnsPageTokenWhenItemsRemain() {
         val listAppListingsRequest = listAppListingsRequest { pageSize = 1 }
 
-        publishApps(validAppPublicationRequested, validAppPublicationRequested2)
+        KafkaHelper.publishApps(
+            kafka,
+            TestDataHelper.validAppPublicationRequested,
+            TestDataHelper.validAppPublicationRequested2,
+        )
 
         val response = directory.listAppListings(listAppListingsRequest)
             .subscribeAsCompletionStage()
@@ -367,7 +262,11 @@ class DirectoryServiceImplTest {
 
         val accumulatedListings = mutableListOf<AppListing>()
 
-        publishApps(validAppPublicationRequested, validAppPublicationRequested2)
+        KafkaHelper.publishApps(
+            kafka,
+            TestDataHelper.validAppPublicationRequested,
+            TestDataHelper.validAppPublicationRequested2,
+        )
 
         var nextPageToken: String? = directory.listAppListings(request)
             .subscribeAsCompletionStage()
@@ -405,10 +304,11 @@ class DirectoryServiceImplTest {
     fun listAppListingsReturnsOnlyCompatibleApps() {
         val request = listAppListingsRequest { deviceAttributes = validDeviceAttributes }
 
-        publishApps(
-            validAppPublicationRequested,
-            validAppPublicationRequested2,
-            validAppPublicationRequested3Incompatible,
+        KafkaHelper.publishApps(
+            kafka,
+            TestDataHelper.validAppPublicationRequested,
+            TestDataHelper.validAppPublicationRequested2,
+            TestDataHelper.validAppPublicationRequested3Incompatible,
         )
 
         val response = directory.listAppListings(request)
@@ -428,10 +328,11 @@ class DirectoryServiceImplTest {
 
         val accumulatedListings = mutableListOf<AppListing>()
 
-        publishApps(
-            validAppPublicationRequested,
-            validAppPublicationRequested2,
-            validAppPublicationRequested3Incompatible,
+        KafkaHelper.publishApps(
+            kafka,
+            TestDataHelper.validAppPublicationRequested,
+            TestDataHelper.validAppPublicationRequested2,
+            TestDataHelper.validAppPublicationRequested3Incompatible,
         )
 
         var nextPageToken: String? = directory.listAppListings(request)
@@ -503,7 +404,7 @@ class DirectoryServiceImplTest {
 
     @Test
     fun getAppDownloadInfoReturnsExpected() {
-        publishApps(validAppPublicationRequested)
+        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
 
         val response = directory.getAppDownloadInfo(validGetAppDownloadInfoRequest)
             .subscribeAsCompletionStage()
@@ -517,7 +418,7 @@ class DirectoryServiceImplTest {
     fun getUpdateInfoValidatesRequest(request: GetUpdateInfoRequest) {
         val status = CompletableFuture<Status.Code>()
 
-        publishApps(validAppPublicationRequested)
+        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
 
         directory.getUpdateInfo(request)
             .subscribe()
@@ -554,7 +455,7 @@ class DirectoryServiceImplTest {
 
     @Test
     fun getUpdateInfoWithDeviceAttributesReturnsCompatibility() {
-        publishApps(validAppPublicationRequested)
+        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
 
         val response = directory.getUpdateInfo(validGetUpdateInfoRequest)
             .subscribeAsCompletionStage()
@@ -586,34 +487,6 @@ class DirectoryServiceImplTest {
     }
 
     companion object {
-        private val kafkaConsumerGroupId = UUID.randomUUID().toString()
-
-        private val validAppPublicationRequested = DirectoryServiceImplTest::class.java.classLoader
-            .getResourceAsStream("valid-app-publication-requested.txtpb")!!
-            .use {
-                val builder = AppPublicationRequested.newBuilder()
-                it.reader().use { TextFormat.merge(it, builder) }
-                builder
-            }
-            .build()
-        private val validAppPublicationRequested2 = DirectoryServiceImplTest::class.java.classLoader
-            .getResourceAsStream("valid-app-publication-requested-2.txtpb")!!
-            .use {
-                val builder = AppPublicationRequested.newBuilder()
-                it.reader().use { TextFormat.merge(it, builder) }
-                builder
-            }
-            .build()
-        private val validAppPublicationRequested3Incompatible = DirectoryServiceImplTest::class.java
-            .classLoader
-            .getResourceAsStream("valid-app-publication-requested-3-incompatible.txtpb")!!
-            .use {
-                val builder = AppPublicationRequested.newBuilder()
-                it.reader().use { TextFormat.merge(it, builder) }
-                builder
-            }
-            .build()
-
         // Retrieved from an Android 15 Pixel 9 x86_64 emulator using `bundletool get-device-spec`
         // and `adb shell getprop`.
         //
@@ -713,103 +586,6 @@ class DirectoryServiceImplTest {
             if (expectedListing.hasDownloadSize()) {
                 assertEquals(expectedListing.downloadSize, response.listing.downloadSize)
             }
-        }
-
-        @JvmStatic
-        fun generateParamsForAppPublicationRequestedDeserializerValidatesFields():
-                Stream<AppPublicationRequested> {
-            return Stream.of(
-                // Missing the app ID
-                validAppPublicationRequested.copy { app = app.copy { clearAppId() } },
-                // Missing the app metadata
-                validAppPublicationRequested.copy { clearApp() },
-                // Missing the default listing language
-                validAppPublicationRequested.copy {
-                    app = app.copy { clearDefaultListingLanguage() }
-                },
-                // Listing list doesn't contain the default listing language
-                validAppPublicationRequested.toBuilder()
-                    .apply {
-                        appBuilder.removeListings(app.listingsList.indexOfFirst {
-                            it.language == app.defaultListingLanguage
-                        })
-                    }
-                    .build(),
-                // Listing contains duplicate languages
-                validAppPublicationRequested.toBuilder()
-                    .apply { appBuilder.addListings(validAppPublicationRequested.app.listingsList[0]) }
-                    .build(),
-                // Listings don't have a language set
-                validAppPublicationRequested.toBuilder()
-                    .apply { appBuilder.listingsBuilderList.forEach { it.clearLanguage() } }
-                    .build(),
-                // Listings don't have a name set
-                validAppPublicationRequested.toBuilder()
-                    .apply { appBuilder.listingsBuilderList.forEach { it.clearName() } }
-                    .build(),
-                // Listings don't have a short description set
-                validAppPublicationRequested.toBuilder()
-                    .apply { appBuilder.listingsBuilderList.forEach { it.clearShortDescription() } }
-                    .build(),
-                // Listings don't have an icon set
-                validAppPublicationRequested.toBuilder()
-                    .apply { appBuilder.listingsBuilderList.forEach { it.clearIcon() } }
-                    .build(),
-                // Listing icons don't have an object ID set
-                validAppPublicationRequested.toBuilder()
-                    .apply {
-                        appBuilder.listingsBuilderList.forEach { it.iconBuilder.clearObjectId() }
-                    }
-                    .build(),
-                // Package metadata doesn't exist for the stable release channel
-                validAppPublicationRequested.toBuilder()
-                    .apply {
-                        appBuilder.removePackageMetadata(app.packageMetadataList.indexOfFirst {
-                            it.releaseChannel.wellKnown == EventsReleaseChannel.WellKnown.WELL_KNOWN_STABLE
-                        })
-                    }
-                    .build(),
-                // Package metadata contains duplicate release channels
-                validAppPublicationRequested.toBuilder()
-                    .apply {
-                        appBuilder
-                            .addPackageMetadata(validAppPublicationRequested.app.packageMetadataList[0])
-                    }
-                    .build(),
-                // Package metadata is missing metadata for an object
-                validAppPublicationRequested.toBuilder()
-                    .apply {
-                        appBuilder.packageMetadataBuilderList[0].packageMetadataBuilder
-                            .removeObjectMetadata("38119a8c-1163-4c7d-89c6-cc5c902a6ca1")
-                    }
-                    .build(),
-                // An object's metadata doesn't have uncompressed size set
-                validAppPublicationRequested.toBuilder()
-                    .apply {
-                        val packageMetadataBuilder = appBuilder
-                            .packageMetadataBuilderList[0]
-                            .packageMetadataBuilder
-                        packageMetadataBuilder.putObjectMetadata(
-                            "38119a8c-1163-4c7d-89c6-cc5c902a6ca1",
-                            packageMetadataBuilder
-                                .objectMetadataMap["38119a8c-1163-4c7d-89c6-cc5c902a6ca1"]!!
-                                .toBuilder()
-                                .clearUncompressedSize()
-                                .build()
-                        )
-                    }
-                    .build(),
-                // Object metadata is specified for an object not found in the build-apks result
-                validAppPublicationRequested.toBuilder()
-                    .apply {
-                        appBuilder.packageMetadataBuilderList[0].packageMetadataBuilder
-                            .putObjectMetadata(
-                                "nonexistent-object",
-                                objectMetadata { uncompressedSize = 4096 }
-                            )
-                    }
-                    .build(),
-            )
         }
 
         @JvmStatic
