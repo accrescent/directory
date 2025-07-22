@@ -5,6 +5,7 @@
 package app.accrescent.services.directory.data.events
 
 import java.time.LocalDate
+import java.time.ZoneOffset
 
 /**
  * An event representing a client having viewed an app listing.
@@ -16,9 +17,10 @@ import java.time.LocalDate
  * @property countryCode the ISO 3166-1 alpha-2 country code of the requesting client's geolocation
  */
 data class AppListingViewed(
-    val date: LocalDate,
     val appId: String,
     val languageCode: String,
     val deviceSdkVersion: UInt,
     val countryCode: String?,
-)
+) {
+    val date: LocalDate = LocalDate.now(ZoneOffset.UTC)
+}

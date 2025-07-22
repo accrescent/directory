@@ -5,6 +5,7 @@
 package app.accrescent.services.directory.data.events
 
 import java.time.LocalDate
+import java.time.ZoneOffset
 
 /**
  * An event representing a client having downloaded an app.
@@ -17,13 +18,14 @@ import java.time.LocalDate
  * @property countryCode the ISO 3166-1 alpha-2 country code of the requesting client's geolocation
  */
 data class AppDownloaded(
-    val date: LocalDate,
     val appId: String,
     val versionCode: UInt,
     val downloadType: DownloadType,
     val deviceSdkVersion: UInt,
     val countryCode: String?,
-)
+) {
+    val date: LocalDate = LocalDate.now(ZoneOffset.UTC)
+}
 
 /**
  * An app download type

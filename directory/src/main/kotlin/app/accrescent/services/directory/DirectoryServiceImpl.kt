@@ -47,8 +47,6 @@ import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
 import jakarta.inject.Inject
 import org.eclipse.microprofile.config.inject.ConfigProperty
-import java.time.LocalDate
-import java.time.ZoneOffset
 import java.util.Base64
 
 private const val DEFAULT_PAGE_SIZE = 50u
@@ -147,7 +145,6 @@ class DirectoryServiceImpl @Inject constructor(
             }.call { response ->
                 messageEmitterProvider.appListingViewedEmitter.send(
                     AppListingViewed(
-                        date = LocalDate.now(ZoneOffset.UTC),
                         appId = request.appId,
                         languageCode = response.listing.language,
                         deviceSdkVersion = request.deviceAttributes.spec.sdkVersion.toUInt(),
@@ -358,7 +355,6 @@ class DirectoryServiceImpl @Inject constructor(
                 .appDownloadedEmitter
                 .send(
                     AppDownloaded(
-                        date = LocalDate.now(ZoneOffset.UTC),
                         appId = request.appId,
                         versionCode = storageObjects[0].releaseChannel.versionCode,
                         downloadType = if (request.hasBaseVersionCode()) {
@@ -431,7 +427,6 @@ class DirectoryServiceImpl @Inject constructor(
         }.call { ->
             messageEmitterProvider.appUpdateAvailabilityCheckedEmitter.send(
                 AppUpdateAvailabilityChecked(
-                    date = LocalDate.now(ZoneOffset.UTC),
                     appId = request.appId,
                     releaseChannel = request.releaseChannel.canonicalForm(),
                     deviceSdkVersion = request.deviceAttributes.spec.sdkVersion.toUInt(),

@@ -5,7 +5,6 @@
 package app.accrescent.services.directory
 
 import app.accrescent.directory.v1beta1.ReleaseChannel as DirectoryReleaseChannel
-import app.accrescent.directory.v1beta1.releaseChannel as directoryReleaseChannel
 import app.accrescent.events.v1.ReleaseChannel as EventsReleaseChannel
 import app.accrescent.events.v1.releaseChannel as eventsReleaseChannel
 
