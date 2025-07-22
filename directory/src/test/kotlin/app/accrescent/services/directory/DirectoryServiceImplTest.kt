@@ -76,7 +76,7 @@ private const val REQUEST_TIMEOUT_SECS: Long = 5
 
 @QuarkusTest
 @QuarkusTestResource(KafkaCompanionResource::class)
-class DirectoryServicesImplTest {
+class DirectoryServiceImplTest {
     @InjectKafkaCompanion
     lateinit var kafka: KafkaCompanion
 
@@ -588,7 +588,7 @@ class DirectoryServicesImplTest {
     companion object {
         private val kafkaConsumerGroupId = UUID.randomUUID().toString()
 
-        private val validAppPublicationRequested = DirectoryServicesImplTest::class.java.classLoader
+        private val validAppPublicationRequested = DirectoryServiceImplTest::class.java.classLoader
             .getResourceAsStream("valid-app-publication-requested.txtpb")!!
             .use {
                 val builder = AppPublicationRequested.newBuilder()
@@ -596,7 +596,7 @@ class DirectoryServicesImplTest {
                 builder
             }
             .build()
-        private val validAppPublicationRequested2 = DirectoryServicesImplTest::class.java.classLoader
+        private val validAppPublicationRequested2 = DirectoryServiceImplTest::class.java.classLoader
             .getResourceAsStream("valid-app-publication-requested-2.txtpb")!!
             .use {
                 val builder = AppPublicationRequested.newBuilder()
@@ -604,7 +604,7 @@ class DirectoryServicesImplTest {
                 builder
             }
             .build()
-        private val validAppPublicationRequested3Incompatible = DirectoryServicesImplTest::class.java
+        private val validAppPublicationRequested3Incompatible = DirectoryServiceImplTest::class.java
             .classLoader
             .getResourceAsStream("valid-app-publication-requested-3-incompatible.txtpb")!!
             .use {
@@ -619,7 +619,7 @@ class DirectoryServicesImplTest {
         //
         // Has all known fields set as of bundletool 1.18.0 except device_tier, device_groups, and
         // country_set.
-        private val validDeviceAttributes = DirectoryServicesImplTest::class.java.classLoader
+        private val validDeviceAttributes = DirectoryServiceImplTest::class.java.classLoader
             .getResourceAsStream("valid-device-attributes.txtpb")!!
             .use {
                 val builder = DeviceAttributes.newBuilder()
