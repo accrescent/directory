@@ -35,20 +35,20 @@ class AppPublicationRequestedProcessorTest {
     fun publishAppReportsErrorOnInvalidFields(event: AppPublicationRequested) {
         kafka
             .produce(AppPublicationRequested::class.java)
-            .fromRecords(ProducerRecord("app-publication-requested", event))
+            .fromRecords(ProducerRecord(KafkaHelper.TOPIC_APP_PUBLICATION_REQUESTED, event))
             .awaitCompletion()
 
         val badRecord = kafka
             .consume(AppPublicationRequested::class.java)
             .withAutoCommit()
             .withGroupId(KafkaHelper.kafkaConsumerGroupId)
-            .fromTopics("dead-letter-topic-app-publication-requested", 1)
+            .fromTopics(KafkaHelper.TOPIC_DEAD_LETTER_APP_PUBLICATION_REQUESTED, 1)
             .awaitCompletion()
             .firstRecord
 
         val errorType = badRecord
             .headers()
-            .lastHeader("dead-letter-exception-class-name")
+            .lastHeader(KafkaHelper.HEADER_DEAD_LETTER_EXCEPTION_CLASS)
             ?.value()
             ?.toString(Charsets.UTF_8)
 
@@ -63,20 +63,25 @@ class AppPublicationRequestedProcessorTest {
 
         kafka
             .produce(ByteArray::class.java)
-            .fromRecords(ProducerRecord("app-publication-requested", invalidByteSequence))
+            .fromRecords(
+                ProducerRecord(
+                    KafkaHelper.TOPIC_APP_PUBLICATION_REQUESTED,
+                    invalidByteSequence,
+                ),
+            )
             .awaitCompletion()
 
         val badRecord = kafka
             .consume(ByteArray::class.java)
             .withAutoCommit()
             .withGroupId(KafkaHelper.kafkaConsumerGroupId)
-            .fromTopics("dead-letter-topic-app-publication-requested", 1)
+            .fromTopics(KafkaHelper.TOPIC_DEAD_LETTER_APP_PUBLICATION_REQUESTED, 1)
             .awaitCompletion()
             .firstRecord
 
         val errorType = badRecord
             .headers()
-            .lastHeader("dead-letter-exception-class-name")
+            .lastHeader(KafkaHelper.HEADER_DEAD_LETTER_EXCEPTION_CLASS)
             ?.value()
             ?.toString(Charsets.UTF_8)
 

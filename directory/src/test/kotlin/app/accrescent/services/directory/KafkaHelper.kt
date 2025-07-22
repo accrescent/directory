@@ -16,6 +16,11 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import java.util.UUID
 
 object KafkaHelper {
+    const val HEADER_DEAD_LETTER_EXCEPTION_CLASS = "dead-letter-exception-class-name"
+    const val TOPIC_APP_PUBLICATION_REQUESTED = "app-publication-requested"
+    const val TOPIC_APP_PUBLISHED = "app-published"
+    const val TOPIC_DEAD_LETTER_APP_PUBLICATION_REQUESTED = "dead-letter-topic-app-publication-requested"
+
     val kafkaConsumerGroupId = UUID.randomUUID().toString()
 
     fun registerSerdes(companion: KafkaCompanion) {
@@ -36,14 +41,14 @@ object KafkaHelper {
         vararg events: AppPublicationRequested,
     ): ConsumerTask<String, AppPublished> {
         companion.produce(AppPublicationRequested::class.java)
-            .fromRecords(events.map { ProducerRecord("app-publication-requested", it) })
+            .fromRecords(events.map { ProducerRecord(TOPIC_APP_PUBLICATION_REQUESTED, it) })
             .awaitCompletion()
 
         return companion
             .consume(AppPublished::class.java)
             .withAutoCommit()
             .withGroupId(kafkaConsumerGroupId)
-            .fromTopics("app-published", events.size.toLong())
+            .fromTopics(TOPIC_APP_PUBLISHED, events.size.toLong())
             .awaitCompletion()
     }
 }
