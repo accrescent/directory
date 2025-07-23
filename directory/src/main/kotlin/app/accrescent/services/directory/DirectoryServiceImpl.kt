@@ -4,6 +4,7 @@
 
 package app.accrescent.services.directory
 
+import app.accrescent.bundletool.android.bundle.Commands
 import app.accrescent.directory.priv.v1.ListAppListingsPageToken
 import app.accrescent.directory.priv.v1.listAppListingsPageToken
 import app.accrescent.directory.v1beta1.AppListingView
@@ -38,7 +39,6 @@ import app.accrescent.services.directory.data.events.AppDownloaded
 import app.accrescent.services.directory.data.events.AppListingViewed
 import app.accrescent.services.directory.data.events.AppUpdateAvailabilityChecked
 import app.accrescent.services.directory.data.events.DownloadType
-import com.android.bundle.Commands
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.Status
 import io.quarkus.grpc.GrpcService

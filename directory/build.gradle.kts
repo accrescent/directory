@@ -14,7 +14,7 @@ plugins {
 
 dependencies {
     implementation(enforcedPlatform(libs.quarkus.bom))
-    implementation(libs.bundletool)
+    implementation(project(":bundletool-relocated", "shadow"))
     implementation(libs.flyway.postgresql)
     implementation(libs.protobuf.kotlin)
     implementation(libs.quarkus.agroal)
@@ -76,7 +76,7 @@ dokka {
 
         perPackageOption {
             matchingRegex =
-                """^(app\.accrescent\.(com\.android\.bundle|directory\.(priv\.|push\.)?v1(beta1)?|events\.v1)|com\.google\.protobuf)"""
+                """^app\.accrescent\.(directory\.(priv\.v1|v1beta1)|events\.v1)|com\.(android\.bundle|google\.protobuf)"""
             suppress = true
         }
     }

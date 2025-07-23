@@ -10,6 +10,7 @@ dokka = "2.0.0"
 flyway = "11.10.3"
 kotlin = "2.2.0"
 quarkus = "3.24.4"
+shadow = "8.3.8"
 testcontainers = "1.21.3"
 xz = "1.10"
 zstd = "1.5.7-4"
@@ -54,3 +55,4 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 quarkus-extension = { id = "io.quarkus.extension", version.ref = "quarkus" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }

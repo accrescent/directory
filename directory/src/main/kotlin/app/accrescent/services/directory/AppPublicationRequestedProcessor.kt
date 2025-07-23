@@ -4,7 +4,6 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.com.android.bundle.Commands
 import app.accrescent.events.v1.AppKt.packageMetadataEntry
 import app.accrescent.events.v1.AppPublicationRequested
 import app.accrescent.events.v1.AppPublished
@@ -21,6 +20,7 @@ import app.accrescent.services.directory.data.Listing
 import app.accrescent.services.directory.data.ListingId
 import app.accrescent.services.directory.data.ReleaseChannel
 import app.accrescent.services.directory.data.StorageObject
+import com.android.bundle.Commands
 import io.quarkus.hibernate.reactive.panache.Panache
 import io.smallrye.mutiny.Uni
 import jakarta.enterprise.context.ApplicationScoped

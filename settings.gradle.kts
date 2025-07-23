@@ -5,6 +5,7 @@
 rootProject.name = "directory"
 
 include(
+    "bundletool-relocated",
     "directory",
     "quarkus-devservices-clickhouse",
     "quarkus-jdbc-clickhouse",

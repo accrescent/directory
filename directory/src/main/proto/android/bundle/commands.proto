@@ -6,7 +6,7 @@ import "android/bundle/config.proto";
 import "android/bundle/device_targeting_config.proto";
 import "android/bundle/targeting.proto";
 
-option java_package = "app.accrescent.com.android.bundle";
+option java_package = "com.android.bundle";
 
 // Describes the output of the "build-apks" command.
 message BuildApksResult {

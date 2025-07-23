@@ -9,4 +9,5 @@ plugins {
     alias(libs.plugins.kotlin.allopen) apply false
     alias(libs.plugins.quarkus) apply false
     alias(libs.plugins.quarkus.extension) apply false
+    alias(libs.plugins.shadow) apply false
 }
