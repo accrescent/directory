@@ -14,7 +14,6 @@ jobs:
       - uses: bufbuild/buf-action@v1
         with:
           breaking: false
-          exclude_paths: directory/src/main/proto/android/bundle
           format: true
           input: directory/src/main/proto
           lint: true

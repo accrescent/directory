@@ -2,9 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import build.buf.gradle.BUF_BINARY_CONFIGURATION_NAME
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
+    alias(libs.plugins.buf)
     alias(libs.plugins.dokka)
     alias(libs.plugins.kotlin.jpa)
     alias(libs.plugins.kotlin.jvm)
@@ -54,6 +56,69 @@ kotlin {
 
         freeCompilerArgs.add("-Xannotation-default-target=param-property")
     }
+}
+
+// We need the Buf Gradle plugin only for the Buf CLI binary and Gradle emits errors regarding task
+// dependencies including these tasks, so we disable them since they're unneeded and cause errors
+// when enabled.
+tasks.getByName("bufFormatCheck") {
+    enabled = false
+}
+tasks.getByName("bufLint") {
+    enabled = false
+}
+
+tasks.register<Exec>("downloadAndroidBundleProtos") {
+    inputs.property("app.accrescent.directory.android-bundle-version", libs.versions.android.bundle)
+    outputs.dir("$projectDir/src/main/proto/android/bundle")
+
+    val bufExecutable = configurations.getByName(BUF_BINARY_CONFIGURATION_NAME).singleFile
+    if (!bufExecutable.canExecute()) {
+        bufExecutable.setExecutable(true)
+    }
+
+    val androidBundleVersion = inputs.properties["app.accrescent.directory.android-bundle-version"]
+
+    commandLine(
+        bufExecutable.absolutePath,
+        "export",
+        "buf.build/accrescent/android-bundle:$androidBundleVersion",
+        "--output",
+        "$projectDir/src/main/proto/",
+    )
+}
+tasks.register<Exec>("downloadDirectoryApiProtos") {
+    inputs.property("app.accrescent.directory.directory-api-version", libs.versions.directory.api)
+    outputs.dir("$projectDir/src/main/proto/accrescent/directory/v1beta1")
+
+    val bufExecutable = configurations.getByName(BUF_BINARY_CONFIGURATION_NAME).singleFile
+    if (!bufExecutable.canExecute()) {
+        bufExecutable.setExecutable(true)
+    }
+
+    val directoryApiVersion = inputs.properties["app.accrescent.directory.directory-api-version"]
+
+    commandLine(
+        bufExecutable.absolutePath,
+        "export",
+        "buf.build/accrescent/directory-api:$directoryApiVersion",
+        "--output",
+        "$projectDir/src/main/proto/",
+    )
+}
+tasks.register("downloadProtos") {
+    dependsOn(
+        tasks.getByName("downloadAndroidBundleProtos"),
+        tasks.getByName("downloadDirectoryApiProtos"),
+    )
+}
+tasks.quarkusGenerateCode {
+    dependsOn(tasks.getByName("downloadProtos"))
+}
+
+tasks.clean {
+    delete("$projectDir/src/main/proto/accrescent/directory/v1beta1")
+    delete("$projectDir/src/main/proto/android")
 }
 
 tasks.withType<Test> {

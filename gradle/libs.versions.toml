@@ -3,9 +3,12 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 [versions]
+android-bundle = "v1.0.0"
 brotli = "0.1.2"
+buf = "0.10.3"
 bundletool = "1.18.1"
 clickhouse = "0.9.0"
+directory-api = "1048811c97114e239fe459af2d0163e0"
 dokka = "2.0.0"
 flyway = "11.10.3"
 kotlin = "2.2.0"
@@ -48,6 +51,7 @@ xz = { module = "org.tukaani:xz", version.ref = "xz" }
 zstd = { module = "com.github.luben:zstd-jni", version.ref = "zstd" }
 
 [plugins]
+buf = { id = "build.buf", version.ref = "buf" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
