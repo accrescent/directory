@@ -20,13 +20,6 @@ to:
 - Check for app updates
 - Check whether an app is compatible with the current Android device
 
-The directory service also supports collecting metrics over time in a privacy-preserving way,
-including:
-
-- App downloads
-- App listing views
-- App update checks (to estimate active users)
-
 The directory service is still in development but is almost ready for production use. It is intended
 to replace Accrescent's current repository model to offer significant improvements in features,
 network efficiency, and development simplicity.
