@@ -1,8 +1,0 @@
-# Copyright 2025 Logan Magee
-#
-# SPDX-License-Identifier: AGPL-3.0-only
-
-version: v2
-deps:
-  # Keep this synced with gradle/libs.versions.toml
-  - buf.build/accrescent/android-bundle:v1.0.0

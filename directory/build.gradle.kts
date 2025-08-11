@@ -68,25 +68,6 @@ tasks.getByName("bufLint") {
     enabled = false
 }
 
-tasks.register<Exec>("downloadAndroidBundleProtos") {
-    inputs.property("app.accrescent.directory.android-bundle-version", libs.versions.android.bundle)
-    outputs.dir("$projectDir/src/main/proto/android/bundle")
-
-    val bufExecutable = configurations.getByName(BUF_BINARY_CONFIGURATION_NAME).singleFile
-    if (!bufExecutable.canExecute()) {
-        bufExecutable.setExecutable(true)
-    }
-
-    val androidBundleVersion = inputs.properties["app.accrescent.directory.android-bundle-version"]
-
-    commandLine(
-        bufExecutable.absolutePath,
-        "export",
-        "buf.build/accrescent/android-bundle:$androidBundleVersion",
-        "--output",
-        "$projectDir/src/main/proto/",
-    )
-}
 tasks.register<Exec>("downloadDirectoryApiProtos") {
     inputs.property("app.accrescent.directory.directory-api-version", libs.versions.directory.api)
     outputs.dir("$projectDir/src/main/proto/accrescent/directory/v1beta1")
@@ -106,10 +87,29 @@ tasks.register<Exec>("downloadDirectoryApiProtos") {
         "$projectDir/src/main/proto/",
     )
 }
+tasks.register<Exec>("downloadServerEventsProtos") {
+    inputs.property("app.accrescent.directory.server-events-version", libs.versions.server.events)
+    outputs.dir("$projectDir/src/main/proto/accrescent/server/events")
+
+    val bufExecutable = configurations.getByName(BUF_BINARY_CONFIGURATION_NAME).singleFile
+    if (!bufExecutable.canExecute()) {
+        bufExecutable.setExecutable(true)
+    }
+
+    val serverEventsVersion = inputs.properties["app.accrescent.directory.server-events-version"]
+
+    commandLine(
+        bufExecutable.absolutePath,
+        "export",
+        "buf.build/accrescent/server-events:$serverEventsVersion",
+        "--output",
+        "$projectDir/src/main/proto/",
+    )
+}
 tasks.register("downloadProtos") {
     dependsOn(
-        tasks.getByName("downloadAndroidBundleProtos"),
         tasks.getByName("downloadDirectoryApiProtos"),
+        tasks.getByName("downloadServerEventsProtos"),
     )
 }
 tasks.quarkusGenerateCode {
@@ -118,6 +118,7 @@ tasks.quarkusGenerateCode {
 
 tasks.clean {
     delete("$projectDir/src/main/proto/accrescent/directory/v1beta1")
+    delete("$projectDir/src/main/proto/accrescent/server")
     delete("$projectDir/src/main/proto/android")
 }
 

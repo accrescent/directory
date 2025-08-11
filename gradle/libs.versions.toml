@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 [versions]
-android-bundle = "v1.0.0"
 brotli = "0.1.2"
 buf = "0.10.3"
 bundletool = "1.18.1"
@@ -13,6 +12,7 @@ dokka = "2.0.0"
 flyway = "11.11.0"
 kotlin = "2.2.0"
 quarkus = "3.25.2"
+server-events = "c582879ba071448784a95ebd91932be2"
 shadow = "9.0.1"
 testcontainers = "1.21.3"
 xz = "1.10"
