@@ -4,10 +4,10 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.events.v1.AppEditPublicationRequested
-import app.accrescent.events.v1.AppEditPublished
-import app.accrescent.events.v1.AppPublicationRequested
-import app.accrescent.events.v1.AppPublished
+import app.accrescent.server.events.v1.AppEditPublicationRequested
+import app.accrescent.server.events.v1.AppEditPublished
+import app.accrescent.server.events.v1.AppPublicationRequested
+import app.accrescent.server.events.v1.AppPublished
 import app.accrescent.services.directory.serde.AppEditPublicationRequestedSerializer
 import app.accrescent.services.directory.serde.AppEditPublishedSerializer
 import app.accrescent.services.directory.serde.AppPublicationRequestedSerializer

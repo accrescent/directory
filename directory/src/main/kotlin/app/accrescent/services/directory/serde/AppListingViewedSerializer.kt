@@ -4,7 +4,7 @@
 
 package app.accrescent.services.directory.serde
 
-import app.accrescent.events.v1.appListingViewed
+import app.accrescent.server.events.v1.appListingViewed
 import app.accrescent.services.directory.data.events.AppListingViewed
 import org.apache.kafka.common.serialization.Serializer
 

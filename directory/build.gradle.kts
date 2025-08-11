@@ -141,7 +141,7 @@ dokka {
 
         perPackageOption {
             matchingRegex =
-                """^app\.accrescent\.(directory\.(priv\.v1|v1beta1)|events\.v1)|com\.(android\.bundle|google\.protobuf)"""
+                """^app\.accrescent\.(directory\.(priv\.v1|v1beta1)|server\.events\.v1)|com\.(android\.bundle|google\.protobuf)"""
             suppress = true
         }
     }

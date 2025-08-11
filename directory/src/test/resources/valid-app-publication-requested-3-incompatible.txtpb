@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# proto-file: accrescent/events/v1/app_publication_requested.proto
+# proto-file: accrescent/server/events/v1/app_publication_requested.proto
 # proto-message: AppPublicationRequested
 
 # Molly (https://github.com/mollyim/mollyim-android/tree/b7bdead) made incompatible with the testing

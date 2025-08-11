@@ -4,8 +4,8 @@
 
 package app.accrescent.services.directory.serde
 
-import app.accrescent.events.v1.AppDownloadType
-import app.accrescent.events.v1.appDownloaded
+import app.accrescent.server.events.v1.AppDownloadType
+import app.accrescent.server.events.v1.appDownloaded
 import app.accrescent.services.directory.data.events.AppDownloaded
 import app.accrescent.services.directory.data.events.DownloadType
 import org.apache.kafka.common.serialization.Serializer

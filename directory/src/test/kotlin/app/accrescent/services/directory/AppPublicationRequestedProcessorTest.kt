@@ -4,7 +4,7 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.events.v1.AppPublicationRequested
+import app.accrescent.server.events.v1.AppPublicationRequested
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.kafka.InjectKafkaCompanion

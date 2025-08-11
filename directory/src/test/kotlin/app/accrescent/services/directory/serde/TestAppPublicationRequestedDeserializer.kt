@@ -4,7 +4,7 @@
 
 package app.accrescent.services.directory.serde
 
-import app.accrescent.events.v1.AppPublicationRequested
+import app.accrescent.server.events.v1.AppPublicationRequested
 import org.apache.kafka.common.serialization.Deserializer
 
 class TestAppPublicationRequestedDeserializer : Deserializer<AppPublicationRequested> {

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# proto-file: accrescent/events/v1/app.proto
+# proto-file: accrescent/server/events/v1/app.proto
 # proto-message: App
 
 app_id: "app.accrescent.client"

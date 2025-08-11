@@ -4,12 +4,12 @@
 
 syntax = "proto3";
 
-package accrescent.events.v1;
+package accrescent.server.events.v1;
 
-import "accrescent/events/v1/app.proto";
+import "accrescent/server/events/v1/app.proto";
 
 option java_multiple_files = true;
-option java_package = "app.accrescent.events.v1";
+option java_package = "app.accrescent.server.events.v1";
 
 // An event indicating that a new app has been published.
 message AppPublished {

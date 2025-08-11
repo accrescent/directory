@@ -4,13 +4,13 @@
 
 syntax = "proto3";
 
-package accrescent.events.v1;
+package accrescent.server.events.v1;
 
-import "accrescent/events/v1/object_metadata.proto";
+import "accrescent/server/events/v1/object_metadata.proto";
 import "android/bundle/commands.proto";
 
 option java_multiple_files = true;
-option java_package = "app.accrescent.events.v1";
+option java_package = "app.accrescent.server.events.v1";
 
 // Metadata for a specific version of an Android package.
 message PackageMetadata {

@@ -4,16 +4,16 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.events.v1.AppEditPublicationRequested
-import app.accrescent.events.v1.AppEditPublished
-import app.accrescent.events.v1.AppKt.packageMetadataEntry
-import app.accrescent.events.v1.app
-import app.accrescent.events.v1.appEdit
-import app.accrescent.events.v1.appEditPublished
-import app.accrescent.events.v1.appListing
-import app.accrescent.events.v1.image
-import app.accrescent.events.v1.objectMetadata
-import app.accrescent.events.v1.packageMetadata
+import app.accrescent.server.events.v1.AppEditPublicationRequested
+import app.accrescent.server.events.v1.AppEditPublished
+import app.accrescent.server.events.v1.AppKt.packageMetadataEntry
+import app.accrescent.server.events.v1.app
+import app.accrescent.server.events.v1.appEdit
+import app.accrescent.server.events.v1.appEditPublished
+import app.accrescent.server.events.v1.appListing
+import app.accrescent.server.events.v1.image
+import app.accrescent.server.events.v1.objectMetadata
+import app.accrescent.server.events.v1.packageMetadata
 import app.accrescent.services.directory.data.App
 import app.accrescent.services.directory.data.AppRepository
 import app.accrescent.services.directory.data.Image

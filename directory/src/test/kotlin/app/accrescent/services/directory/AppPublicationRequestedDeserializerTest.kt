@@ -4,7 +4,7 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.events.v1.AppPublicationRequested
+import app.accrescent.server.events.v1.AppPublicationRequested
 import app.accrescent.services.directory.serde.AppPublicationRequestedDeserializer
 import com.google.protobuf.InvalidProtocolBufferException
 import io.quarkus.test.junit.QuarkusTest
