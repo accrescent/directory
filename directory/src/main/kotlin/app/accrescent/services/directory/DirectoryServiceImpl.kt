@@ -35,14 +35,9 @@ import app.accrescent.services.directory.data.Listing
 import app.accrescent.services.directory.data.ListingId
 import app.accrescent.services.directory.data.ReleaseChannel
 import app.accrescent.services.directory.data.StorageObject
-import app.accrescent.services.directory.data.events.AppDownloaded
-import app.accrescent.services.directory.data.events.AppListingViewed
-import app.accrescent.services.directory.data.events.AppUpdateAvailabilityChecked
-import app.accrescent.services.directory.data.events.DownloadType
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.Status
 import io.quarkus.grpc.GrpcService
-import io.quarkus.grpc.RegisterInterceptor
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
 import jakarta.inject.Inject
@@ -56,10 +51,7 @@ private const val MAX_PAGE_SIZE = 200u
  * The server implementation of [DirectoryService]
  */
 @GrpcService
-@RegisterInterceptor(RegionMetadataAttacherInterceptor::class)
 class DirectoryServiceImpl @Inject constructor(
-    private val messageEmitterProvider: MessageEmitterProvider,
-
     @ConfigProperty(name = "artifacts.base-url")
     private val artifactsBaseUrl: String,
 ) : DirectoryService {
@@ -142,15 +134,6 @@ class DirectoryServiceImpl @Inject constructor(
                 }
 
                 getAppListingResponse { this.listing = appListing }
-            }.call { response ->
-                messageEmitterProvider.appListingViewedEmitter.send(
-                    AppListingViewed(
-                        appId = request.appId,
-                        languageCode = response.listing.language,
-                        deviceSdkVersion = request.deviceAttributes.spec.sdkVersion.toUInt(),
-                        countryCode = GEO_REGION_CONTEXT_KEY.get(),
-                    )
-                )
             }
 
         return response
@@ -330,7 +313,7 @@ class DirectoryServiceImpl @Inject constructor(
             matchingApkObjectIds
         }.chain { ids ->
             StorageObject.findByIds(ids)
-        }.chain { storageObjects ->
+        }.map { storageObjects ->
             if (storageObjects.isEmpty()) {
                 throw Status.fromCode(Status.Code.INTERNAL)
                     .withDescription("referenced storage object not found in database")
@@ -339,7 +322,7 @@ class DirectoryServiceImpl @Inject constructor(
 
             val totalDownloadSize = storageObjects.sumOf { it.uncompressedSize }
 
-            val response = getAppDownloadInfoResponse {
+            getAppDownloadInfoResponse {
                 appDownloadInfo = appDownloadInfo {
                     downloadSize = totalDownloadSize.toInt()
                     splitDownloadInfo.addAll(storageObjects.map {
@@ -350,23 +333,6 @@ class DirectoryServiceImpl @Inject constructor(
                     })
                 }
             }
-
-            messageEmitterProvider
-                .appDownloadedEmitter
-                .send(
-                    AppDownloaded(
-                        appId = request.appId,
-                        versionCode = storageObjects[0].releaseChannel.versionCode,
-                        downloadType = if (request.hasBaseVersionCode()) {
-                            DownloadType.UPDATE
-                        } else {
-                            DownloadType.INITIAL
-                        },
-                        deviceSdkVersion = request.deviceAttributes.spec.sdkVersion.toUInt(),
-                        countryCode = GEO_REGION_CONTEXT_KEY.get(),
-                    )
-                )
-                .map { response }
         }
 
         return response
@@ -424,15 +390,6 @@ class DirectoryServiceImpl @Inject constructor(
             }
 
             response
-        }.call { ->
-            messageEmitterProvider.appUpdateAvailabilityCheckedEmitter.send(
-                AppUpdateAvailabilityChecked(
-                    appId = request.appId,
-                    releaseChannel = request.releaseChannel.canonicalForm(),
-                    deviceSdkVersion = request.deviceAttributes.spec.sdkVersion.toUInt(),
-                    countryCode = GEO_REGION_CONTEXT_KEY.get(),
-                )
-            )
         }
 
         return response
