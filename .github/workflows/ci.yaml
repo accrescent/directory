@@ -20,8 +20,6 @@ jobs:
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew build
-        env:
-          BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
       - run: ./gradlew build -Dquarkus.native.enabled=true -Dquarkus.package.jar.enabled=false
       - run: ./gradlew test
       - run: ./gradlew dokkaGeneratePublicationHtml
