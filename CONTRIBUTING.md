@@ -8,7 +8,7 @@ resources to get you started.
 The directory service is built using the [Quarkus framework]. You'll need the following installed to
 build and develop the directory service and its related libraries:
 
-- A JDK 21 environment
+- A JDK 24 environment
 - Docker
 
 The most convenient way to develop the directory service is to either run `quarkus dev` using the
