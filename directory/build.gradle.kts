@@ -37,7 +37,7 @@ dependencies {
 }
 
 group = "app.accrescent.services"
-version = "0.0.0"
+version = "0.1.0-rc.1"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_24
