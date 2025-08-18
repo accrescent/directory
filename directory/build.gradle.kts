@@ -37,7 +37,7 @@ dependencies {
     testImplementation(libs.quarkus.test.vertx)
 }
 
-group = "app.accrescent.services"
+group = "app.accrescent.server"
 version = "0.1.0-rc.1"
 
 java {

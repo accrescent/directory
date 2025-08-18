@@ -1,20 +1,20 @@
 # Contributing guidelines
 
-Thank you for your interest in contributing to Accrescent's directory service! Here are a few
+Thank you for your interest in contributing to Accrescent's directory server! Here are a few
 resources to get you started.
 
 ## Development setup
 
-The directory service is built using the [Quarkus framework]. You'll need the following installed to
-build and develop the directory service and its related libraries:
+The directory server is built using the [Quarkus framework]. You'll need the following installed to
+build and develop the directory server and its related libraries:
 
 - A JDK 24 environment
 - Docker
 
-The most convenient way to develop the directory service is to either run `quarkus dev` using the
+The most convenient way to develop the directory server is to either run `quarkus dev` using the
 [Quarkus CLI] or directly run `./gradlew quarkusDev`. If the Docker daemon is running, these
 commands will start dependent containers via [Quarkus Dev Services] and a development version of the
-directory service with live reload enabled.
+directory server with live reload enabled.
 
 To learn more, we strongly recommend reading [Quarkus' documentation].
 
@@ -40,9 +40,9 @@ Official libraries from the Quarkus framework are almost always acceptable.
 
 ## Licensing
 
-Contributing to the directory service requires signing a Contributor License Agreement (CLA). To
-sign [Accrescent's CLA], just make a pull request, and our CLA bot will direct you. If you've
-already signed the CLA for another Accrescent project, you won't need to do so again.
+Contributing to the directory server requires signing a Contributor License Agreement (CLA). To sign
+[Accrescent's CLA], just make a pull request, and our CLA bot will direct you. If you've already
+signed the CLA for another Accrescent project, you won't need to do so again.
 
 We require all code to have valid copyright and licensing information. If your contribution creates
 a new file, be sure to add the following header in a code comment:
