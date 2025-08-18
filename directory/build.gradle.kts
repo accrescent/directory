@@ -30,6 +30,7 @@ dependencies {
     implementation(libs.quarkus.arc)
     implementation(libs.quarkus.grpc)
     implementation(libs.quarkus.reactive.pg)
+    implementation(libs.server.events)
     testImplementation(libs.quarkus.junit5)
     testImplementation(libs.quarkus.test.hibernate.reactive.panache)
     testImplementation(libs.quarkus.test.kafka.companion)
@@ -87,30 +88,8 @@ tasks.register<Exec>("downloadDirectoryApiProtos") {
         "$projectDir/src/main/proto/",
     )
 }
-tasks.register<Exec>("downloadServerEventsProtos") {
-    inputs.property("app.accrescent.directory.server-events-version", libs.versions.server.events)
-    outputs.dir("$projectDir/src/main/proto/accrescent/server/events")
-
-    val bufExecutable = configurations.getByName(BUF_BINARY_CONFIGURATION_NAME).singleFile
-    if (!bufExecutable.canExecute()) {
-        bufExecutable.setExecutable(true)
-    }
-
-    val serverEventsVersion = inputs.properties["app.accrescent.directory.server-events-version"]
-
-    commandLine(
-        bufExecutable.absolutePath,
-        "export",
-        "buf.build/accrescent/server-events:$serverEventsVersion",
-        "--output",
-        "$projectDir/src/main/proto/",
-    )
-}
 tasks.register("downloadProtos") {
-    dependsOn(
-        tasks.getByName("downloadDirectoryApiProtos"),
-        tasks.getByName("downloadServerEventsProtos"),
-    )
+    dependsOn(tasks.getByName("downloadDirectoryApiProtos"))
 }
 tasks.quarkusGenerateCode {
     dependsOn(tasks.getByName("downloadProtos"))

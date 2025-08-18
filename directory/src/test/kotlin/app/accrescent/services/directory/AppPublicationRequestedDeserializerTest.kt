@@ -4,8 +4,8 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.server.events.v1.AppPublicationRequested
 import app.accrescent.services.directory.serde.AppPublicationRequestedDeserializer
+import build.buf.gen.accrescent.server.events.v1.AppPublicationRequested
 import com.google.protobuf.InvalidProtocolBufferException
 import io.quarkus.test.junit.QuarkusTest
 import org.junit.jupiter.api.Test

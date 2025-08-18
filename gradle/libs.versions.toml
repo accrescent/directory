@@ -12,7 +12,8 @@ dokka = "2.0.0"
 flyway = "11.11.0"
 kotlin = "2.2.0"
 quarkus = "3.25.3"
-server-events = "a0b81bb84aca490aa3662c97c44e861a"
+# When upgrading, ensure the protoc version component is <= the protoc version pulled in by Quarkus
+server-events = "25.3.0.2.20250811233530.a0b81bb84aca"
 shadow = "9.0.1"
 testcontainers = "1.21.3"
 xz = "1.10"
@@ -46,6 +47,7 @@ quarkus-reactive-pg = { module = "io.quarkus:quarkus-reactive-pg-client" }
 quarkus-test-hibernate-reactive-panache = { module = "io.quarkus:quarkus-test-hibernate-reactive-panache" }
 quarkus-test-kafka-companion = { module = "io.quarkus:quarkus-test-kafka-companion" }
 quarkus-test-vertx = { module = "io.quarkus:quarkus-test-vertx" }
+server-events = { module = "build.buf.gen:accrescent_server-events_protocolbuffers_kotlin", version.ref = "server-events" }
 testcontainers-clickhouse = { module = "org.testcontainers:clickhouse", version.ref = "testcontainers" }
 xz = { module = "org.tukaani:xz", version.ref = "xz" }
 zstd = { module = "com.github.luben:zstd-jni", version.ref = "zstd" }

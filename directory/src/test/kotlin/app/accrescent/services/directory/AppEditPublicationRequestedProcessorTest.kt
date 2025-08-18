@@ -4,8 +4,8 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.server.events.v1.AppEditPublicationRequested
 import app.accrescent.services.directory.data.AppRepository
+import build.buf.gen.accrescent.server.events.v1.AppEditPublicationRequested
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.quarkus.test.hibernate.reactive.panache.TransactionalUniAsserter
 import io.quarkus.test.junit.QuarkusTest

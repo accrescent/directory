@@ -17,5 +17,9 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
         google()
+        maven {
+            name = "buf"
+            url = uri("https://buf.build/gen/maven")
+        }
     }
 }

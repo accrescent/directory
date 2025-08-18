@@ -4,16 +4,6 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.server.events.v1.AppEditPublicationRequested
-import app.accrescent.server.events.v1.AppEditPublished
-import app.accrescent.server.events.v1.AppKt.packageMetadataEntry
-import app.accrescent.server.events.v1.app
-import app.accrescent.server.events.v1.appEdit
-import app.accrescent.server.events.v1.appEditPublished
-import app.accrescent.server.events.v1.appListing
-import app.accrescent.server.events.v1.image
-import app.accrescent.server.events.v1.objectMetadata
-import app.accrescent.server.events.v1.packageMetadata
 import app.accrescent.services.directory.data.App
 import app.accrescent.services.directory.data.AppRepository
 import app.accrescent.services.directory.data.Image
@@ -21,7 +11,17 @@ import app.accrescent.services.directory.data.Listing
 import app.accrescent.services.directory.data.ListingId
 import app.accrescent.services.directory.data.ReleaseChannel
 import app.accrescent.services.directory.data.StorageObject
-import com.android.bundle.Commands
+import build.buf.gen.accrescent.server.events.v1.AppEditPublicationRequested
+import build.buf.gen.accrescent.server.events.v1.AppEditPublished
+import build.buf.gen.accrescent.server.events.v1.AppKt.packageMetadataEntry
+import build.buf.gen.accrescent.server.events.v1.app
+import build.buf.gen.accrescent.server.events.v1.appEdit
+import build.buf.gen.accrescent.server.events.v1.appEditPublished
+import build.buf.gen.accrescent.server.events.v1.appListing
+import build.buf.gen.accrescent.server.events.v1.image
+import build.buf.gen.accrescent.server.events.v1.objectMetadata
+import build.buf.gen.accrescent.server.events.v1.packageMetadata
+import build.buf.gen.android.bundle.BuildApksResult
 import io.quarkus.hibernate.reactive.panache.Panache
 import io.smallrye.mutiny.Uni
 import jakarta.enterprise.context.ApplicationScoped
@@ -110,7 +110,7 @@ class AppEditPublicationRequestedProcessor(private val appRepository: AppReposit
                                     versionCode = channel.versionCode.toInt()
                                     versionName = channel.versionName
                                     buildApksResult =
-                                        Commands.BuildApksResult.parseFrom(channel.buildApksResult)
+                                        BuildApksResult.parseFrom(channel.buildApksResult)
                                     objectMetadata.putAll(channel.objects.associate {
                                         it.id to objectMetadata {
                                             uncompressedSize = it.uncompressedSize.toInt()

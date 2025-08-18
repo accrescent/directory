@@ -5,8 +5,8 @@
 package app.accrescent.services.directory
 
 import app.accrescent.directory.v1beta1.ReleaseChannel as DirectoryReleaseChannel
-import app.accrescent.server.events.v1.ReleaseChannel as EventsReleaseChannel
-import app.accrescent.server.events.v1.releaseChannel as eventsReleaseChannel
+import build.buf.gen.accrescent.server.events.v1.ReleaseChannel as EventsReleaseChannel
+import build.buf.gen.accrescent.server.events.v1.releaseChannel as eventsReleaseChannel
 
 /**
  * The permanent, canonical name of the stable release channel

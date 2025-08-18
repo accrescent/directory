@@ -4,8 +4,8 @@
 
 package app.accrescent.services.directory.serde
 
-import app.accrescent.server.events.v1.App
-import app.accrescent.server.events.v1.ReleaseChannel
+import build.buf.gen.accrescent.server.events.v1.App
+import build.buf.gen.accrescent.server.events.v1.ReleaseChannel
 
 /**
  * Validates the fields of an [App] object.

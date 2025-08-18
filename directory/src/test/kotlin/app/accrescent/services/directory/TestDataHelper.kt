@@ -4,13 +4,13 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.server.events.v1.App
-import app.accrescent.server.events.v1.AppEditPublicationRequested
-import app.accrescent.server.events.v1.AppPublicationRequested
-import app.accrescent.server.events.v1.ReleaseChannel
-import app.accrescent.server.events.v1.appPublicationRequested
-import app.accrescent.server.events.v1.copy
-import app.accrescent.server.events.v1.objectMetadata
+import build.buf.gen.accrescent.server.events.v1.App
+import build.buf.gen.accrescent.server.events.v1.AppEditPublicationRequested
+import build.buf.gen.accrescent.server.events.v1.AppPublicationRequested
+import build.buf.gen.accrescent.server.events.v1.ReleaseChannel
+import build.buf.gen.accrescent.server.events.v1.appPublicationRequested
+import build.buf.gen.accrescent.server.events.v1.copy
+import build.buf.gen.accrescent.server.events.v1.objectMetadata
 import com.google.protobuf.TextFormat
 import java.util.stream.Stream
 

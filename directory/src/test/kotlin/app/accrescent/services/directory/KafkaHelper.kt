@@ -4,10 +4,6 @@
 
 package app.accrescent.services.directory
 
-import app.accrescent.server.events.v1.AppEditPublicationRequested
-import app.accrescent.server.events.v1.AppEditPublished
-import app.accrescent.server.events.v1.AppPublicationRequested
-import app.accrescent.server.events.v1.AppPublished
 import app.accrescent.services.directory.serde.AppEditPublicationRequestedSerializer
 import app.accrescent.services.directory.serde.AppEditPublishedSerializer
 import app.accrescent.services.directory.serde.AppPublicationRequestedSerializer
@@ -16,6 +12,10 @@ import app.accrescent.services.directory.serde.TestAppEditPublicationRequestedDe
 import app.accrescent.services.directory.serde.TestAppEditPublishedDeserializer
 import app.accrescent.services.directory.serde.TestAppPublicationRequestedDeserializer
 import app.accrescent.services.directory.serde.TestAppPublishedDeserializer
+import build.buf.gen.accrescent.server.events.v1.AppEditPublicationRequested
+import build.buf.gen.accrescent.server.events.v1.AppEditPublished
+import build.buf.gen.accrescent.server.events.v1.AppPublicationRequested
+import build.buf.gen.accrescent.server.events.v1.AppPublished
 import io.smallrye.reactive.messaging.kafka.companion.ConsumerTask
 import io.smallrye.reactive.messaging.kafka.companion.KafkaCompanion
 import org.apache.kafka.clients.producer.ProducerRecord
