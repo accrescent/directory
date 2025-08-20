@@ -23,7 +23,6 @@ class AppPublicationRequestedDeserializerTest {
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun deserializeRejectsInvalidBytes() {
         assertThrows<InvalidProtocolBufferException> {

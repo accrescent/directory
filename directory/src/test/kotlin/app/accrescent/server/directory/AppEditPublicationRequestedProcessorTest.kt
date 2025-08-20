@@ -73,7 +73,6 @@ class AppEditPublicationRequestedProcessorTest {
         assertEquals(RecordDeserializationException::class.qualifiedName, errorType)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun publishEditReportsErrorOnInvalidBytes() {
         val invalidByteSequence = "deadbeefffffffff".hexToByteArray()

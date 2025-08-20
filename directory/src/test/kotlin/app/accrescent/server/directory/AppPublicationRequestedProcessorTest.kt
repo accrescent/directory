@@ -55,7 +55,6 @@ class AppPublicationRequestedProcessorTest {
         assertEquals(RecordDeserializationException::class.qualifiedName, errorType)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun publishAppReportsErrorOnInvalidBytes() {
         val invalidByteSequence = "ffffffffdeadbeef".hexToByteArray()
