@@ -15,9 +15,7 @@ dependencies {
 
 tasks.named<ShadowJar>("shadowJar") {
     dependencies {
-        // Type-safe projects accessors (i.e. "libs.bundletool") are not supported until shadow
-        // 9.0.0-rc1, so work around this limitation for now.
-        include(dependency(libs.bundletool.map { "${it.group}:${it.name}:${it.version}" }.get()))
+        include(dependency(libs.bundletool))
     }
     relocate("com.android.bundle", "app.accrescent.bundletool.android.bundle")
 }
