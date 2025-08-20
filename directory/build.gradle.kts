@@ -112,7 +112,6 @@ tasks.quarkusGenerateCode {
 
 tasks.clean {
     delete("$projectDir/src/main/proto/accrescent/directory/v1")
-    delete("$projectDir/src/main/proto/accrescent/server")
     delete("$projectDir/src/main/proto/android")
 }
 
@@ -136,7 +135,7 @@ dokka {
 
         perPackageOption {
             matchingRegex =
-                """^app\.accrescent\.(directory\.((priv\.)?v1)|server\.events\.v1)|com\.(android\.bundle|google\.protobuf)"""
+                """^app\.accrescent\.directory\.((priv\.)?v1)|com\.(android\.bundle|google\.protobuf)"""
             suppress = true
         }
     }
