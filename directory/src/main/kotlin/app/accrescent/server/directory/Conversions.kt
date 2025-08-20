@@ -4,7 +4,7 @@
 
 package app.accrescent.server.directory
 
-import app.accrescent.directory.v1beta1.ReleaseChannel as DirectoryReleaseChannel
+import app.accrescent.directory.v1.ReleaseChannel as DirectoryReleaseChannel
 import build.buf.gen.accrescent.server.events.v1.ReleaseChannel as EventsReleaseChannel
 import build.buf.gen.accrescent.server.events.v1.releaseChannel as eventsReleaseChannel
 

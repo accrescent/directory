@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# proto-file: accrescent/directory/v1beta1/device_attributes.proto
+# proto-file: accrescent/directory/v1/device_attributes.proto
 # proto-message: DeviceAttributes
 
 spec {

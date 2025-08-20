@@ -5,28 +5,28 @@
 package app.accrescent.server.directory
 
 import app.accrescent.directory.priv.v1.listAppListingsPageToken
-import app.accrescent.directory.v1beta1.AppListing
-import app.accrescent.directory.v1beta1.AppListingView
-import app.accrescent.directory.v1beta1.CompatibilityLevel
-import app.accrescent.directory.v1beta1.DeviceAttributes
-import app.accrescent.directory.v1beta1.DirectoryService
-import app.accrescent.directory.v1beta1.GetAppDownloadInfoRequest
-import app.accrescent.directory.v1beta1.GetAppListingRequest
-import app.accrescent.directory.v1beta1.GetAppListingResponse
-import app.accrescent.directory.v1beta1.GetUpdateInfoRequest
-import app.accrescent.directory.v1beta1.appDownloadInfo
-import app.accrescent.directory.v1beta1.appListing
-import app.accrescent.directory.v1beta1.compatibility
-import app.accrescent.directory.v1beta1.copy
-import app.accrescent.directory.v1beta1.downloadSize
-import app.accrescent.directory.v1beta1.getAppDownloadInfoRequest
-import app.accrescent.directory.v1beta1.getAppDownloadInfoResponse
-import app.accrescent.directory.v1beta1.getAppListingRequest
-import app.accrescent.directory.v1beta1.getUpdateInfoRequest
-import app.accrescent.directory.v1beta1.image
-import app.accrescent.directory.v1beta1.listAppListingsRequest
-import app.accrescent.directory.v1beta1.releaseChannel
-import app.accrescent.directory.v1beta1.splitDownloadInfo
+import app.accrescent.directory.v1.AppListing
+import app.accrescent.directory.v1.AppListingView
+import app.accrescent.directory.v1.CompatibilityLevel
+import app.accrescent.directory.v1.DeviceAttributes
+import app.accrescent.directory.v1.DirectoryService
+import app.accrescent.directory.v1.GetAppDownloadInfoRequest
+import app.accrescent.directory.v1.GetAppListingRequest
+import app.accrescent.directory.v1.GetAppListingResponse
+import app.accrescent.directory.v1.GetUpdateInfoRequest
+import app.accrescent.directory.v1.appDownloadInfo
+import app.accrescent.directory.v1.appListing
+import app.accrescent.directory.v1.compatibility
+import app.accrescent.directory.v1.copy
+import app.accrescent.directory.v1.downloadSize
+import app.accrescent.directory.v1.getAppDownloadInfoRequest
+import app.accrescent.directory.v1.getAppDownloadInfoResponse
+import app.accrescent.directory.v1.getAppListingRequest
+import app.accrescent.directory.v1.getUpdateInfoRequest
+import app.accrescent.directory.v1.image
+import app.accrescent.directory.v1.listAppListingsRequest
+import app.accrescent.directory.v1.releaseChannel
+import app.accrescent.directory.v1.splitDownloadInfo
 import app.accrescent.server.directory.data.AppRepository
 import com.google.protobuf.TextFormat
 import io.grpc.Status
@@ -56,7 +56,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 import java.util.stream.Stream
-import app.accrescent.directory.v1beta1.ReleaseChannel as DirectoryReleaseChannel
+import app.accrescent.directory.v1.ReleaseChannel as DirectoryReleaseChannel
 
 private const val REQUEST_TIMEOUT_SECS: Long = 5
 

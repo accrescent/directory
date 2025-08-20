@@ -86,7 +86,7 @@ tasks.getByName("bufLint") {
 
 tasks.register<Exec>("downloadDirectoryApiProtos") {
     inputs.property("app.accrescent.directory.directory-api-version", libs.versions.directory.api)
-    outputs.dir("$projectDir/src/main/proto/accrescent/directory/v1beta1")
+    outputs.dir("$projectDir/src/main/proto/accrescent/directory/v1")
 
     val bufExecutable = configurations.getByName(BUF_BINARY_CONFIGURATION_NAME).singleFile
     if (!bufExecutable.canExecute()) {
@@ -111,7 +111,7 @@ tasks.quarkusGenerateCode {
 }
 
 tasks.clean {
-    delete("$projectDir/src/main/proto/accrescent/directory/v1beta1")
+    delete("$projectDir/src/main/proto/accrescent/directory/v1")
     delete("$projectDir/src/main/proto/accrescent/server")
     delete("$projectDir/src/main/proto/android")
 }
@@ -136,7 +136,7 @@ dokka {
 
         perPackageOption {
             matchingRegex =
-                """^app\.accrescent\.(directory\.(priv\.v1|v1beta1)|server\.events\.v1)|com\.(android\.bundle|google\.protobuf)"""
+                """^app\.accrescent\.(directory\.((priv\.)?v1)|server\.events\.v1)|com\.(android\.bundle|google\.protobuf)"""
             suppress = true
         }
     }
