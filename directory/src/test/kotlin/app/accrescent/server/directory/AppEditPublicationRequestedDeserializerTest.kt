@@ -5,24 +5,20 @@
 package app.accrescent.server.directory
 
 import app.accrescent.server.directory.serde.AppEditPublicationRequestedDeserializer
-import build.buf.gen.accrescent.server.events.v1.AppEditPublicationRequested
 import com.google.protobuf.InvalidProtocolBufferException
 import io.quarkus.test.junit.QuarkusTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.MethodSource
 
 @QuarkusTest
 class AppEditPublicationRequestedDeserializerTest {
-    @ParameterizedTest
-    @MethodSource("app.accrescent.server.directory.TestDataHelper#generateInvalidAppEditPublicationRequested")
-    fun deserializeRejectsInvalidFields(event: AppEditPublicationRequested) {
+    @Test
+    fun deserializeRejectsInvalidFields() {
         assertThrows<IllegalArgumentException> {
             AppEditPublicationRequestedDeserializer().deserialize(
                 "",
-                event.toByteArray(),
+                TestDataHelper.invalidAppEditPublicationRequested.toByteArray(),
             )
         }
     }

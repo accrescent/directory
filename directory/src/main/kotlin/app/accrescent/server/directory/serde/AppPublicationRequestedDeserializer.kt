@@ -5,6 +5,7 @@
 package app.accrescent.server.directory.serde
 
 import build.buf.gen.accrescent.server.events.v1.AppPublicationRequested
+import build.buf.protovalidate.ValidatorFactory
 import org.apache.kafka.common.serialization.Deserializer
 
 /**
@@ -15,24 +16,21 @@ import org.apache.kafka.common.serialization.Deserializer
  * receive it.
  */
 class AppPublicationRequestedDeserializer : Deserializer<AppPublicationRequested> {
+    private val validator = ValidatorFactory
+        .newBuilder()
+        .buildWithDescriptors(listOf(AppPublicationRequested.getDescriptor()), true)
+
     /**
      * @suppress
      */
     override fun deserialize(topic: String, data: ByteArray): AppPublicationRequested {
         val message = AppPublicationRequested.parseFrom(data)
 
-        validateEvent(message)
+        val validationResult = validator.validate(message)
+        if (!validationResult.isSuccess) {
+            throw IllegalArgumentException("message did not pass validation")
+        }
 
         return message
-    }
-
-    private companion object {
-        private fun validateEvent(event: AppPublicationRequested) {
-            if (!event.hasApp()) {
-                throw IllegalArgumentException("app metadata is missing but required")
-            }
-
-            validateApp(event.app)
-        }
     }
 }

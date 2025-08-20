@@ -11,6 +11,7 @@ directory-api = "1048811c97114e239fe459af2d0163e0"
 dokka = "2.0.0"
 flyway = "11.11.0"
 kotlin = "2.2.0"
+protovalidate = "0.13.0"
 quarkus = "3.25.3"
 # When upgrading, ensure the protoc version component is <= the protoc version pulled in by Quarkus
 server-events = "25.3.0.2.20250820013009.f087aa6727d4"
@@ -25,6 +26,7 @@ bundletool = { module = "com.android.tools.build:bundletool", version.ref = "bun
 clickhouse-jdbc = { module = "com.clickhouse:clickhouse-jdbc", version.ref = "clickhouse" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin" }
+protovalidate = { module = "build.buf:protovalidate", version.ref = "protovalidate" }
 quarkus-agroal = { module = "io.quarkus:quarkus-agroal" }
 quarkus-agroal-deployment = { module = "io.quarkus:quarkus-agroal-deployment" }
 quarkus-agroal-spi = { module = "io.quarkus:quarkus-agroal-spi" }

@@ -57,6 +57,9 @@ object TestDataHelper {
         }
         .build()
 
+    val invalidAppEditPublicationRequested = validAppEditPublicationRequested.copy { clearEdit() }
+    val invalidAppPublicationRequested = validAppPublicationRequested.copy { clearApp() }
+
     @JvmStatic
     fun generateInvalidApp(): Stream<App> = Stream.of(
         // Missing the app ID
@@ -121,34 +124,5 @@ object TestDataHelper {
                     )
             }
             .build(),
-    )
-
-    @JvmStatic
-    fun generateInvalidAppEditPublicationRequested(): Stream<AppEditPublicationRequested> {
-        return Stream.concat(
-            Stream.of(
-                // Missing edit field
-                validAppEditPublicationRequested.copy { clearEdit() },
-                // Missing edit's ID field
-                validAppEditPublicationRequested.toBuilder().apply { editBuilder.clearId() }.build(),
-                // Missing edit's app field
-                validAppEditPublicationRequested.toBuilder().apply { editBuilder.clearApp() }.build(),
-            ),
-            // Invalid app field
-            generateInvalidApp().map { invalidApp ->
-                validAppEditPublicationRequested
-                    .toBuilder()
-                    .apply { editBuilder.app = invalidApp }
-                    .build()
-            },
-        )
-    }
-
-    @JvmStatic
-    fun generateInvalidAppPublicationRequested(): Stream<AppPublicationRequested> = Stream.concat(
-        // Missing app field
-        Stream.of(validAppPublicationRequested.copy { clearApp() }),
-        // Invalid app field
-        generateInvalidApp().map { invalidApp -> validAppPublicationRequested.copy { app = invalidApp } },
     )
 }

@@ -20,8 +20,6 @@ import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.MethodSource
 import java.util.function.Supplier
 
 @QuarkusTest
@@ -48,9 +46,10 @@ class AppEditPublicationRequestedProcessorTest {
         KafkaHelper.registerSerdes(kafka)
     }
 
-    @ParameterizedTest
-    @MethodSource("app.accrescent.server.directory.TestDataHelper#generateInvalidAppEditPublicationRequested")
-    fun publishEditReportsErrorOnInvalidFields(event: AppEditPublicationRequested) {
+    @Test
+    fun publishEditReportsErrorOnInvalidFields() {
+        val event = TestDataHelper.invalidAppEditPublicationRequested
+
         kafka
             .produce(AppEditPublicationRequested::class.java)
             .fromRecords(ProducerRecord(KafkaHelper.TOPIC_APP_EDIT_PUBLICATION_REQUESTED, event))
