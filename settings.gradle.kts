@@ -4,13 +4,7 @@
 
 rootProject.name = "directory"
 
-include(
-    "bundletool-relocated",
-    "directory",
-    "quarkus-devservices-clickhouse",
-    "quarkus-jdbc-clickhouse",
-    "quarkus-jdbc-clickhouse-deployment",
-)
+include("bundletool-relocated", "directory")
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
