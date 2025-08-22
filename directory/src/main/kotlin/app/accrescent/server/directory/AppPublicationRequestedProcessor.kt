@@ -23,9 +23,12 @@ import build.buf.gen.accrescent.server.events.v1.packageMetadata
 import build.buf.gen.android.bundle.BuildApksResult
 import io.quarkus.hibernate.reactive.panache.Panache
 import io.smallrye.mutiny.Uni
+import io.smallrye.reactive.messaging.kafka.transactions.KafkaTransactions
 import jakarta.enterprise.context.ApplicationScoped
+import org.eclipse.microprofile.reactive.messaging.Channel
 import org.eclipse.microprofile.reactive.messaging.Incoming
-import org.eclipse.microprofile.reactive.messaging.Outgoing
+import org.eclipse.microprofile.reactive.messaging.Message
+import org.eclipse.microprofile.reactive.messaging.OnOverflow
 import java.util.UUID
 
 /**
@@ -38,88 +41,101 @@ import java.util.UUID
 @ApplicationScoped
 class AppPublicationRequestedProcessor(
     private val appRepository: AppRepository,
+
+    @Channel("app-published")
+    // bufferSize must be greater than or equal to app-publication-requested.max.poll.records to
+    // ensure our buffer doesn't overflow
+    @OnOverflow(OnOverflow.Strategy.BUFFER, bufferSize = 500)
+    private val appPublishedProducer: KafkaTransactions<AppPublished>,
 ) {
     /**
      * Publishes [AppPublicationRequested] events to the directory as new apps.
      *
-     * This method has at-least-once Kafka message delivery semantics. It always attempts to commit
+     * This method has exactly-once Kafka message delivery semantics. It always attempts to commit
      * its database transaction before committing its consumer offset or its [AppPublished] output.
      */
     @Incoming("app-publication-requested")
-    @Outgoing("app-published")
-    fun publishApp(event: AppPublicationRequested): Uni<AppPublished> {
-        val app = App(
-            id = event.app.appId,
-            defaultListingLanguage = event.app.defaultListingLanguage,
-            listings = event.app.listingsList.mapTo(mutableSetOf()) {
-                Listing(
-                    id = ListingId(
-                        appId = event.app.appId,
-                        language = it.language,
-                    ),
-                    name = it.name,
-                    shortDescription = it.shortDescription,
-                    icon = Image(
-                        objectId = it.icon.objectId,
-                    ),
-                )
-            },
-            releaseChannels = event.app.packageMetadataList.mapTo(mutableSetOf()) { it ->
-                val releaseChannelId = UUID.randomUUID()
+    fun publishApp(batch: Message<List<AppPublicationRequested>>): Uni<Void> {
+        return appPublishedProducer.withTransactionAndAck(batch) { emitter ->
+            val apps = batch.payload.map { event ->
+                App(
+                    id = event.app.appId,
+                    defaultListingLanguage = event.app.defaultListingLanguage,
+                    listings = event.app.listingsList.mapTo(mutableSetOf()) {
+                        Listing(
+                            id = ListingId(
+                                appId = event.app.appId,
+                                language = it.language,
+                            ),
+                            name = it.name,
+                            shortDescription = it.shortDescription,
+                            icon = Image(
+                                objectId = it.icon.objectId,
+                            ),
+                        )
+                    },
+                    releaseChannels = event.app.packageMetadataList.mapTo(mutableSetOf()) { it ->
+                        val releaseChannelId = UUID.randomUUID()
 
-                ReleaseChannel(
-                    id = releaseChannelId,
-                    appId = event.app.appId,
-                    name = it.releaseChannel.canonicalForm(),
-                    versionCode = it.packageMetadata.versionCode.toUInt(),
-                    versionName = it.packageMetadata.versionName,
-                    buildApksResult = it.packageMetadata.buildApksResult.toByteArray(),
-                    objects = it.packageMetadata.objectMetadataMap
-                        .mapTo(mutableSetOf()) {
-                            StorageObject(
-                                id = it.key,
-                                releaseChannelId = releaseChannelId,
-                                uncompressedSize = it.value.uncompressedSize.toUInt(),
-                            )
-                        },
+                        ReleaseChannel(
+                            id = releaseChannelId,
+                            appId = event.app.appId,
+                            name = it.releaseChannel.canonicalForm(),
+                            versionCode = it.packageMetadata.versionCode.toUInt(),
+                            versionName = it.packageMetadata.versionName,
+                            buildApksResult = it.packageMetadata.buildApksResult.toByteArray(),
+                            objects = it.packageMetadata.objectMetadataMap
+                                .mapTo(mutableSetOf()) {
+                                    StorageObject(
+                                        id = it.key,
+                                        releaseChannelId = releaseChannelId,
+                                        uncompressedSize = it.value.uncompressedSize.toUInt(),
+                                    )
+                                },
+                        )
+                    },
                 )
-            },
-        )
+            }
 
-        val result = Panache.withTransaction {
-            appRepository.deleteById(app.id).chain { -> appRepository.persist(app) }
-        }.map { dbApp ->
-            appPublished {
-                this.app = app {
-                    appId = dbApp.id
-                    defaultListingLanguage = dbApp.defaultListingLanguage
-                    listings.addAll(dbApp.listings.map {
-                        appListing {
-                            language = it.id.language
-                            name = it.name
-                            shortDescription = it.shortDescription
-                            icon = image { objectId = it.icon.objectId }
-                        }
-                    })
-                    packageMetadata.addAll(dbApp.releaseChannels.map { channel ->
-                        packageMetadataEntry {
-                            releaseChannel = channel.name.toEventsReleaseChannel()
-                            packageMetadata = packageMetadata {
-                                versionCode = channel.versionCode.toInt()
-                                versionName = channel.versionName
-                                buildApksResult = BuildApksResult.parseFrom(channel.buildApksResult)
-                                objectMetadata.putAll(channel.objects.associate {
-                                    it.id to objectMetadata {
-                                        uncompressedSize = it.uncompressedSize.toInt()
+            Panache.withTransaction {
+                appRepository
+                    .deleteByIds(apps.map { it.id })
+                    .chain { -> appRepository.persist(apps) }
+            }.invoke { ->
+                apps.map { app ->
+                    appPublished {
+                        this.app = app {
+                            appId = app.id
+                            defaultListingLanguage = app.defaultListingLanguage
+                            listings.addAll(app.listings.map {
+                                appListing {
+                                    language = it.id.language
+                                    name = it.name
+                                    shortDescription = it.shortDescription
+                                    icon = image { objectId = it.icon.objectId }
+                                }
+                            })
+                            packageMetadata.addAll(app.releaseChannels.map { channel ->
+                                packageMetadataEntry {
+                                    releaseChannel = channel.name.toEventsReleaseChannel()
+                                    packageMetadata = packageMetadata {
+                                        versionCode = channel.versionCode.toInt()
+                                        versionName = channel.versionName
+                                        buildApksResult = BuildApksResult.parseFrom(channel.buildApksResult)
+                                        objectMetadata.putAll(channel.objects.associate {
+                                            it.id to objectMetadata {
+                                                uncompressedSize = it.uncompressedSize.toInt()
+                                            }
+                                        })
                                     }
-                                })
-                            }
+                                }
+                            })
                         }
-                    })
+                    }
+                }.forEach {
+                    emitter.send(it)
                 }
             }
         }
-
-        return result
     }
 }

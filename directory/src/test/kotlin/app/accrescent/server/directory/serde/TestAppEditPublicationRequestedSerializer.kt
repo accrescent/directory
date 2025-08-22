@@ -7,13 +7,7 @@ package app.accrescent.server.directory.serde
 import build.buf.gen.accrescent.server.events.v1.AppEditPublicationRequested
 import org.apache.kafka.common.serialization.Serializer
 
-/**
- * Kafka serializer for [AppEditPublicationRequested] events.
- */
-class AppEditPublicationRequestedSerializer : Serializer<AppEditPublicationRequested> {
-    /**
-     * @suppress
-     */
+class TestAppEditPublicationRequestedSerializer : Serializer<AppEditPublicationRequested> {
     override fun serialize(topic: String, data: AppEditPublicationRequested): ByteArray {
         return data.toByteArray()
     }
