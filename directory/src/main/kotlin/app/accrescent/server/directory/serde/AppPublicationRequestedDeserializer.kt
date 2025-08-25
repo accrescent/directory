@@ -28,7 +28,7 @@ class AppPublicationRequestedDeserializer : Deserializer<AppPublicationRequested
 
         val validationResult = validator.validate(message)
         if (!validationResult.isSuccess) {
-            throw IllegalArgumentException("message did not pass validation")
+            throw IllegalArgumentException(validationResult.toString())
         }
 
         return message
