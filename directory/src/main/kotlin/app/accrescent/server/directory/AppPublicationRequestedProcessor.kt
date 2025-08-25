@@ -84,12 +84,13 @@ class AppPublicationRequestedProcessor(
                             versionCode = it.packageMetadata.versionCode.toUInt(),
                             versionName = it.packageMetadata.versionName,
                             buildApksResult = it.packageMetadata.buildApksResult.toByteArray(),
-                            apks = it.packageMetadata.objectMetadataMap
-                                .mapTo(mutableSetOf()) {
+                            apks = it.packageMetadata.apkObjectMetadataMap
+                                .mapTo(mutableSetOf()) { (apkSetPath, objectMetadata) ->
                                     Apk(
-                                        objectId = it.key,
+                                        apkSetPath = apkSetPath,
+                                        objectId = objectMetadata.id,
                                         releaseChannelId = releaseChannelId,
-                                        uncompressedSize = it.value.uncompressedSize.toUInt(),
+                                        uncompressedSize = objectMetadata.uncompressedSize.toUInt(),
                                     )
                                 },
                         )
@@ -122,8 +123,9 @@ class AppPublicationRequestedProcessor(
                                         versionCode = channel.versionCode.toInt()
                                         versionName = channel.versionName
                                         buildApksResult = BuildApksResult.parseFrom(channel.buildApksResult)
-                                        objectMetadata.putAll(channel.apks.associate {
-                                            it.objectId to objectMetadata {
+                                        apkObjectMetadata.putAll(channel.apks.associate {
+                                            it.apkSetPath to objectMetadata {
+                                                id = it.objectId
                                                 uncompressedSize = it.uncompressedSize.toInt()
                                             }
                                         })

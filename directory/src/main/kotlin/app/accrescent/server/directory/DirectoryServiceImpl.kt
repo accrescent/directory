@@ -113,10 +113,10 @@ class DirectoryServiceImpl @Inject constructor(
                             .asRuntimeException()
                     }
 
-                    val matchingApkObjectIds =
-                        getMatchingApkObjectIds(buildApksResult, request.deviceAttributes).toSet()
+                    val matchingApkPaths =
+                        getMatchingApkPaths(buildApksResult, request.deviceAttributes).toSet()
 
-                    val compatibilityLevel = if (matchingApkObjectIds.isNotEmpty()) {
+                    val compatibilityLevel = if (matchingApkPaths.isNotEmpty()) {
                         CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
                     } else {
                         CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
@@ -126,7 +126,7 @@ class DirectoryServiceImpl @Inject constructor(
                     if (compatibilityLevel == CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE) {
                         downloadSize = downloadSize {
                             uncompressedTotal = releaseChannel.apks
-                                .filter { matchingApkObjectIds.contains(it.objectId) }
+                                .filter { matchingApkPaths.contains(it.apkSetPath) }
                                 .sumOf { it.uncompressedSize }
                                 .toInt()
                         }
@@ -225,10 +225,10 @@ class DirectoryServiceImpl @Inject constructor(
                             .asRuntimeException()
                     }
 
-                    val matchingApkObjectIds =
-                        getMatchingApkObjectIds(buildApksResult, request.deviceAttributes).toSet()
+                    val matchingApkPaths =
+                        getMatchingApkPaths(buildApksResult, request.deviceAttributes).toSet()
 
-                    val compatibilityLevel = if (matchingApkObjectIds.isNotEmpty()) {
+                    val compatibilityLevel = if (matchingApkPaths.isNotEmpty()) {
                         CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
                     } else {
                         CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
@@ -241,7 +241,7 @@ class DirectoryServiceImpl @Inject constructor(
                     ) {
                         downloadSize = downloadSize {
                             uncompressedTotal = releaseChannel.apks
-                                .filter { matchingApkObjectIds.contains(it.objectId) }
+                                .filter { matchingApkPaths.contains(it.apkSetPath) }
                                 .sumOf { it.uncompressedSize }
                                 .toInt()
                         }
@@ -301,18 +301,18 @@ class DirectoryServiceImpl @Inject constructor(
                     .asRuntimeException()
             }
 
-            val matchingApkObjectIds =
-                getMatchingApkObjectIds(buildApksResult, request.deviceAttributes)
+            val matchingApkPaths =
+                getMatchingApkPaths(buildApksResult, request.deviceAttributes)
 
-            if (matchingApkObjectIds.isEmpty()) {
+            if (matchingApkPaths.isEmpty()) {
                 throw Status.fromCode(Status.Code.NOT_FOUND)
                     .withDescription("no download information matches the provided device attributes")
                     .asRuntimeException()
             }
 
-            matchingApkObjectIds
-        }.chain { ids ->
-            Apk.findByObjectIds(ids)
+            matchingApkPaths
+        }.chain { paths ->
+            Apk.findByQualifiedPaths(request.appId, request.releaseChannel.canonicalForm(), paths)
         }.map { apks ->
             if (apks.isEmpty()) {
                 throw Status.fromCode(Status.Code.INTERNAL)
@@ -376,10 +376,10 @@ class DirectoryServiceImpl @Inject constructor(
                             .asRuntimeException()
                     }
 
-                    val matchingApkObjectIds =
-                        getMatchingApkObjectIds(buildApksResult, request.deviceAttributes)
+                    val matchingApkPaths =
+                        getMatchingApkPaths(buildApksResult, request.deviceAttributes)
 
-                    val compatibilityLevel = if (matchingApkObjectIds.isNotEmpty()) {
+                    val compatibilityLevel = if (matchingApkPaths.isNotEmpty()) {
                         CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
                     } else {
                         CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE

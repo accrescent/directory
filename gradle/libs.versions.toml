@@ -12,7 +12,7 @@ kotlin = "2.2.10"
 protovalidate = "0.13.0"
 quarkus = "3.25.4"
 # When upgrading, ensure the protoc version component is <= the protoc version pulled in by Quarkus
-server-events = "25.3.0.2.20250820013009.f087aa6727d4"
+server-events = "25.3.0.2.20250822234457.c28626e0bf3f"
 shadow = "9.0.2"
 
 [libraries]

@@ -4,10 +4,12 @@ CREATE SEQUENCE images_seq START WITH 1 INCREMENT BY 50;
 
 CREATE TABLE apks (
     id bigint NOT NULL,
+    apk_set_path text NOT NULL,
     object_id text NOT NULL UNIQUE,
     release_channel_id uuid NOT NULL,
     uncompressed_size integer NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE (apk_set_path, release_channel_id)
 );
 
 CREATE TABLE apps (

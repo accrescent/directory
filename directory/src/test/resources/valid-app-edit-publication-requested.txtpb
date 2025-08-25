@@ -93,7 +93,7 @@ edit {
                     }
                   }
                 }
-                path: "22a69c84-0ad0-4db3-8df6-0e63f524320d"
+                path: "splits/base-ldpi.apk"
                 split_apk_metadata {
                   split_id: "config.ldpi"
                 }
@@ -133,7 +133,7 @@ edit {
                     }
                   }
                 }
-                path: "ab78c00e-652e-497c-aa63-2574860fbe50"
+                path: "splits/base-mdpi.apk"
                 split_apk_metadata {
                   split_id: "config.mdpi"
                 }
@@ -173,7 +173,7 @@ edit {
                     }
                   }
                 }
-                path: "05de16fb-1cfa-440d-8757-55bb917b4b1d"
+                path: "splits/base-hdpi.apk"
                 split_apk_metadata {
                   split_id: "config.hdpi"
                 }
@@ -213,7 +213,7 @@ edit {
                     }
                   }
                 }
-                path: "9b89efa3-6886-4624-b6f9-9ed1c5a86505"
+                path: "splits/base-xhdpi.apk"
                 split_apk_metadata {
                   split_id: "config.xhdpi"
                 }
@@ -253,7 +253,7 @@ edit {
                     }
                   }
                 }
-                path: "f6119d1a-76b0-4e8d-bc04-8b2305dc5092"
+                path: "splits/base-xxhdpi.apk"
                 split_apk_metadata {
                   split_id: "config.xxhdpi"
                 }
@@ -293,7 +293,7 @@ edit {
                     }
                   }
                 }
-                path: "581c81df-fc3e-4ee7-8261-cbddb1b0aad9"
+                path: "splits/base-xxxhdpi.apk"
                 split_apk_metadata {
                   split_id: "config.xxxhdpi"
                 }
@@ -333,7 +333,7 @@ edit {
                     }
                   }
                 }
-                path: "3778c5ef-c951-471c-958e-daffa1977da1"
+                path: "splits/base-tvdpi.apk"
                 split_apk_metadata {
                   split_id: "config.tvdpi"
                 }
@@ -350,7 +350,7 @@ edit {
                     }
                   }
                 }
-                path: "53a56a19-2865-4f85-9a4e-0aba17f96837"
+                path: "splits/base-master.apk"
                 split_apk_metadata {
                   is_master_split: true
                 }
@@ -381,7 +381,7 @@ edit {
                     }
                   }
                 }
-                path: "fe172ba5-003e-48f6-8fcc-7304a26e32e2"
+                path: "splits/base-arm64_v8a.apk"
                 split_apk_metadata {
                   split_id: "config.arm64_v8a"
                 }
@@ -412,7 +412,7 @@ edit {
                     }
                   }
                 }
-                path: "1676d431-6a22-40da-a8fb-5c2fe4d3c136"
+                path: "splits/base-armeabi_v7a.apk"
                 split_apk_metadata {
                   split_id: "config.armeabi_v7a"
                 }
@@ -443,7 +443,7 @@ edit {
                     }
                   }
                 }
-                path: "3e0835af-a578-47c1-bf22-58166bbbb14d"
+                path: "splits/base-x86.apk"
                 split_apk_metadata {
                   split_id: "config.x86"
                 }
@@ -474,7 +474,7 @@ edit {
                     }
                   }
                 }
-                path: "338d4f30-5e62-412b-9b0f-87107f5fcf18"
+                path: "splits/base-x86_64.apk"
                 split_apk_metadata {
                   split_id: "config.x86_64"
                 }
@@ -494,75 +494,87 @@ edit {
           local_testing_info {
           }
         }
-        object_metadata {
-          key: "22a69c84-0ad0-4db3-8df6-0e63f524320d"
+        apk_object_metadata {
+          key: "splits/base-ldpi.apk"
           value {
+            id: "22a69c84-0ad0-4db3-8df6-0e63f524320d"
             uncompressed_size: 32541
           }
         }
-        object_metadata {
-          key: "ab78c00e-652e-497c-aa63-2574860fbe50"
+        apk_object_metadata {
+          key: "splits/base-mdpi.apk"
           value {
+            id: "ab78c00e-652e-497c-aa63-2574860fbe50"
             uncompressed_size: 32541
           }
         }
-        object_metadata {
-          key: "05de16fb-1cfa-440d-8757-55bb917b4b1d"
+        apk_object_metadata {
+          key: "splits/base-hdpi.apk"
           value {
+            id: "05de16fb-1cfa-440d-8757-55bb917b4b1d"
             uncompressed_size: 36637
           }
         }
-        object_metadata {
-          key: "9b89efa3-6886-4624-b6f9-9ed1c5a86505"
+        apk_object_metadata {
+          key: "splits/base-xhdpi.apk"
           value {
+            id: "9b89efa3-6886-4624-b6f9-9ed1c5a86505"
             uncompressed_size: 40767
           }
         }
-        object_metadata {
-          key: "f6119d1a-76b0-4e8d-bc04-8b2305dc5092"
+        apk_object_metadata {
+          key: "splits/base-xxhdpi.apk"
           value {
+            id: "f6119d1a-76b0-4e8d-bc04-8b2305dc5092"
             uncompressed_size: 44897
           }
         }
-        object_metadata {
-          key: "581c81df-fc3e-4ee7-8261-cbddb1b0aad9"
+        apk_object_metadata {
+          key: "splits/base-xxxhdpi.apk"
           value {
+            id: "581c81df-fc3e-4ee7-8261-cbddb1b0aad9"
             uncompressed_size: 44911
           }
         }
-        object_metadata {
-          key: "3778c5ef-c951-471c-958e-daffa1977da1"
+        apk_object_metadata {
+          key: "splits/base-tvdpi.apk"
           value {
+            id: "3778c5ef-c951-471c-958e-daffa1977da1"
             uncompressed_size: 60640
           }
         }
-        object_metadata {
-          key: "53a56a19-2865-4f85-9a4e-0aba17f96837"
+        apk_object_metadata {
+          key: "splits/base-master.apk"
           value {
+            id: "53a56a19-2865-4f85-9a4e-0aba17f96837"
             uncompressed_size: 4558309
           }
         }
-        object_metadata {
-          key: "fe172ba5-003e-48f6-8fcc-7304a26e32e2"
+        apk_object_metadata {
+          key: "splits/base-arm64_v8a.apk"
           value {
+            id: "fe172ba5-003e-48f6-8fcc-7304a26e32e2"
             uncompressed_size: 49616
           }
         }
-        object_metadata {
-          key: "1676d431-6a22-40da-a8fb-5c2fe4d3c136"
+        apk_object_metadata {
+          key: "splits/base-armeabi_v7a.apk"
           value {
+            id: "1676d431-6a22-40da-a8fb-5c2fe4d3c136"
             uncompressed_size: 455524
           }
         }
-        object_metadata {
-          key: "3e0835af-a578-47c1-bf22-58166bbbb14d"
+        apk_object_metadata {
+          key: "splits/base-x86.apk"
           value {
+            id: "3e0835af-a578-47c1-bf22-58166bbbb14d"
             uncompressed_size: 45508
           }
         }
-        object_metadata {
-          key: "338d4f30-5e62-412b-9b0f-87107f5fcf18"
+        apk_object_metadata {
+          key: "splits/base-x86_64.apk"
           value {
+            id: "338d4f30-5e62-412b-9b0f-87107f5fcf18"
             uncompressed_size: 45514
           }
         }
