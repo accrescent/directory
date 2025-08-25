@@ -89,7 +89,7 @@ class AppEditPublicationRequestedProcessor(
                             apks = it.packageMetadata.objectMetadataMap
                                 .mapTo(mutableSetOf()) {
                                     Apk(
-                                        id = it.key,
+                                        objectId = it.key,
                                         releaseChannelId = releaseChannelId,
                                         uncompressedSize = it.value.uncompressedSize.toUInt(),
                                     )
@@ -130,7 +130,7 @@ class AppEditPublicationRequestedProcessor(
                                             buildApksResult =
                                                 BuildApksResult.parseFrom(channel.buildApksResult)
                                             objectMetadata.putAll(channel.apks.associate {
-                                                it.id to objectMetadata {
+                                                it.objectId to objectMetadata {
                                                     uncompressedSize = it.uncompressedSize.toInt()
                                                 }
                                             })

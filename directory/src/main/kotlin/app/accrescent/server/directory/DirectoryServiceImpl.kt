@@ -126,7 +126,7 @@ class DirectoryServiceImpl @Inject constructor(
                     if (compatibilityLevel == CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE) {
                         downloadSize = downloadSize {
                             uncompressedTotal = releaseChannel.apks
-                                .filter { matchingApkObjectIds.contains(it.id) }
+                                .filter { matchingApkObjectIds.contains(it.objectId) }
                                 .sumOf { it.uncompressedSize }
                                 .toInt()
                         }
@@ -241,7 +241,7 @@ class DirectoryServiceImpl @Inject constructor(
                     ) {
                         downloadSize = downloadSize {
                             uncompressedTotal = releaseChannel.apks
-                                .filter { matchingApkObjectIds.contains(it.id) }
+                                .filter { matchingApkObjectIds.contains(it.objectId) }
                                 .sumOf { it.uncompressedSize }
                                 .toInt()
                         }
@@ -312,7 +312,7 @@ class DirectoryServiceImpl @Inject constructor(
 
             matchingApkObjectIds
         }.chain { ids ->
-            Apk.findByIds(ids)
+            Apk.findByObjectIds(ids)
         }.map { apks ->
             if (apks.isEmpty()) {
                 throw Status.fromCode(Status.Code.INTERNAL)
@@ -328,7 +328,7 @@ class DirectoryServiceImpl @Inject constructor(
                     splitDownloadInfo.addAll(apks.map {
                         splitDownloadInfo {
                             downloadSize = it.uncompressedSize.toInt()
-                            url = "${artifactsBaseUrl}/${it.id}"
+                            url = "${artifactsBaseUrl}/${it.objectId}"
                         }
                     })
                 }
