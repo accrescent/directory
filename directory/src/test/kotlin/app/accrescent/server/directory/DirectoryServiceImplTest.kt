@@ -410,7 +410,19 @@ class DirectoryServiceImplTest {
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
-        assertEquals(getExpectedAppDownloadInfoResponse(), response)
+        val expectedResponse = getExpectedAppDownloadInfoResponse()
+
+        assertEquals(
+            expectedResponse.appDownloadInfo.downloadSize,
+            response.appDownloadInfo.downloadSize,
+        )
+        // Assert equality with set semantics rather than list semantics since the order of the
+        // SplitDownloadInfo items doesn't matter and since the order may vary between calls to
+        // GetAppDownloadInfo(), causing spurious and racy test failures if we compare them as lists
+        assertEquals(
+            expectedResponse.appDownloadInfo.splitDownloadInfoList.toSet(),
+            response.appDownloadInfo.splitDownloadInfoList.toSet(),
+        )
     }
 
     @ParameterizedTest
