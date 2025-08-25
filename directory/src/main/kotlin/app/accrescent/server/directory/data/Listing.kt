@@ -122,7 +122,7 @@ class Listing(
                         "FROM Listing listings " +
                         "JOIN ReleaseChannel release_channels " +
                         "ON release_channels.appId = listings.id.appId " +
-                        "JOIN FETCH release_channels.objects " +
+                        "JOIN FETCH release_channels.apks " +
                         "WHERE release_channels.name = '$RELEASE_CHANNEL_NAME_STABLE' " +
                         "AND listings.id IN ?1 " +
                         "ORDER BY listings.id.appId ASC",

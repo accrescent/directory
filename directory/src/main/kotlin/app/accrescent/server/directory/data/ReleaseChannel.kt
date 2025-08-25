@@ -30,7 +30,7 @@ import java.util.UUID
  * @property versionName the user-visible name for the latest version published in this channel
  * @property versionCode the internal version code for the latest version published in this channel
  * @property buildApksResult the `BuildApksResult` object associated with this app version
- * @property objects the storage objects associated with this app version
+ * @property apks the APKs associated with this app version
  */
 @Entity
 @Table(
@@ -58,7 +58,7 @@ class ReleaseChannel(
 
     @OneToMany(cascade = [CascadeType.ALL], mappedBy = "releaseChannel")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    val objects: Set<StorageObject>
+    val apks: Set<Apk>
 ) : PanacheEntityBase {
     @ManyToOne
     @JoinColumn(name = "app_id", insertable = false, updatable = false)
@@ -77,7 +77,7 @@ class ReleaseChannel(
          */
         fun findByAppIdAndName(appId: String, name: String): Uni<ReleaseChannel?> {
             return find(
-                "JOIN FETCH objects WHERE appId = ?1 AND name = ?2",
+                "JOIN FETCH apks WHERE appId = ?1 AND name = ?2",
                 appId,
                 name,
             ).firstResult()

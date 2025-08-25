@@ -1,5 +1,12 @@
 CREATE SEQUENCE images_seq START WITH 1 INCREMENT BY 50;
 
+CREATE TABLE apks (
+    id TEXT NOT NULL,
+    release_channel_id uuid NOT NULL,
+    uncompressed_size INTEGER NOT NULL,
+    PRIMARY KEY (id)
+);
+
 CREATE TABLE apps (
     default_listing_language TEXT NOT NULL,
     id text NOT NULL,
@@ -21,13 +28,6 @@ CREATE TABLE listings (
     PRIMARY KEY (app_id, language)
 );
 
-CREATE TABLE objects (
-    uncompressed_size INTEGER NOT NULL,
-    release_channel_id UUID NOT NULL,
-    id TEXT NOT NULL,
-    PRIMARY KEY (id)
-);
-
 CREATE TABLE release_channels (
     version_code INTEGER NOT NULL,
     id UUID NOT NULL,
@@ -39,6 +39,12 @@ CREATE TABLE release_channels (
     UNIQUE (app_id, name)
 );
 
+ALTER TABLE IF EXISTS apks
+    ADD CONSTRAINT FK9cd0kp980csf3we7o30i3g8k5
+    FOREIGN KEY (release_channel_id)
+    REFERENCES release_channels
+    ON DELETE CASCADE;
+
 ALTER TABLE IF EXISTS listings
     ADD CONSTRAINT FKo8c72gcx6w3qc2q6w64rld402
     FOREIGN KEY (app_id)
@@ -49,12 +55,6 @@ ALTER TABLE IF EXISTS listings
     ADD CONSTRAINT FKn540ygsm2x3dylvgggbrxyo6y
     FOREIGN KEY (icon_image_id)
     REFERENCES images
-    ON DELETE CASCADE;
-
-ALTER TABLE IF EXISTS objects
-    ADD CONSTRAINT FKool9teqdv2aovcfkbh3rwe1kn
-    FOREIGN KEY (release_channel_id)
-    REFERENCES release_channels
     ON DELETE CASCADE;
 
 ALTER TABLE IF EXISTS release_channels

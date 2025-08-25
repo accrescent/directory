@@ -29,12 +29,12 @@ import app.accrescent.directory.v1.image
 import app.accrescent.directory.v1.listAppListingsResponse
 import app.accrescent.directory.v1.splitDownloadInfo
 import app.accrescent.directory.v1.updateInfo
+import app.accrescent.server.directory.data.Apk
 import app.accrescent.server.directory.data.App
 import app.accrescent.server.directory.data.AppDefaultListingLanguage
 import app.accrescent.server.directory.data.Listing
 import app.accrescent.server.directory.data.ListingId
 import app.accrescent.server.directory.data.ReleaseChannel
-import app.accrescent.server.directory.data.StorageObject
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.Status
 import io.quarkus.grpc.GrpcService
@@ -125,7 +125,7 @@ class DirectoryServiceImpl @Inject constructor(
 
                     if (compatibilityLevel == CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE) {
                         downloadSize = downloadSize {
-                            uncompressedTotal = releaseChannel.objects
+                            uncompressedTotal = releaseChannel.apks
                                 .filter { matchingApkObjectIds.contains(it.id) }
                                 .sumOf { it.uncompressedSize }
                                 .toInt()
@@ -240,7 +240,7 @@ class DirectoryServiceImpl @Inject constructor(
                         compatibilityLevel == CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
                     ) {
                         downloadSize = downloadSize {
-                            uncompressedTotal = releaseChannel.objects
+                            uncompressedTotal = releaseChannel.apks
                                 .filter { matchingApkObjectIds.contains(it.id) }
                                 .sumOf { it.uncompressedSize }
                                 .toInt()
@@ -312,20 +312,20 @@ class DirectoryServiceImpl @Inject constructor(
 
             matchingApkObjectIds
         }.chain { ids ->
-            StorageObject.findByIds(ids)
-        }.map { storageObjects ->
-            if (storageObjects.isEmpty()) {
+            Apk.findByIds(ids)
+        }.map { apks ->
+            if (apks.isEmpty()) {
                 throw Status.fromCode(Status.Code.INTERNAL)
-                    .withDescription("referenced storage object not found in database")
+                    .withDescription("referenced APK not found in database")
                     .asRuntimeException()
             }
 
-            val totalDownloadSize = storageObjects.sumOf { it.uncompressedSize }
+            val totalDownloadSize = apks.sumOf { it.uncompressedSize }
 
             getAppDownloadInfoResponse {
                 appDownloadInfo = appDownloadInfo {
                     downloadSize = totalDownloadSize.toInt()
-                    splitDownloadInfo.addAll(storageObjects.map {
+                    splitDownloadInfo.addAll(apks.map {
                         splitDownloadInfo {
                             downloadSize = it.uncompressedSize.toInt()
                             url = "${artifactsBaseUrl}/${it.id}"

@@ -4,13 +4,13 @@
 
 package app.accrescent.server.directory
 
+import app.accrescent.server.directory.data.Apk
 import app.accrescent.server.directory.data.App
 import app.accrescent.server.directory.data.AppRepository
 import app.accrescent.server.directory.data.Image
 import app.accrescent.server.directory.data.Listing
 import app.accrescent.server.directory.data.ListingId
 import app.accrescent.server.directory.data.ReleaseChannel
-import app.accrescent.server.directory.data.StorageObject
 import build.buf.gen.accrescent.server.events.v1.AppKt.packageMetadataEntry
 import build.buf.gen.accrescent.server.events.v1.AppPublicationRequested
 import build.buf.gen.accrescent.server.events.v1.AppPublished
@@ -84,9 +84,9 @@ class AppPublicationRequestedProcessor(
                             versionCode = it.packageMetadata.versionCode.toUInt(),
                             versionName = it.packageMetadata.versionName,
                             buildApksResult = it.packageMetadata.buildApksResult.toByteArray(),
-                            objects = it.packageMetadata.objectMetadataMap
+                            apks = it.packageMetadata.objectMetadataMap
                                 .mapTo(mutableSetOf()) {
-                                    StorageObject(
+                                    Apk(
                                         id = it.key,
                                         releaseChannelId = releaseChannelId,
                                         uncompressedSize = it.value.uncompressedSize.toUInt(),
@@ -122,7 +122,7 @@ class AppPublicationRequestedProcessor(
                                         versionCode = channel.versionCode.toInt()
                                         versionName = channel.versionName
                                         buildApksResult = BuildApksResult.parseFrom(channel.buildApksResult)
-                                        objectMetadata.putAll(channel.objects.associate {
+                                        objectMetadata.putAll(channel.apks.associate {
                                             it.id to objectMetadata {
                                                 uncompressedSize = it.uncompressedSize.toInt()
                                             }

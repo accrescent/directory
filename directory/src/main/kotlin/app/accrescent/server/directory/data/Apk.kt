@@ -16,16 +16,16 @@ import jakarta.persistence.Table
 import java.util.UUID
 
 /**
- * A blob stored in an object storage bucket
+ * An APK belonging to an app
  *
- * @property id this object's unique ID
- * @property releaseChannelId the unique ID of this object's associated release channel
- * @property uncompressedSize the uncompressed size of this object in bytes
- * @property releaseChannel this object's associated release channel
+ * @property id this APK's ID in object storage
+ * @property releaseChannelId the unique ID of this APK's associated release channel
+ * @property uncompressedSize the uncompressed size of this APK in bytes
+ * @property releaseChannel this APK's associated release channel
  */
 @Entity
-@Table(name = "objects")
-class StorageObject(
+@Table(name = "apks")
+class Apk(
     @Column(columnDefinition = "text")
     @Id
     val id: String,
@@ -43,14 +43,14 @@ class StorageObject(
     /**
      * Container for related methods
      */
-    companion object : PanacheCompanionBase<StorageObject, String> {
+    companion object : PanacheCompanionBase<Apk, String> {
         /**
-         * Finds a set of objects by their IDs
+         * Finds a set of APKs by their object storage IDs
          *
-         * @param ids the list of objects to fetch
-         * @return the objects matching the provided IDs
+         * @param ids the list of APK object IDs to fetch
+         * @return the APKs matching the provided IDs
          */
-        fun findByIds(ids: List<String>): Uni<List<StorageObject>> {
+        fun findByIds(ids: List<String>): Uni<List<Apk>> {
             return find("id IN ?1", ids).list()
         }
     }
