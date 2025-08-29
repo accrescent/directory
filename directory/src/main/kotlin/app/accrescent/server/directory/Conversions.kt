@@ -11,7 +11,7 @@ import build.buf.gen.accrescent.server.events.v1.releaseChannel as eventsRelease
 /**
  * The permanent, canonical name of the stable release channel
  */
-const val RELEASE_CHANNEL_NAME_STABLE = "well_known_stable"
+private const val RELEASE_CHANNEL_NAME_STABLE = "well_known_stable"
 
 /**
  * Maps a release channel into its canonical string form

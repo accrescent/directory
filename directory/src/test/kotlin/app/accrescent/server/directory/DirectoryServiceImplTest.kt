@@ -6,23 +6,17 @@ package app.accrescent.server.directory
 
 import app.accrescent.directory.priv.v1.listAppListingsPageToken
 import app.accrescent.directory.v1.AppListing
-import app.accrescent.directory.v1.AppListingView
-import app.accrescent.directory.v1.CompatibilityLevel
 import app.accrescent.directory.v1.DeviceAttributes
 import app.accrescent.directory.v1.DirectoryService
 import app.accrescent.directory.v1.GetAppDownloadInfoRequest
 import app.accrescent.directory.v1.GetAppListingRequest
 import app.accrescent.directory.v1.GetAppListingResponse
-import app.accrescent.directory.v1.GetUpdateInfoRequest
 import app.accrescent.directory.v1.appDownloadInfo
 import app.accrescent.directory.v1.appListing
-import app.accrescent.directory.v1.compatibility
 import app.accrescent.directory.v1.copy
-import app.accrescent.directory.v1.downloadSize
 import app.accrescent.directory.v1.getAppDownloadInfoRequest
 import app.accrescent.directory.v1.getAppDownloadInfoResponse
 import app.accrescent.directory.v1.getAppListingRequest
-import app.accrescent.directory.v1.getUpdateInfoRequest
 import app.accrescent.directory.v1.image
 import app.accrescent.directory.v1.listAppListingsRequest
 import app.accrescent.directory.v1.releaseChannel
@@ -153,79 +147,6 @@ class DirectoryServiceImplTest {
     }
 
     @Test
-    fun listAppListingsWithBasicViewReturnsRequiredFields() {
-        val request = listAppListingsRequest { view = AppListingView.APP_LISTING_VIEW_BASIC }
-
-        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
-
-        val listing = directory.listAppListings(request)
-            .subscribeAsCompletionStage()
-            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
-            .listingsList
-            .first()
-
-        assertTrue(listing.hasAppId())
-        assertTrue(listing.hasLanguage())
-        assertTrue(listing.hasName())
-        assertTrue(listing.hasShortDescription())
-        assertTrue(listing.hasIcon())
-    }
-
-    @Test
-    fun listAppListingsWithFullViewReturnsAllFields() {
-        val request = listAppListingsRequest { view = AppListingView.APP_LISTING_VIEW_FULL }
-
-        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
-
-        val listing = directory.listAppListings(request)
-            .subscribeAsCompletionStage()
-            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
-            .listingsList
-            .first()
-
-        assertTrue(listing.hasAppId())
-        assertTrue(listing.hasLanguage())
-        assertTrue(listing.hasName())
-        assertTrue(listing.hasShortDescription())
-        assertTrue(listing.hasIcon())
-        assertTrue(listing.hasVersionName())
-    }
-
-    @Test
-    fun listAppListingsWithDeviceAttributesReturnsCompatibility() {
-        val request = listAppListingsRequest { deviceAttributes = validDeviceAttributes }
-
-        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
-
-        val listing = directory.listAppListings(request)
-            .subscribeAsCompletionStage()
-            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
-            .listingsList
-            .first()
-
-        assertTrue(listing.hasCompatibility())
-    }
-
-    @Test
-    fun listAppListingsWithFullViewAndCompatibleDeviceAttributesReturnsValidDownloadSize() {
-        val request = listAppListingsRequest {
-            view = AppListingView.APP_LISTING_VIEW_FULL
-            deviceAttributes = validDeviceAttributes
-        }
-
-        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
-
-        val listing = directory.listAppListings(request)
-            .subscribeAsCompletionStage()
-            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
-            .listingsList
-            .first()
-
-        assertTrue(listing.hasDownloadSize())
-        assertTrue(listing.downloadSize.hasUncompressedTotal())
-    }
-
-    @Test
     fun listAppListingsReturnsEmptySetAndNoPageTokenWhenSkipOvershoots() {
         val request = listAppListingsRequest { skip = Int.MAX_VALUE }
 
@@ -295,31 +216,6 @@ class DirectoryServiceImplTest {
             accumulatedListings.map { it.appId }
                 .containsAll(listOf("app.accrescent.client", "com.none.tom.exiferaser")),
         )
-    }
-
-    // We assume here that a single default request will return enough listings for this test to be
-    // useful, which is not necessarily the case since it's not guaranteed by the API. However, this
-    // is how the API currently behaves, so it should be fine unless we change that behavior.
-    @Test
-    fun listAppListingsReturnsOnlyCompatibleApps() {
-        val request = listAppListingsRequest { deviceAttributes = validDeviceAttributes }
-
-        KafkaHelper.publishApps(
-            kafka,
-            TestDataHelper.validAppPublicationRequested,
-            TestDataHelper.validAppPublicationRequested2,
-            TestDataHelper.validAppPublicationRequested3Incompatible,
-        )
-
-        val response = directory.listAppListings(request)
-            .subscribeAsCompletionStage()
-            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
-
-        for (listing in response.listingsList) {
-            assertTrue(
-                listing.compatibility.level == CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE,
-            )
-        }
     }
 
     @Test
@@ -425,57 +321,6 @@ class DirectoryServiceImplTest {
         )
     }
 
-    @ParameterizedTest
-    @MethodSource("generateParamsForGetUpdateInfoValidatesRequest")
-    fun getUpdateInfoValidatesRequest(request: GetUpdateInfoRequest) {
-        val status = CompletableFuture<Status.Code>()
-
-        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
-
-        directory.getUpdateInfo(request)
-            .subscribe()
-            .with(
-                { status.complete(Status.Code.OK) },
-                {
-                    require(it is StatusRuntimeException)
-                    status.complete(it.status.code)
-                },
-            )
-
-        assertEquals(
-            Status.Code.INVALID_ARGUMENT,
-            status.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS),
-        )
-    }
-
-    @Test
-    fun getUpdateInfoForUnknownAppReturnsNotFound() {
-        val status = CompletableFuture<Status.Code>()
-
-        directory.getUpdateInfo(validGetUpdateInfoRequest)
-            .subscribe()
-            .with(
-                { status.complete(Status.Code.OK) },
-                {
-                    require(it is StatusRuntimeException)
-                    status.complete(it.status.code)
-                },
-            )
-
-        assertEquals(Status.Code.NOT_FOUND, status.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS))
-    }
-
-    @Test
-    fun getUpdateInfoWithDeviceAttributesReturnsCompatibility() {
-        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
-
-        val response = directory.getUpdateInfo(validGetUpdateInfoRequest)
-            .subscribeAsCompletionStage()
-            .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
-
-        assertTrue(response.updateInfo.hasCompatibility())
-    }
-
     private fun getExpectedAppDownloadInfoResponse() = getAppDownloadInfoResponse {
         appDownloadInfo = appDownloadInfo {
             downloadSize = 4648720
@@ -515,23 +360,11 @@ class DirectoryServiceImplTest {
 
         private val validGetAppListingRequest = getAppListingRequest {
             appId = "app.accrescent.client"
-            deviceAttributes = validDeviceAttributes
-            releaseChannel = releaseChannel {
-                wellKnown = DirectoryReleaseChannel.WellKnown.WELL_KNOWN_STABLE
-            }
+            preferredLanguages.add("en-US")
         }
 
         private val validGetAppDownloadInfoRequest = getAppDownloadInfoRequest {
             appId = "app.accrescent.client"
-            deviceAttributes = validDeviceAttributes
-            releaseChannel = releaseChannel {
-                wellKnown = DirectoryReleaseChannel.WellKnown.WELL_KNOWN_STABLE
-            }
-        }
-
-        private val validGetUpdateInfoRequest = getUpdateInfoRequest {
-            appId = "app.accrescent.client"
-            baseVersionCode = 48
             deviceAttributes = validDeviceAttributes
             releaseChannel = releaseChannel {
                 wellKnown = DirectoryReleaseChannel.WellKnown.WELL_KNOWN_STABLE
@@ -548,11 +381,6 @@ class DirectoryServiceImplTest {
                 // necessary is that it is populated (and of course a valid URL).
                 url = "https://not.real.cdn/file/57297a7-6f2c-4a04-9656-497af21bf6b2"
             }
-            versionName = "0.25.0"
-            compatibility = compatibility {
-                level = CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
-            }
-            downloadSize = downloadSize { uncompressedTotal = 4648720 }
         }
         private val expectedFullAppListingAccrescentDe = appListing {
             appId = "app.accrescent.client"
@@ -560,11 +388,6 @@ class DirectoryServiceImplTest {
             name = "Accrescent"
             shortDescription = "Ein privater und sicherer Android App Store"
             icon = image { url = "https://not.real.cdn/file/57297a7-6f2c-4a04-9656-497af21bf6b2" }
-            versionName = "0.25.0"
-            compatibility = compatibility {
-                level = CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
-            }
-            downloadSize = downloadSize { uncompressedTotal = 4648720 }
         }
         private val expectedFullAppListingExifEraserEn = appListing {
             appId = "com.none.tom.exiferaser"
@@ -572,11 +395,6 @@ class DirectoryServiceImplTest {
             name = "ExifEraser"
             shortDescription = "Permissionless image metadata erasing application for Android"
             icon = image { url = "https://not.real.cdn/file/57297a7-6f2c-4a04-9656-497af21bf6b2" }
-            versionName = "6.3.0"
-            compatibility = compatibility {
-                level = CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
-            }
-            downloadSize = downloadSize { uncompressedTotal = 3849948 }
         }
 
         private fun assertGetAppListingResponseMatchesExpected(
@@ -590,14 +408,6 @@ class DirectoryServiceImplTest {
             assertEquals(expectedListing.shortDescription, response.listing.shortDescription)
             assertTrue(response.listing.hasIcon())
             assertTrue(response.listing.icon.hasUrl())
-            assertEquals(expectedListing.versionName, response.listing.versionName)
-            assertEquals(expectedListing.hasCompatibility(), response.listing.hasCompatibility())
-            if (expectedListing.hasCompatibility()) {
-                assertEquals(expectedListing.compatibility, response.listing.compatibility)
-            }
-            if (expectedListing.hasDownloadSize()) {
-                assertEquals(expectedListing.downloadSize, response.listing.downloadSize)
-            }
         }
 
         @JvmStatic
@@ -609,78 +419,26 @@ class DirectoryServiceImplTest {
                 // With the "en" locale, expected to choose the "en" listing
                 Arguments.of(
                     expectedFullAppListingAccrescentEn,
-                    validGetAppListingRequest.toBuilder()
-                        .apply {
-                            deviceAttributesBuilder.specBuilder
-                                .clearSupportedLocales()
-                                .addSupportedLocales("en")
-                        }
-                        .build(),
+                    validGetAppListingRequest.copy {
+                        preferredLanguages.clear()
+                        preferredLanguages.add("en")
+                    },
                 ),
                 // With the "de" locale, expected to choose the "de" listing
                 Arguments.of(
                     expectedFullAppListingAccrescentDe,
-                    validGetAppListingRequest.toBuilder()
-                        .apply {
-                            deviceAttributesBuilder.specBuilder
-                                .clearSupportedLocales()
-                                .addSupportedLocales("de")
-                        }
-                        .build(),
+                    validGetAppListingRequest.copy {
+                        preferredLanguages.clear()
+                        preferredLanguages.add("de")
+                    },
                 ),
                 // With the "de" and "en" locales in that order, expected to choose the "de" listing
                 Arguments.of(
                     expectedFullAppListingAccrescentDe,
-                    validGetAppListingRequest.toBuilder()
-                        .apply {
-                            deviceAttributesBuilder.specBuilder
-                                .clearSupportedLocales()
-                                .addAllSupportedLocales(listOf("de", "en"))
-                        }
-                        .build(),
-                ),
-                // Without device attributes specified, expected to not set the compatibility or
-                // download size fields
-                Arguments.of(
-                    expectedFullAppListingAccrescentEn.copy {
-                        clearCompatibility()
-                        clearDownloadSize()
-                    },
-                    validGetAppListingRequest.copy { clearDeviceAttributes() },
-                ),
-                // Without release channel field specified, expected to return the listing for the
-                // stable channel
-                Arguments.of(
-                    expectedFullAppListingAccrescentEn,
-                    validGetAppListingRequest.copy { clearReleaseChannel() },
-                ),
-                // Without the release channel's well known field specified, expected to return the
-                // listing for the stable channel
-                Arguments.of(
-                    expectedFullAppListingAccrescentEn,
-                    validGetAppListingRequest.copy { releaseChannel = releaseChannel {} }
-                ),
-                // With the unspecified well known release channel value, expected to return the
-                // listing for the stable channel
-                Arguments.of(
-                    expectedFullAppListingAccrescentEn,
                     validGetAppListingRequest.copy {
-                        releaseChannel = releaseChannel.copy {
-                            wellKnown = DirectoryReleaseChannel.WellKnown.WELL_KNOWN_UNSPECIFIED
-                        }
+                        preferredLanguages.clear()
+                        preferredLanguages.addAll(listOf("de", "en"))
                     },
-                ),
-                // Without support for a required ABI, expected to return an incompatible listing
-                Arguments.of(
-                    expectedFullAppListingAccrescentEn.copy {
-                        compatibility = compatibility {
-                            level = CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
-                        }
-                        clearDownloadSize()
-                    },
-                    validGetAppListingRequest.toBuilder()
-                        .apply { deviceAttributesBuilder.specBuilder.clearSupportedAbis() }
-                        .build(),
                 ),
                 // With a different requested app ID
                 Arguments.of(
@@ -710,16 +468,6 @@ class DirectoryServiceImplTest {
                 validGetAppDownloadInfoRequest.copy { clearAppId() },
                 // Missing device attributes
                 validGetAppDownloadInfoRequest.copy { clearDeviceAttributes() },
-            )
-        }
-
-        @JvmStatic
-        fun generateParamsForGetUpdateInfoValidatesRequest(): Stream<GetUpdateInfoRequest> {
-            return Stream.of(
-                // Missing the app ID
-                validGetUpdateInfoRequest.copy { clearAppId() },
-                // Missing the base version code
-                validGetUpdateInfoRequest.copy { clearBaseVersionCode() },
             )
         }
     }
