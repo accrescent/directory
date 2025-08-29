@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 ## Supported versions
 
-Only the latest versions of the directory server and ClickHouse Quarkus extension are supported.
+Only the latest versions of the directory server is supported.
 
 ## Reporting a vulnerability
 

@@ -10,7 +10,4 @@
 !/gradle
 !/gradle.properties
 !/gradlew
-!/quarkus-devservices-clickhouse
-!/quarkus-jdbc-clickhouse
-!/quarkus-jdbc-clickhouse-deployment
 !/settings.gradle.kts
