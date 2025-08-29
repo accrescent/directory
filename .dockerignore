@@ -5,8 +5,9 @@
 *
 
 !/build.gradle.kts
-!/bundletool-relocated
-!/directory
+!/bundletool-relocated/build.gradle.kts
+!/directory/build.gradle.kts
+!/directory/src
 !/gradle
 !/gradle.properties
 !/gradlew
