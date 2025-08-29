@@ -5,7 +5,7 @@
 [versions]
 buf = "0.10.3"
 bundletool = "1.18.1"
-directory-api = "c9fb0deec7764eed90b7d595c028ad5b"
+directory-api = "3caec78fc9ad4aa8861a5bd1bd1038ce"
 dokka = "2.0.0"
 flyway = "11.11.2"
 kotlin = "2.2.10"
