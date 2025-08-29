@@ -4,7 +4,6 @@
 
 package app.accrescent.server.directory.data
 
-import app.accrescent.server.directory.RELEASE_CHANNEL_NAME_STABLE
 import io.quarkus.hibernate.reactive.panache.kotlin.PanacheCompanion
 import io.quarkus.hibernate.reactive.panache.kotlin.PanacheEntityBase
 import io.quarkus.runtime.annotations.RegisterForReflection
@@ -109,29 +108,13 @@ class Listing(
         }
 
         /**
-         * Finds listings by ID along with their apps' corresponding stable channel metadata
+         * Finds listings by IDs
          *
          * @param ids the IDs in the form (appId, language) of the listings to find
-         * @return a list of (listing, release channel) pairs ordered in ascending order by app ID
+         * @return a list of app listings ordered in ascending order by app ID
          */
-        fun findWithStableMetadataByIds(
-            ids: List<Pair<String, String>>,
-        ): Uni<List<ListingWithMetadata>> {
-            return find(
-                "SELECT listings, release_channels " +
-                        "FROM Listing listings " +
-                        "JOIN ReleaseChannel release_channels " +
-                        "ON release_channels.appId = listings.id.appId " +
-                        "JOIN FETCH release_channels.apks " +
-                        "WHERE release_channels.name = '$RELEASE_CHANNEL_NAME_STABLE' " +
-                        "AND listings.id IN ?1 " +
-                        "ORDER BY listings.id.appId ASC",
-                ids.map { ListingId(it.first, it.second) },
-            )
-                .project(ListingWithMetadata::class.java)
-                .list()
-                // Filter out duplicate rows created by the JOIN FETCH
-                .map { it.distinctBy { it.listing.id } }
+        fun findByIds(ids: List<Pair<String, String>>): Uni<List<Listing>> {
+            return find("WHERE id IN ?1", ids.map { ListingId(it.first, it.second) }).list()
         }
     }
 }
@@ -158,13 +141,3 @@ data class ListingId(
  */
 @RegisterForReflection
 data class ListingLanguage(val language: String)
-
-/**
- * A projection of a [Listing] with its app's corresponding [ReleaseChannel] metadata
- *
- * @property listing an app listing
- * @property releaseChannel release channel metadata associated with the listing's app for a
- * specific release channel
- */
-@RegisterForReflection
-data class ListingWithMetadata(val listing: Listing, val releaseChannel: ReleaseChannel)

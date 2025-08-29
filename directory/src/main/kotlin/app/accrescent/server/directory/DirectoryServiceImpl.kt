@@ -7,28 +7,24 @@ package app.accrescent.server.directory
 import app.accrescent.bundletool.android.bundle.Commands
 import app.accrescent.directory.priv.v1.ListAppListingsPageToken
 import app.accrescent.directory.priv.v1.listAppListingsPageToken
-import app.accrescent.directory.v1.AppListingView
-import app.accrescent.directory.v1.CompatibilityLevel
 import app.accrescent.directory.v1.DirectoryService
 import app.accrescent.directory.v1.GetAppDownloadInfoRequest
 import app.accrescent.directory.v1.GetAppDownloadInfoResponse
 import app.accrescent.directory.v1.GetAppListingRequest
 import app.accrescent.directory.v1.GetAppListingResponse
-import app.accrescent.directory.v1.GetUpdateInfoRequest
-import app.accrescent.directory.v1.GetUpdateInfoResponse
+import app.accrescent.directory.v1.GetAppPackageInfoRequest
+import app.accrescent.directory.v1.GetAppPackageInfoResponse
 import app.accrescent.directory.v1.ListAppListingsRequest
 import app.accrescent.directory.v1.ListAppListingsResponse
 import app.accrescent.directory.v1.appDownloadInfo
 import app.accrescent.directory.v1.appListing
-import app.accrescent.directory.v1.compatibility
-import app.accrescent.directory.v1.downloadSize
 import app.accrescent.directory.v1.getAppDownloadInfoResponse
 import app.accrescent.directory.v1.getAppListingResponse
-import app.accrescent.directory.v1.getUpdateInfoResponse
+import app.accrescent.directory.v1.getAppPackageInfoResponse
 import app.accrescent.directory.v1.image
 import app.accrescent.directory.v1.listAppListingsResponse
+import app.accrescent.directory.v1.packageInfo
 import app.accrescent.directory.v1.splitDownloadInfo
-import app.accrescent.directory.v1.updateInfo
 import app.accrescent.server.directory.data.Apk
 import app.accrescent.server.directory.data.App
 import app.accrescent.server.directory.data.AppDefaultListingLanguage
@@ -63,78 +59,27 @@ class DirectoryServiceImpl @Inject constructor(
                 .asRuntimeException()
         }
 
-        val bestMatchingListing = findBestListingMatch(
+        val response = findBestListingMatch(
             request.appId,
-            request.deviceAttributes.spec.supportedLocalesList,
-        )
-        val releaseChannel = ReleaseChannel.findByAppIdAndName(
-            request.appId,
-            request.releaseChannel.canonicalForm(),
-        )
-
-        val response = Uni.combine()
-            .all()
-            .unis(bestMatchingListing, releaseChannel)
-            .usingConcurrencyOf(1)
-            .with {
-                val listing = it[0] as Listing?
-                val releaseChannel = it[1] as ReleaseChannel?
-
-                when {
-                    listing == null && releaseChannel == null -> throw Status
-                        .fromCode(Status.Code.NOT_FOUND)
-                        .withDescription("app with ID ${request.appId} not found")
-                        .asRuntimeException()
-
-                    listing == null -> throw Status.fromCode(Status.Code.INTERNAL)
-                        .withDescription("app with ID ${request.appId} has no listings")
-                        .asRuntimeException()
-
-                    releaseChannel == null -> throw Status.fromCode(Status.Code.INTERNAL)
-                        .withDescription("app with ID ${request.appId} has no release channels")
-                        .asRuntimeException()
-                }
-
+            request.preferredLanguagesList,
+        ).map { listing ->
+            if (listing == null) {
+                throw Status
+                    .fromCode(Status.Code.NOT_FOUND)
+                    .withDescription("app with ID ${request.appId} not found")
+                    .asRuntimeException()
+            } else {
                 val appListing = appListing {
                     appId = listing.id.appId
                     language = listing.id.language
                     name = listing.name
                     shortDescription = listing.shortDescription
                     icon = image { url = "${artifactsBaseUrl}/${listing.icon.objectId}" }
-                    versionName = releaseChannel.versionName
-
-                    if (!request.hasDeviceAttributes()) return@appListing
-
-                    val buildApksResult = try {
-                        Commands.BuildApksResult.parseFrom(releaseChannel.buildApksResult)
-                    } catch (_: InvalidProtocolBufferException) {
-                        throw Status.fromCode(Status.Code.INTERNAL)
-                            .withDescription("stored BuildApksResult is not a valid message")
-                            .asRuntimeException()
-                    }
-
-                    val matchingApkPaths =
-                        getMatchingApkPaths(buildApksResult, request.deviceAttributes).toSet()
-
-                    val compatibilityLevel = if (matchingApkPaths.isNotEmpty()) {
-                        CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
-                    } else {
-                        CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
-                    }
-                    compatibility = compatibility { level = compatibilityLevel }
-
-                    if (compatibilityLevel == CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE) {
-                        downloadSize = downloadSize {
-                            uncompressedTotal = releaseChannel.apks
-                                .filter { matchingApkPaths.contains(it.apkSetPath) }
-                                .sumOf { it.uncompressedSize }
-                                .toInt()
-                        }
-                    }
                 }
 
                 getAppListingResponse { this.listing = appListing }
             }
+        }
 
         return response
     }
@@ -172,10 +117,7 @@ class DirectoryServiceImpl @Inject constructor(
         // 2. For each app ID returned in step 1, fetch all languages the app has a listing for.
         // 3. Calculate the best matching listing ID for each app based on the results of steps 1
         //    and 2.
-        // 4. Fetch all (listing, stable release channel metadata) tuples matching the listing IDs
-        //    obtained in step 3.
-        // 5. Filter the results to only apps compatible with the provided device if device
-        //    attributes were provided.
+        // 4. Fetch all listings matching the listing IDs obtained in step 3.
         val response = App.findDefaultListingLanguagesByQuery(
             pageSize,
             skip,
@@ -196,60 +138,21 @@ class DirectoryServiceImpl @Inject constructor(
                         it.key to calculateBestListingLanguageMatch(
                             defaultListingLanguage,
                             it.value,
-                            request.deviceAttributes.spec.supportedLocalesList,
+                            request.preferredLanguagesList,
                         )
                     }
             }
         }.chain { bestMatchingLanguages ->
-            Listing.findWithStableMetadataByIds(bestMatchingLanguages)
+            Listing.findByIds(bestMatchingLanguages)
         }.map {
-            val listings = it.map { (listing, releaseChannel) ->
+            val listings = it.map { listing ->
                 appListing {
                     appId = listing.id.appId
                     language = listing.id.language
                     name = listing.name
                     shortDescription = listing.shortDescription
                     icon = image { url = "${artifactsBaseUrl}/${listing.icon.objectId}" }
-
-                    if (request.hasView() && request.view == AppListingView.APP_LISTING_VIEW_FULL) {
-                        versionName = releaseChannel.versionName
-                    }
-
-                    if (!request.hasDeviceAttributes()) return@appListing
-
-                    val buildApksResult = try {
-                        Commands.BuildApksResult.parseFrom(releaseChannel.buildApksResult)
-                    } catch (_: InvalidProtocolBufferException) {
-                        throw Status.fromCode(Status.Code.INTERNAL)
-                            .withDescription("stored BuildApksResult is not a valid message")
-                            .asRuntimeException()
-                    }
-
-                    val matchingApkPaths =
-                        getMatchingApkPaths(buildApksResult, request.deviceAttributes).toSet()
-
-                    val compatibilityLevel = if (matchingApkPaths.isNotEmpty()) {
-                        CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
-                    } else {
-                        CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
-                    }
-                    compatibility = compatibility { level = compatibilityLevel }
-
-                    if (
-                        request.view == AppListingView.APP_LISTING_VIEW_FULL &&
-                        compatibilityLevel == CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
-                    ) {
-                        downloadSize = downloadSize {
-                            uncompressedTotal = releaseChannel.apks
-                                .filter { matchingApkPaths.contains(it.apkSetPath) }
-                                .sumOf { it.uncompressedSize }
-                                .toInt()
-                        }
-                    }
                 }
-            }.filter {
-                !it.hasCompatibility() ||
-                        it.compatibility.level == CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
             }
 
             if (listings.isNotEmpty()) {
@@ -263,6 +166,35 @@ class DirectoryServiceImpl @Inject constructor(
                 }
             } else {
                 listAppListingsResponse {}
+            }
+        }
+
+        return response
+    }
+
+    @WithTransaction
+    override fun getAppPackageInfo(request: GetAppPackageInfoRequest): Uni<GetAppPackageInfoResponse> {
+        if (!request.hasAppId()) {
+            throw Status.fromCode(Status.Code.INVALID_ARGUMENT)
+                .withDescription("app ID is missing but required")
+                .asRuntimeException()
+        }
+
+        val response = ReleaseChannel.findByAppIdAndName(
+            request.appId,
+            request.releaseChannel.canonicalForm(),
+        ).map { releaseChannel ->
+            if (releaseChannel == null) {
+                throw Status.fromCode(Status.Code.NOT_FOUND)
+                    .withDescription("no info matching the provided app and release channel found")
+                    .asRuntimeException()
+            } else {
+                getAppPackageInfoResponse {
+                    packageInfo = packageInfo {
+                        versionCode = releaseChannel.versionCode.toInt()
+                        versionName = releaseChannel.versionName
+                    }
+                }
             }
         }
 
@@ -333,63 +265,6 @@ class DirectoryServiceImpl @Inject constructor(
                     })
                 }
             }
-        }
-
-        return response
-    }
-
-    @WithTransaction
-    override fun getUpdateInfo(request: GetUpdateInfoRequest): Uni<GetUpdateInfoResponse> {
-        if (!request.hasAppId()) {
-            throw Status.fromCode(Status.Code.INVALID_ARGUMENT)
-                .withDescription("app ID is missing but required")
-                .asRuntimeException()
-        } else if (!request.hasBaseVersionCode()) {
-            throw Status.fromCode(Status.Code.INVALID_ARGUMENT)
-                .withDescription("base version code is missing but required")
-                .asRuntimeException()
-        }
-
-        val response = ReleaseChannel.findByAppIdAndName(
-            request.appId,
-            request.releaseChannel.canonicalForm(),
-        ).map { releaseChannel ->
-            if (releaseChannel == null) {
-                throw Status.fromCode(Status.Code.NOT_FOUND)
-                    .withDescription("provided app ID or release channel does not exist")
-                    .asRuntimeException()
-            }
-
-            val updateIsAvailable = releaseChannel.versionCode > request.baseVersionCode.toUInt()
-
-            val response = getUpdateInfoResponse {
-                if (!updateIsAvailable) return@getUpdateInfoResponse
-
-                updateInfo = updateInfo {
-                    if (!request.hasDeviceAttributes()) return@updateInfo
-
-                    val buildApksResult = try {
-                        Commands.BuildApksResult.parseFrom(releaseChannel.buildApksResult)
-                    } catch (_: InvalidProtocolBufferException) {
-                        throw Status.fromCode(Status.Code.INTERNAL)
-                            .withDescription("stored BuildApksResult is not a valid message")
-                            .asRuntimeException()
-                    }
-
-                    val matchingApkPaths =
-                        getMatchingApkPaths(buildApksResult, request.deviceAttributes)
-
-                    val compatibilityLevel = if (matchingApkPaths.isNotEmpty()) {
-                        CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
-                    } else {
-                        CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
-                    }
-
-                    compatibility = compatibility { level = compatibilityLevel }
-                }
-            }
-
-            response
         }
 
         return response
