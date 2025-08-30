@@ -172,6 +172,34 @@ class DirectoryServiceImpl @Inject constructor(
         return response
     }
 
+    override fun getAppPackageInfo(request: GetAppPackageInfoRequest): Uni<GetAppPackageInfoResponse> {
+        if (!request.hasAppId()) {
+            throw Status.fromCode(Status.Code.INVALID_ARGUMENT)
+                .withDescription("app ID is missing but required")
+                .asRuntimeException()
+        }
+
+        val response = ReleaseChannel.findByAppIdAndName(
+            request.appId,
+            request.releaseChannel.canonicalForm(),
+        ).map { releaseChannel ->
+            if (releaseChannel == null) {
+                throw Status.fromCode(Status.Code.NOT_FOUND)
+                    .withDescription("no info matching the provided app and release channel found")
+                    .asRuntimeException()
+            } else {
+                getAppPackageInfoResponse {
+                    packageInfo = packageInfo {
+                        versionCode = releaseChannel.versionCode.toInt()
+                        versionName = releaseChannel.versionName
+                    }
+                }
+            }
+        }
+
+        return response
+    }
+
     @WithTransaction
     override fun getAppPackageInfo(request: GetAppPackageInfoRequest): Uni<GetAppPackageInfoResponse> {
         if (!request.hasAppId()) {
