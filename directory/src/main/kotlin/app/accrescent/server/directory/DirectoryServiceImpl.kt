@@ -252,11 +252,8 @@ class DirectoryServiceImpl @Inject constructor(
                     .asRuntimeException()
             }
 
-            val totalDownloadSize = apks.sumOf { it.uncompressedSize }
-
             getAppDownloadInfoResponse {
                 appDownloadInfo = appDownloadInfo {
-                    downloadSize = totalDownloadSize.toInt()
                     splitDownloadInfo.addAll(apks.map {
                         splitDownloadInfo {
                             downloadSize = it.uncompressedSize.toInt()

@@ -308,10 +308,6 @@ class DirectoryServiceImplTest {
 
         val expectedResponse = getExpectedAppDownloadInfoResponse()
 
-        assertEquals(
-            expectedResponse.appDownloadInfo.downloadSize,
-            response.appDownloadInfo.downloadSize,
-        )
         // Assert equality with set semantics rather than list semantics since the order of the
         // SplitDownloadInfo items doesn't matter and since the order may vary between calls to
         // GetAppDownloadInfo(), causing spurious and racy test failures if we compare them as lists
@@ -323,7 +319,6 @@ class DirectoryServiceImplTest {
 
     private fun getExpectedAppDownloadInfoResponse() = getAppDownloadInfoResponse {
         appDownloadInfo = appDownloadInfo {
-            downloadSize = 4648720
             splitDownloadInfo.addAll(
                 listOf(
                     splitDownloadInfo {
