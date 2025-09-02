@@ -182,11 +182,11 @@ class DirectoryServiceImpl @Inject constructor(
 
         val response = ReleaseChannel.findByAppIdAndName(
             request.appId,
-            request.releaseChannel.canonicalForm(),
+            RELEASE_CHANNEL_NAME_STABLE,
         ).map { releaseChannel ->
             if (releaseChannel == null) {
                 throw Status.fromCode(Status.Code.NOT_FOUND)
-                    .withDescription("no info matching the provided app and release channel found")
+                    .withDescription("no info matching the provided app found")
                     .asRuntimeException()
             } else {
                 getAppPackageInfoResponse {
@@ -217,11 +217,11 @@ class DirectoryServiceImpl @Inject constructor(
 
         val response = ReleaseChannel.findBuildApksResult(
             request.appId,
-            request.releaseChannel.canonicalForm(),
+            RELEASE_CHANNEL_NAME_STABLE,
         ).map {
             if (it == null) {
                 throw Status.fromCode(Status.Code.NOT_FOUND)
-                    .withDescription("no info matching the provided app and release channel found")
+                    .withDescription("no info matching the provided app found")
                     .asRuntimeException()
             }
 
@@ -244,7 +244,7 @@ class DirectoryServiceImpl @Inject constructor(
 
             matchingApkPaths
         }.chain { paths ->
-            Apk.findByQualifiedPaths(request.appId, request.releaseChannel.canonicalForm(), paths)
+            Apk.findByQualifiedPaths(request.appId, RELEASE_CHANNEL_NAME_STABLE, paths)
         }.map { apks ->
             if (apks.isEmpty()) {
                 throw Status.fromCode(Status.Code.INTERNAL)

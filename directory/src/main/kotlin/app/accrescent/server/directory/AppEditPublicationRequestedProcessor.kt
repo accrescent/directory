@@ -124,7 +124,7 @@ class AppEditPublicationRequestedProcessor(
                                 })
                                 packageMetadata.addAll(app.releaseChannels.map { channel ->
                                     packageMetadataEntry {
-                                        releaseChannel = channel.name.toEventsReleaseChannel()
+                                        releaseChannel = channel.name.toReleaseChannel()
                                         packageMetadata = packageMetadata {
                                             versionCode = channel.versionCode.toInt()
                                             versionName = channel.versionName

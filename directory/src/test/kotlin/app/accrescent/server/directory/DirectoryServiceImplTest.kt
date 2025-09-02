@@ -19,7 +19,6 @@ import app.accrescent.directory.v1.getAppDownloadInfoResponse
 import app.accrescent.directory.v1.getAppListingRequest
 import app.accrescent.directory.v1.image
 import app.accrescent.directory.v1.listAppListingsRequest
-import app.accrescent.directory.v1.releaseChannel
 import app.accrescent.directory.v1.splitDownloadInfo
 import app.accrescent.server.directory.data.AppRepository
 import com.google.protobuf.TextFormat
@@ -50,7 +49,6 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 import java.util.stream.Stream
-import app.accrescent.directory.v1.ReleaseChannel as DirectoryReleaseChannel
 
 private const val REQUEST_TIMEOUT_SECS: Long = 5
 
@@ -361,9 +359,6 @@ class DirectoryServiceImplTest {
         private val validGetAppDownloadInfoRequest = getAppDownloadInfoRequest {
             appId = "app.accrescent.client"
             deviceAttributes = validDeviceAttributes
-            releaseChannel = releaseChannel {
-                wellKnown = DirectoryReleaseChannel.WellKnown.WELL_KNOWN_STABLE
-            }
         }
 
         private val expectedFullAppListingAccrescentEn = appListing {
