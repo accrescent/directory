@@ -6,7 +6,6 @@ package app.accrescent.server.directory.data
 
 import io.quarkus.hibernate.reactive.panache.kotlin.PanacheCompanion
 import io.quarkus.hibernate.reactive.panache.kotlin.PanacheEntityBase
-import io.quarkus.runtime.annotations.RegisterForReflection
 import io.smallrye.mutiny.Uni
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
@@ -78,26 +77,5 @@ class ReleaseChannel(
         fun findByAppIdAndName(appId: String, name: String): Uni<ReleaseChannel?> {
             return find("WHERE appId = ?1 AND name = ?2", appId, name).firstResult()
         }
-
-        /**
-         * Finds a release channel's BuildApksResult
-         *
-         * @param appId the ID of the app to find a BuildApksResult for
-         * @param name the canonical name of the release channel, such as "well_known_stable"
-         * @return the BuildApksResult for the given app and name, or null if there is no match
-         */
-        fun findBuildApksResult(appId: String, name: String): Uni<ReleaseChannelBuildApksResult?> {
-            return find("appId = ?1 AND name = ?2", appId, name)
-                .project(ReleaseChannelBuildApksResult::class.java)
-                .firstResult()
-        }
     }
 }
-
-/**
- * A projection of [ReleaseChannel.buildApksResult]
- *
- * @property buildApksResult a release channel's associated `BuildApksResult` object
- */
-@RegisterForReflection
-class ReleaseChannelBuildApksResult(val buildApksResult: ByteArray)

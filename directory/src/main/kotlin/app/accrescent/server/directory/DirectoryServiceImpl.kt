@@ -7,6 +7,7 @@ package app.accrescent.server.directory
 import app.accrescent.bundletool.android.bundle.Commands
 import app.accrescent.directory.priv.v1.ListAppListingsPageToken
 import app.accrescent.directory.priv.v1.listAppListingsPageToken
+import app.accrescent.directory.v1.CompatibilityLevel
 import app.accrescent.directory.v1.DirectoryService
 import app.accrescent.directory.v1.GetAppDownloadInfoRequest
 import app.accrescent.directory.v1.GetAppDownloadInfoResponse
@@ -18,6 +19,7 @@ import app.accrescent.directory.v1.ListAppListingsRequest
 import app.accrescent.directory.v1.ListAppListingsResponse
 import app.accrescent.directory.v1.appDownloadInfo
 import app.accrescent.directory.v1.appListing
+import app.accrescent.directory.v1.compatibility
 import app.accrescent.directory.v1.getAppDownloadInfoResponse
 import app.accrescent.directory.v1.getAppListingResponse
 import app.accrescent.directory.v1.getAppPackageInfoResponse
@@ -215,18 +217,18 @@ class DirectoryServiceImpl @Inject constructor(
                 .asRuntimeException()
         }
 
-        val response = ReleaseChannel.findBuildApksResult(
+        val response = ReleaseChannel.findByAppIdAndName(
             request.appId,
             RELEASE_CHANNEL_NAME_STABLE,
-        ).map {
-            if (it == null) {
+        ).chain { releaseChannel ->
+            if (releaseChannel == null) {
                 throw Status.fromCode(Status.Code.NOT_FOUND)
                     .withDescription("no info matching the provided app found")
                     .asRuntimeException()
             }
 
             val buildApksResult = try {
-                Commands.BuildApksResult.parseFrom(it.buildApksResult)
+                Commands.BuildApksResult.parseFrom(releaseChannel.buildApksResult)
             } catch (_: InvalidProtocolBufferException) {
                 throw Status.fromCode(Status.Code.INTERNAL)
                     .withDescription("stored BuildApksResult is not a valid message")
@@ -237,29 +239,43 @@ class DirectoryServiceImpl @Inject constructor(
                 getMatchingApkPaths(buildApksResult, request.deviceAttributes)
 
             if (matchingApkPaths.isEmpty()) {
-                throw Status.fromCode(Status.Code.NOT_FOUND)
-                    .withDescription("no download information matches the provided device attributes")
-                    .asRuntimeException()
-            }
-
-            matchingApkPaths
-        }.chain { paths ->
-            Apk.findByQualifiedPaths(request.appId, RELEASE_CHANNEL_NAME_STABLE, paths)
-        }.map { apks ->
-            if (apks.isEmpty()) {
-                throw Status.fromCode(Status.Code.INTERNAL)
-                    .withDescription("referenced APK not found in database")
-                    .asRuntimeException()
-            }
-
-            getAppDownloadInfoResponse {
-                appDownloadInfo = appDownloadInfo {
-                    splitDownloadInfo.addAll(apks.map {
-                        splitDownloadInfo {
-                            downloadSize = it.uncompressedSize.toInt()
-                            url = "${artifactsBaseUrl}/${it.objectId}"
+                Uni.createFrom().item {
+                    getAppDownloadInfoResponse {
+                        compatibility = compatibility {
+                            level = CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
                         }
-                    })
+                    }
+                }
+            } else {
+                Apk.findByQualifiedPaths(
+                    request.appId,
+                    RELEASE_CHANNEL_NAME_STABLE,
+                    matchingApkPaths,
+                ).map { apks ->
+                    if (apks.isEmpty()) {
+                        throw Status.fromCode(Status.Code.INTERNAL)
+                            .withDescription("referenced APK not found in database")
+                            .asRuntimeException()
+                    }
+
+                    getAppDownloadInfoResponse {
+                        compatibility = compatibility {
+                            level = CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
+                        }
+                        if (
+                            !request.hasBaseVersionCode() ||
+                            request.baseVersionCode.toUInt() < releaseChannel.versionCode
+                        ) {
+                            appDownloadInfo = appDownloadInfo {
+                                splitDownloadInfo.addAll(apks.map {
+                                    splitDownloadInfo {
+                                        downloadSize = it.uncompressedSize.toInt()
+                                        url = "${artifactsBaseUrl}/${it.objectId}"
+                                    }
+                                })
+                            }
+                        }
+                    }
                 }
             }
         }
