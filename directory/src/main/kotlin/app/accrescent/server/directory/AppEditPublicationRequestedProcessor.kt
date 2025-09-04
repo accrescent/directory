@@ -76,7 +76,7 @@ class AppEditPublicationRequestedProcessor(
                             ),
                         )
                     },
-                    releaseChannels = event.edit.app.packageMetadataList.mapTo(mutableSetOf()) { it ->
+                    releaseChannels = event.edit.app.packageMetadataList.mapTo(mutableSetOf()) {
                         val releaseChannelId = UUID.randomUUID()
 
                         ReleaseChannel(
