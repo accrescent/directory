@@ -19,6 +19,7 @@ import app.accrescent.directory.v1.getAppDownloadInfoResponse
 import app.accrescent.directory.v1.getAppListingRequest
 import app.accrescent.directory.v1.image
 import app.accrescent.directory.v1.listAppListingsRequest
+import app.accrescent.directory.v1.packageInfo
 import app.accrescent.directory.v1.splitDownloadInfo
 import app.accrescent.server.directory.data.AppRepository
 import com.google.protobuf.TextFormat
@@ -313,6 +314,10 @@ class DirectoryServiceImplTest {
             expectedResponse.appDownloadInfo.splitDownloadInfoList.toSet(),
             response.appDownloadInfo.splitDownloadInfoList.toSet(),
         )
+        assertEquals(
+            expectedResponse.appDownloadInfo.packageInfo,
+            response.appDownloadInfo.packageInfo,
+        )
     }
 
     private fun getExpectedAppDownloadInfoResponse() = getAppDownloadInfoResponse {
@@ -333,6 +338,10 @@ class DirectoryServiceImplTest {
                     },
                 )
             )
+            packageInfo = packageInfo {
+                versionCode = 49
+                versionName = "0.25.0"
+            }
         }
     }
 

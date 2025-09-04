@@ -273,6 +273,10 @@ class DirectoryServiceImpl @Inject constructor(
                                         url = "${artifactsBaseUrl}/${it.objectId}"
                                     }
                                 })
+                                packageInfo = packageInfo {
+                                    versionCode = releaseChannel.versionCode.toInt()
+                                    versionName = releaseChannel.versionName
+                                }
                             }
                         }
                     }
