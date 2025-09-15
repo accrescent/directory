@@ -81,7 +81,7 @@ class AppPublicationRequestedProcessor(
                             id = releaseChannelId,
                             appId = event.app.appId,
                             name = it.releaseChannel.canonicalForm(),
-                            versionCode = it.packageMetadata.versionCode.toUInt(),
+                            versionCode = it.packageMetadata.versionCode.toULong(),
                             versionName = it.packageMetadata.versionName,
                             buildApksResult = it.packageMetadata.buildApksResult.toByteArray(),
                             apks = it.packageMetadata.apkObjectMetadataMap
@@ -120,7 +120,7 @@ class AppPublicationRequestedProcessor(
                                 packageMetadataEntry {
                                     releaseChannel = channel.name.toReleaseChannel()
                                     packageMetadata = packageMetadata {
-                                        versionCode = channel.versionCode.toInt()
+                                        versionCode = channel.versionCode.toLong()
                                         versionName = channel.versionName
                                         buildApksResult = BuildApksResult.parseFrom(channel.buildApksResult)
                                         apkObjectMetadata.putAll(channel.apks.associate {

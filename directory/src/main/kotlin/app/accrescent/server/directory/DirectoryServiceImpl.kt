@@ -193,7 +193,7 @@ class DirectoryServiceImpl @Inject constructor(
             } else {
                 getAppPackageInfoResponse {
                     packageInfo = packageInfo {
-                        versionCode = releaseChannel.versionCode.toInt()
+                        versionCode = releaseChannel.versionCode.toLong()
                         versionName = releaseChannel.versionName
                     }
                 }
@@ -274,7 +274,7 @@ class DirectoryServiceImpl @Inject constructor(
                                     }
                                 })
                                 packageInfo = packageInfo {
-                                    versionCode = releaseChannel.versionCode.toInt()
+                                    versionCode = releaseChannel.versionCode.toLong()
                                     versionName = releaseChannel.versionName
                                 }
                             }

@@ -5,14 +5,14 @@
 [versions]
 buf = "0.10.3"
 bundletool = "1.18.1"
-directory-api = "8c81ab35afb349999c51d51c497046f0"
+directory-api = "4b3de29a66b64c73ad26722b9d4569d8"
 dokka = "2.0.0"
 flyway = "11.11.2"
 kotlin = "2.2.10"
 protovalidate = "0.13.0"
 quarkus = "3.25.4"
 # When upgrading, ensure the protoc version component is <= the protoc version pulled in by Quarkus
-server-events = "25.3.0.2.20250822234457.c28626e0bf3f"
+server-events = "25.3.0.2.20250915205557.692ca52b3dbe"
 shadow = "9.1.0"
 
 [libraries]

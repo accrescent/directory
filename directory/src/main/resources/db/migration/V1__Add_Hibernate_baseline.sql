@@ -38,7 +38,7 @@ CREATE TABLE release_channels (
     app_id text NOT NULL,
     build_apks_result bytea NOT NULL,
     name text NOT NULL,
-    version_code integer NOT NULL,
+    version_code bigint NOT NULL,
     version_name text NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (app_id, name)

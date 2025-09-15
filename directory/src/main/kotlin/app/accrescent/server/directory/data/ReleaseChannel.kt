@@ -50,7 +50,7 @@ class ReleaseChannel(
     val versionName: String,
 
     @Column(name = "version_code", nullable = false)
-    val versionCode: UInt,
+    val versionCode: ULong,
 
     @Column(columnDefinition = "bytea", name = "build_apks_result", nullable = false)
     val buildApksResult: ByteArray,
