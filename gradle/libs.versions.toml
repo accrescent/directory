@@ -7,7 +7,6 @@ buf = "0.10.3"
 bundletool = "1.18.1"
 directory-api = "4b3de29a66b64c73ad26722b9d4569d8"
 dokka = "2.0.0"
-flyway = "11.13.0"
 kotlin = "2.2.20"
 protovalidate = "1.0.0"
 quarkus = "3.25.4"
@@ -17,7 +16,7 @@ shadow = "9.1.0"
 
 [libraries]
 bundletool = { module = "com.android.tools.build:bundletool", version.ref = "bundletool" }
-flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
 protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin" }
 protovalidate = { module = "build.buf:protovalidate", version.ref = "protovalidate" }
 quarkus-agroal = { module = "io.quarkus:quarkus-agroal" }
