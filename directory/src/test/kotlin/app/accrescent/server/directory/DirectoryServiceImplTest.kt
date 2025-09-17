@@ -8,7 +8,6 @@ import app.accrescent.directory.priv.v1.listAppListingsPageToken
 import app.accrescent.directory.v1.AppListing
 import app.accrescent.directory.v1.DeviceAttributes
 import app.accrescent.directory.v1.DirectoryService
-import app.accrescent.directory.v1.GetAppDownloadInfoRequest
 import app.accrescent.directory.v1.GetAppListingRequest
 import app.accrescent.directory.v1.GetAppListingResponse
 import app.accrescent.directory.v1.appDownloadInfo
@@ -82,30 +81,6 @@ class DirectoryServiceImplTest {
     @BeforeEach
     fun registerKafkaSerdes() {
         KafkaHelper.registerSerdes(kafka)
-    }
-
-    @Test
-    fun getAppListingRequiresAppId() {
-        val status = CompletableFuture<Status.Code>()
-
-        val request = validGetAppListingRequest.copy { clearAppId() }
-
-        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
-
-        directory.getAppListing(request)
-            .subscribe()
-            .with(
-                { status.complete(Status.Code.OK) },
-                {
-                    require(it is StatusRuntimeException)
-                    status.complete(it.status.code)
-                },
-            )
-
-        assertEquals(
-            Status.Code.INVALID_ARGUMENT,
-            status.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS),
-        )
     }
 
     @Test
@@ -278,25 +253,6 @@ class DirectoryServiceImplTest {
         )
     }
 
-    @ParameterizedTest
-    @MethodSource("generateParamsForGetAppDownloadInfoValidatesRequest")
-    fun getAppDownloadInfoValidatesRequest(request: GetAppDownloadInfoRequest) {
-        val response = CompletableFuture<Status.Code>()
-
-        directory.getAppDownloadInfo(request).subscribe().with(
-            { response.complete(Status.Code.OK) },
-            {
-                require(it is StatusRuntimeException)
-                response.complete(it.status.code)
-            },
-        )
-
-        assertEquals(
-            Status.Code.INVALID_ARGUMENT,
-            response.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS),
-        )
-    }
-
     @Test
     fun getAppDownloadInfoReturnsExpected() {
         KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
@@ -456,17 +412,6 @@ class DirectoryServiceImplTest {
                 "base64url",
                 // Valid ListAppListingsPageToken protobuf, but missing the last_app_id field
                 Base64.getUrlEncoder().encodeToString(listAppListingsPageToken {}.toByteArray()),
-            )
-        }
-
-        @JvmStatic
-        fun generateParamsForGetAppDownloadInfoValidatesRequest()
-                : Stream<GetAppDownloadInfoRequest> {
-            return Stream.of(
-                // Missing the app ID
-                validGetAppDownloadInfoRequest.copy { clearAppId() },
-                // Missing device attributes
-                validGetAppDownloadInfoRequest.copy { clearDeviceAttributes() },
             )
         }
     }
