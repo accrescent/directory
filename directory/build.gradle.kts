@@ -29,6 +29,7 @@ dependencies {
         // https://github.com/quarkusio/quarkus/issues/44681 and
         // https://github.com/quarkusio/quarkus/pull/47157 for progress on that.
         exclude("com.google.protobuf", "protobuf-java")
+        exclude("com.google.protobuf", "protobuf-kotlin")
     }
     implementation(project(":bundletool-relocated", "shadow"))
     implementation(libs.flyway.postgresql)
