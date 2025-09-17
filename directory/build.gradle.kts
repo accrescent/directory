@@ -15,22 +15,7 @@ plugins {
 }
 
 dependencies {
-    implementation(enforcedPlatform(libs.quarkus.bom)) {
-        // Quarkus is still using protobuf-java v3, but we need v4 of the protobuf runtime for
-        // protovalidate. Otherwise, instantiating a protovalidate Validator results in
-        // "java.lang.NoClassDefFoundError: com/google/protobuf/RuntimeVersion$RuntimeDomain".
-        //
-        // protobuf-java v3 gencode is compatible with the v4 runtime according to
-        // https://github.com/protocolbuffers/protobuf/issues/16452#issuecomment-2310384628, so
-        // it should be safe for us to exclude Quarkus's protobuf from platform enforcement and so
-        // be able to use protobuf-java v4 as pulled in by protovalidate.
-        //
-        // Once Quarkus updates to protobuf-java v4, we can remove this workaround. See
-        // https://github.com/quarkusio/quarkus/issues/44681 and
-        // https://github.com/quarkusio/quarkus/pull/47157 for progress on that.
-        exclude("com.google.protobuf", "protobuf-java")
-        exclude("com.google.protobuf", "protobuf-kotlin")
-    }
+    implementation(platform(libs.quarkus.bom))
     implementation(project(":bundletool-relocated", "shadow"))
     implementation(libs.flyway.postgresql)
     implementation(libs.protobuf.kotlin)
