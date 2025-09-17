@@ -17,7 +17,7 @@ jobs:
       - uses: graalvm/setup-graalvm@v1
         with:
           distribution: graalvm-community
-          java-version: 24
+          java-version: 25
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew assemble
       - run: ./gradlew assemble -Dquarkus.native.enabled=true -Dquarkus.package.jar.enabled=false

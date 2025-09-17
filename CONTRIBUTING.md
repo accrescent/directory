@@ -8,7 +8,7 @@ resources to get you started.
 The directory server is built using the [Quarkus framework]. You'll need the following installed to
 build and develop the directory server and its related libraries:
 
-- A JDK 24 environment
+- A JDK 25 environment
 - Docker
 
 The most convenient way to develop the directory server is to either run `quarkus dev` using the

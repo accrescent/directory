@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-FROM ghcr.io/graalvm/native-image-community:24 AS builder
+FROM ghcr.io/graalvm/native-image-community:25 AS builder
 
 # findutils is needed because it includes xargs, a dependency of gradlew
 RUN microdnf install findutils
