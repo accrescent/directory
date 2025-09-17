@@ -33,8 +33,12 @@ import app.accrescent.server.directory.data.AppDefaultListingLanguage
 import app.accrescent.server.directory.data.Listing
 import app.accrescent.server.directory.data.ListingId
 import app.accrescent.server.directory.data.ReleaseChannel
+import build.buf.protovalidate.ValidatorFactory
+import build.buf.protovalidate.exceptions.ValidationException
 import com.google.protobuf.InvalidProtocolBufferException
+import com.google.protobuf.Message
 import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import io.quarkus.grpc.GrpcService
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
@@ -53,13 +57,21 @@ class DirectoryServiceImpl @Inject constructor(
     @ConfigProperty(name = "artifacts.base-url")
     private val artifactsBaseUrl: String,
 ) : DirectoryService {
+    private val validator = ValidatorFactory
+        .newBuilder()
+        .buildWithDescriptors(
+            listOf(
+                GetAppDownloadInfoRequest.getDescriptor(),
+                GetAppListingRequest.getDescriptor(),
+                GetAppPackageInfoRequest.getDescriptor(),
+                ListAppListingsRequest.getDescriptor(),
+            ),
+            true,
+        )
+
     @WithTransaction
     override fun getAppListing(request: GetAppListingRequest): Uni<GetAppListingResponse> {
-        if (!request.hasAppId()) {
-            throw Status.fromCode(Status.Code.INVALID_ARGUMENT)
-                .withDescription("app ID is missing but required")
-                .asRuntimeException()
-        }
+        validateRequestOrThrow(request)
 
         val response = findBestListingMatch(
             request.appId,
@@ -88,6 +100,8 @@ class DirectoryServiceImpl @Inject constructor(
 
     @WithTransaction
     override fun listAppListings(request: ListAppListingsRequest): Uni<ListAppListingsResponse> {
+        validateRequestOrThrow(request)
+
         // Coerce and validate request parameters
         val pageSize = if (request.hasPageSize() && request.pageSize != 0) {
             request.pageSize.toUInt().coerceAtMost(MAX_PAGE_SIZE)
@@ -176,11 +190,7 @@ class DirectoryServiceImpl @Inject constructor(
 
     @WithTransaction
     override fun getAppPackageInfo(request: GetAppPackageInfoRequest): Uni<GetAppPackageInfoResponse> {
-        if (!request.hasAppId()) {
-            throw Status.fromCode(Status.Code.INVALID_ARGUMENT)
-                .withDescription("app ID is missing but required")
-                .asRuntimeException()
-        }
+        validateRequestOrThrow(request)
 
         val response = ReleaseChannel.findByAppIdAndName(
             request.appId,
@@ -207,15 +217,7 @@ class DirectoryServiceImpl @Inject constructor(
     override fun getAppDownloadInfo(
         request: GetAppDownloadInfoRequest,
     ): Uni<GetAppDownloadInfoResponse> {
-        if (!request.hasAppId()) {
-            throw Status.fromCode(Status.Code.INVALID_ARGUMENT)
-                .withDescription("app ID is missing but required")
-                .asRuntimeException()
-        } else if (!request.hasDeviceAttributes()) {
-            throw Status.fromCode(Status.Code.INVALID_ARGUMENT)
-                .withDescription("device attributes are missing but required")
-                .asRuntimeException()
-        }
+        validateRequestOrThrow(request)
 
         val response = ReleaseChannel.findByAppIdAndName(
             request.appId,
@@ -285,6 +287,29 @@ class DirectoryServiceImpl @Inject constructor(
         }
 
         return response
+    }
+
+    /**
+     * Verifies the request is valid or else throws an exception.
+     *
+     * @throws StatusRuntimeException if validation fails for any reason
+     */
+    private fun validateRequestOrThrow(message: Message) {
+        val validationResult = try {
+            validator.validate(message)
+        } catch (e: ValidationException) {
+            throw Status
+                .fromCode(Status.Code.INTERNAL)
+                .withDescription(e.message)
+                .asRuntimeException()
+        }
+
+        if (!validationResult.isSuccess) {
+            throw Status
+                .fromCode(Status.Code.INVALID_ARGUMENT)
+                .withDescription(validationResult.toString())
+                .asRuntimeException()
+        }
     }
 
     /**

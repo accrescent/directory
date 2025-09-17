@@ -102,6 +102,12 @@ tasks.register<Exec>("downloadDirectoryApiProtos") {
         "--output",
         "$projectDir/src/main/proto/",
     )
+
+    // Remove buf/validate/validate.proto so that Quarkus doesn't generate classes which conflict
+    // with those defined in our protovalidate dependency
+    doLast {
+        file("$projectDir/src/main/proto/buf").deleteRecursively()
+    }
 }
 tasks.register("downloadProtos") {
     dependsOn(tasks.getByName("downloadDirectoryApiProtos"))
