@@ -77,10 +77,10 @@ kotlin {
 // We need the Buf Gradle plugin only for the Buf CLI binary and Gradle emits errors regarding task
 // dependencies including these tasks, so we disable them since they're unneeded and cause errors
 // when enabled.
-tasks.getByName("bufFormatCheck") {
+tasks.bufFormatCheck {
     enabled = false
 }
-tasks.getByName("bufLint") {
+tasks.bufLint {
     enabled = false
 }
 
