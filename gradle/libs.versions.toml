@@ -10,7 +10,7 @@ dokka = "2.0.0"
 kotlin = "2.2.20"
 protovalidate = "1.0.0"
 quarkus = "3.25.4"
-server-events = "32.1.0.1.20250916170114.54df56356d5c"
+server-events = "32.1.0.1.20250917234113.06f7676728e3"
 shadow = "9.1.0"
 
 [libraries]
