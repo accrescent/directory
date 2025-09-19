@@ -32,6 +32,7 @@ dependencies {
     }
     implementation(project(":bundletool-relocated", "shadow"))
     implementation(libs.flyway.postgresql)
+    implementation(libs.managed.kafka.auth.login.handler)
     implementation(libs.protobuf.kotlin)
     implementation(libs.protovalidate)
     implementation(libs.quarkus.agroal)
