@@ -53,7 +53,7 @@ dependencies {
 }
 
 group = "app.accrescent.server"
-version = "0.1.0-rc.1"
+version = "0.1.0-rc.2"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_24
