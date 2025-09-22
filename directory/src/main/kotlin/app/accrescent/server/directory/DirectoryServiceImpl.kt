@@ -40,7 +40,7 @@ import com.google.protobuf.Message
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.quarkus.grpc.GrpcService
-import io.quarkus.hibernate.reactive.panache.common.WithTransaction
+import io.quarkus.hibernate.reactive.panache.common.WithSession
 import io.smallrye.mutiny.Uni
 import jakarta.inject.Inject
 import org.eclipse.microprofile.config.inject.ConfigProperty
@@ -69,7 +69,7 @@ class DirectoryServiceImpl @Inject constructor(
             true,
         )
 
-    @WithTransaction
+    @WithSession
     override fun getAppListing(request: GetAppListingRequest): Uni<GetAppListingResponse> {
         validateRequestOrThrow(request)
 
@@ -98,7 +98,7 @@ class DirectoryServiceImpl @Inject constructor(
         return response
     }
 
-    @WithTransaction
+    @WithSession
     override fun listAppListings(request: ListAppListingsRequest): Uni<ListAppListingsResponse> {
         validateRequestOrThrow(request)
 
@@ -188,7 +188,7 @@ class DirectoryServiceImpl @Inject constructor(
         return response
     }
 
-    @WithTransaction
+    @WithSession
     override fun getAppPackageInfo(request: GetAppPackageInfoRequest): Uni<GetAppPackageInfoResponse> {
         validateRequestOrThrow(request)
 
@@ -213,7 +213,7 @@ class DirectoryServiceImpl @Inject constructor(
         return response
     }
 
-    @WithTransaction
+    @WithSession
     override fun getAppDownloadInfo(
         request: GetAppDownloadInfoRequest,
     ): Uni<GetAppDownloadInfoResponse> {
