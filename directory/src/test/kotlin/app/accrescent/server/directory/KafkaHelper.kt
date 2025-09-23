@@ -22,10 +22,12 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import java.util.UUID
 
 object KafkaHelper {
-    const val TOPIC_APP_EDIT_PUBLICATION_REQUESTED = "app-edit-publication-requested"
-    const val TOPIC_APP_PUBLICATION_REQUESTED = "app-publication-requested"
-    const val TOPIC_APP_EDIT_PUBLISHED = "app-edit-published"
-    const val TOPIC_APP_PUBLISHED = "app-published"
+    const val TOPIC_APP_EDIT_PUBLICATION_REQUESTED =
+        "accrescent.server.events.v1.AppEditPublicationRequested"
+    const val TOPIC_APP_PUBLICATION_REQUESTED =
+        "accrescent.server.events.v1.AppPublicationRequested"
+    const val TOPIC_APP_EDIT_PUBLISHED = "accrescent.server.events.v1.AppEditPublished"
+    const val TOPIC_APP_PUBLISHED = "accrescent.server.events.v1.AppPublished"
 
     val kafkaConsumerGroupId = UUID.randomUUID().toString()
 
