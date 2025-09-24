@@ -4,7 +4,7 @@
 
 [versions]
 buf = "0.10.3"
-bundletool = "1.18.1"
+bundletool = "1.18.2"
 directory-api = "48aee8cec3e2453fbf12a672ab75b06d"
 dokka = "2.0.0"
 kotlin = "2.2.20"
