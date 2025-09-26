@@ -12,7 +12,7 @@ managed-kafka-auth-login-handler = "1.0.6"
 protovalidate = "1.0.0"
 quarkus = "3.25.4"
 server-events = "32.1.0.1.20250917234113.06f7676728e3"
-shadow = "9.1.0"
+shadow = "9.2.2"
 
 [libraries]
 bundletool = { module = "com.android.tools.build:bundletool", version.ref = "bundletool" }
