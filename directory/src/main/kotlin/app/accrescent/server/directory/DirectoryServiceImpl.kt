@@ -159,7 +159,8 @@ class DirectoryServiceImpl @Inject constructor(
                     }
             }
         }.chain { bestMatchingLanguages ->
-            Listing.findByIds(bestMatchingLanguages)
+            // We need to sort the app IDs back into order so they return in order in our response
+            Listing.findByIdsOrdered(bestMatchingLanguages)
         }.map {
             val listings = it.map { listing ->
                 appListing {

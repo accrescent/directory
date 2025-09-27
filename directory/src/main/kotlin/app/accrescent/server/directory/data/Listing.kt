@@ -108,13 +108,16 @@ class Listing(
         }
 
         /**
-         * Finds listings by IDs
+         * Finds listings by IDs in ascending order
          *
          * @param ids the IDs in the form (appId, language) of the listings to find
          * @return a list of app listings ordered in ascending order by app ID
          */
-        fun findByIds(ids: List<Pair<String, String>>): Uni<List<Listing>> {
-            return find("WHERE id IN ?1", ids.map { ListingId(it.first, it.second) }).list()
+        fun findByIdsOrdered(ids: List<Pair<String, String>>): Uni<List<Listing>> {
+            return find(
+                "WHERE id IN ?1 ORDER BY id ASC",
+                ids.map { ListingId(it.first, it.second) },
+            ).list()
         }
     }
 }
