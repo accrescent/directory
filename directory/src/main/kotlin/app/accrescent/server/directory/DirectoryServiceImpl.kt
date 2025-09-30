@@ -7,7 +7,6 @@ package app.accrescent.server.directory
 import app.accrescent.bundletool.android.bundle.Commands
 import app.accrescent.directory.priv.v1.ListAppListingsPageToken
 import app.accrescent.directory.priv.v1.listAppListingsPageToken
-import app.accrescent.directory.v1.CompatibilityLevel
 import app.accrescent.directory.v1.DirectoryService
 import app.accrescent.directory.v1.GetAppDownloadInfoRequest
 import app.accrescent.directory.v1.GetAppDownloadInfoResponse
@@ -245,7 +244,7 @@ class DirectoryServiceImpl @Inject constructor(
                 Uni.createFrom().item {
                     getAppDownloadInfoResponse {
                         compatibility = compatibility {
-                            level = CompatibilityLevel.COMPATIBILITY_LEVEL_INCOMPATIBLE
+                            compatible = false
                         }
                     }
                 }
@@ -263,7 +262,7 @@ class DirectoryServiceImpl @Inject constructor(
 
                     getAppDownloadInfoResponse {
                         compatibility = compatibility {
-                            level = CompatibilityLevel.COMPATIBILITY_LEVEL_COMPATIBLE
+                            compatible = true
                         }
                         if (
                             !request.hasBaseVersionCode() ||
