@@ -255,12 +255,6 @@ class AppServiceImpl @Inject constructor(
                     RELEASE_CHANNEL_NAME_STABLE,
                     matchingApkPaths,
                 ).map { apks ->
-                    if (apks.isEmpty()) {
-                        throw Status.fromCode(Status.Code.INTERNAL)
-                            .withDescription("referenced APK not found in database")
-                            .asRuntimeException()
-                    }
-
                     getAppDownloadInfoResponse {
                         appDownloadInfo = appDownloadInfo {
                             splitDownloadInfo.addAll(apks.map {
@@ -317,12 +311,6 @@ class AppServiceImpl @Inject constructor(
                     RELEASE_CHANNEL_NAME_STABLE,
                     matchingApkPaths,
                 ).map { apks ->
-                    if (apks.isEmpty()) {
-                        throw Status.fromCode(Status.Code.INTERNAL)
-                            .withDescription("referenced APK not found in database")
-                            .asRuntimeException()
-                    }
-
                     getAppUpdateInfoResponse {
                         appUpdateInfo = appUpdateInfo {
                             splitUpdateInfo.addAll(apks.map {
