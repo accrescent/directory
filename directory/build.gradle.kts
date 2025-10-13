@@ -132,6 +132,16 @@ allOpen {
     annotation("io.quarkus.test.junit.QuarkusTest")
 }
 
+// Workaround for https://github.com/quarkusio/quarkus/issues/50486 (which also breaks Dokka doc
+// generation)
+sourceSets {
+    main {
+        java {
+            srcDirs("build/classes/java/quarkus-generated-sources/grpc")
+        }
+    }
+}
+
 dokka {
     dokkaPublications.configureEach {
         failOnWarning = true
