@@ -4,9 +4,9 @@
 
 package app.accrescent.server.directory
 
+import app.accrescent.appstore.v1.DeviceAttributes
 import app.accrescent.bundletool.android.bundle.Commands
 import app.accrescent.bundletool.android.bundle.Devices
-import app.accrescent.directory.v1.DeviceAttributes
 import com.android.tools.build.bundletool.device.ApkMatcher
 import com.android.tools.build.bundletool.model.exceptions.IncompatibleDeviceException
 import java.util.Optional

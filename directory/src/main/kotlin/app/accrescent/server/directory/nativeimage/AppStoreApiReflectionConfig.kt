@@ -13,4 +13,4 @@ import io.quarkus.runtime.annotations.RegisterForReflection
 // This class is used by Quarkus since it's annotated with @RegisterForReflection
 @Suppress("unused")
 @RegisterForReflection(targets = [StringValue::class])
-class DirectoryApiReflectionConfig
+class AppStoreApiReflectionConfig

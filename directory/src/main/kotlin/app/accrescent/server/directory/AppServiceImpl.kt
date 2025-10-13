@@ -4,28 +4,32 @@
 
 package app.accrescent.server.directory
 
+import app.accrescent.appstore.v1.AppService
+import app.accrescent.appstore.v1.GetAppDownloadInfoRequest
+import app.accrescent.appstore.v1.GetAppDownloadInfoResponse
+import app.accrescent.appstore.v1.GetAppListingRequest
+import app.accrescent.appstore.v1.GetAppListingResponse
+import app.accrescent.appstore.v1.GetAppPackageInfoRequest
+import app.accrescent.appstore.v1.GetAppPackageInfoResponse
+import app.accrescent.appstore.v1.GetAppUpdateInfoRequest
+import app.accrescent.appstore.v1.GetAppUpdateInfoResponse
+import app.accrescent.appstore.v1.ListAppListingsRequest
+import app.accrescent.appstore.v1.ListAppListingsResponse
+import app.accrescent.appstore.v1.appDownloadInfo
+import app.accrescent.appstore.v1.appListing
+import app.accrescent.appstore.v1.appUpdateInfo
+import app.accrescent.appstore.v1.getAppDownloadInfoResponse
+import app.accrescent.appstore.v1.getAppListingResponse
+import app.accrescent.appstore.v1.getAppPackageInfoResponse
+import app.accrescent.appstore.v1.getAppUpdateInfoResponse
+import app.accrescent.appstore.v1.image
+import app.accrescent.appstore.v1.listAppListingsResponse
+import app.accrescent.appstore.v1.packageInfo
+import app.accrescent.appstore.v1.splitDownloadInfo
+import app.accrescent.appstore.v1.splitUpdateInfo
 import app.accrescent.bundletool.android.bundle.Commands
 import app.accrescent.directory.priv.v1.ListAppListingsPageToken
 import app.accrescent.directory.priv.v1.listAppListingsPageToken
-import app.accrescent.directory.v1.DirectoryService
-import app.accrescent.directory.v1.GetAppDownloadInfoRequest
-import app.accrescent.directory.v1.GetAppDownloadInfoResponse
-import app.accrescent.directory.v1.GetAppListingRequest
-import app.accrescent.directory.v1.GetAppListingResponse
-import app.accrescent.directory.v1.GetAppPackageInfoRequest
-import app.accrescent.directory.v1.GetAppPackageInfoResponse
-import app.accrescent.directory.v1.ListAppListingsRequest
-import app.accrescent.directory.v1.ListAppListingsResponse
-import app.accrescent.directory.v1.appDownloadInfo
-import app.accrescent.directory.v1.appListing
-import app.accrescent.directory.v1.compatibility
-import app.accrescent.directory.v1.getAppDownloadInfoResponse
-import app.accrescent.directory.v1.getAppListingResponse
-import app.accrescent.directory.v1.getAppPackageInfoResponse
-import app.accrescent.directory.v1.image
-import app.accrescent.directory.v1.listAppListingsResponse
-import app.accrescent.directory.v1.packageInfo
-import app.accrescent.directory.v1.splitDownloadInfo
 import app.accrescent.server.directory.data.Apk
 import app.accrescent.server.directory.data.App
 import app.accrescent.server.directory.data.AppDefaultListingLanguage
@@ -49,13 +53,13 @@ private const val DEFAULT_PAGE_SIZE = 50u
 private const val MAX_PAGE_SIZE = 200u
 
 /**
- * The server implementation of [DirectoryService]
+ * The server implementation of [AppService]
  */
 @GrpcService
-class DirectoryServiceImpl @Inject constructor(
+class AppServiceImpl @Inject constructor(
     @ConfigProperty(name = "artifacts.base-url")
     private val artifactsBaseUrl: String,
-) : DirectoryService {
+) : AppService {
     private val validator = ValidatorFactory
         .newBuilder()
         .buildWithDescriptors(
@@ -63,6 +67,7 @@ class DirectoryServiceImpl @Inject constructor(
                 GetAppDownloadInfoRequest.getDescriptor(),
                 GetAppListingRequest.getDescriptor(),
                 GetAppPackageInfoRequest.getDescriptor(),
+                GetAppUpdateInfoRequest.getDescriptor(),
                 ListAppListingsRequest.getDescriptor(),
             ),
             true,
@@ -241,13 +246,9 @@ class DirectoryServiceImpl @Inject constructor(
                 getMatchingApkPaths(buildApksResult, request.deviceAttributes)
 
             if (matchingApkPaths.isEmpty()) {
-                Uni.createFrom().item {
-                    getAppDownloadInfoResponse {
-                        compatibility = compatibility {
-                            compatible = false
-                        }
-                    }
-                }
+                throw Status.fromCode(Status.Code.FAILED_PRECONDITION)
+                    .withDescription("app is incompatible with the specified device")
+                    .asRuntimeException()
             } else {
                 Apk.findByQualifiedPaths(
                     request.appId,
@@ -261,25 +262,75 @@ class DirectoryServiceImpl @Inject constructor(
                     }
 
                     getAppDownloadInfoResponse {
-                        compatibility = compatibility {
-                            compatible = true
-                        }
-                        if (
-                            !request.hasBaseVersionCode() ||
-                            request.baseVersionCode.toUInt() < releaseChannel.versionCode
-                        ) {
-                            appDownloadInfo = appDownloadInfo {
-                                splitDownloadInfo.addAll(apks.map {
-                                    splitDownloadInfo {
-                                        downloadSize = it.uncompressedSize.toInt()
-                                        url = "${artifactsBaseUrl}/${it.objectId}"
-                                    }
-                                })
-                                packageInfo = packageInfo {
-                                    versionCode = releaseChannel.versionCode.toLong()
-                                    versionName = releaseChannel.versionName
+                        appDownloadInfo = appDownloadInfo {
+                            splitDownloadInfo.addAll(apks.map {
+                                splitDownloadInfo {
+                                    downloadSize = it.uncompressedSize.toInt()
+                                    url = "${artifactsBaseUrl}/${it.objectId}"
                                 }
-                            }
+                            })
+                        }
+                    }
+                }
+            }
+        }
+
+        return response
+    }
+
+    @WithSession
+    override fun getAppUpdateInfo(request: GetAppUpdateInfoRequest): Uni<GetAppUpdateInfoResponse> {
+        validateRequestOrThrow(request)
+
+        val response = ReleaseChannel.findByAppIdAndName(
+            request.appId,
+            RELEASE_CHANNEL_NAME_STABLE,
+        ).chain { releaseChannel ->
+            if (releaseChannel == null) {
+                throw Status.fromCode(Status.Code.NOT_FOUND)
+                    .withDescription("no info matching the provided app found")
+                    .asRuntimeException()
+            }
+
+            if (request.baseVersionCode.toULong() >= releaseChannel.versionCode) {
+                // The app is up-to-date
+                return@chain Uni.createFrom().item { getAppUpdateInfoResponse {} }
+            }
+
+            val buildApksResult = try {
+                Commands.BuildApksResult.parseFrom(releaseChannel.buildApksResult)
+            } catch (_: InvalidProtocolBufferException) {
+                throw Status.fromCode(Status.Code.INTERNAL)
+                    .withDescription("stored BuildApksResult is not a valid message")
+                    .asRuntimeException()
+            }
+            val matchingApkPaths =
+                getMatchingApkPaths(buildApksResult, request.deviceAttributes)
+
+            if (matchingApkPaths.isEmpty()) {
+                throw Status.fromCode(Status.Code.FAILED_PRECONDITION)
+                    .withDescription("app is incompatible with the specified device")
+                    .asRuntimeException()
+            } else {
+                Apk.findByQualifiedPaths(
+                    request.appId,
+                    RELEASE_CHANNEL_NAME_STABLE,
+                    matchingApkPaths,
+                ).map { apks ->
+                    if (apks.isEmpty()) {
+                        throw Status.fromCode(Status.Code.INTERNAL)
+                            .withDescription("referenced APK not found in database")
+                            .asRuntimeException()
+                    }
+
+                    getAppUpdateInfoResponse {
+                        appUpdateInfo = appUpdateInfo {
+                            splitUpdateInfo.addAll(apks.map {
+                                splitUpdateInfo {
+                                    apkDownloadSize = it.uncompressedSize.toInt()
+                                    apkUrl = "${artifactsBaseUrl}/${it.objectId}"
+                                }
+                            })
                         }
                     }
                 }

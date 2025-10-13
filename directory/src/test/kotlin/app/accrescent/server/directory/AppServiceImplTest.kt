@@ -4,22 +4,21 @@
 
 package app.accrescent.server.directory
 
+import app.accrescent.appstore.v1.AppListing
+import app.accrescent.appstore.v1.AppService
+import app.accrescent.appstore.v1.DeviceAttributes
+import app.accrescent.appstore.v1.GetAppListingRequest
+import app.accrescent.appstore.v1.GetAppListingResponse
+import app.accrescent.appstore.v1.appDownloadInfo
+import app.accrescent.appstore.v1.appListing
+import app.accrescent.appstore.v1.copy
+import app.accrescent.appstore.v1.getAppDownloadInfoRequest
+import app.accrescent.appstore.v1.getAppDownloadInfoResponse
+import app.accrescent.appstore.v1.getAppListingRequest
+import app.accrescent.appstore.v1.image
+import app.accrescent.appstore.v1.listAppListingsRequest
+import app.accrescent.appstore.v1.splitDownloadInfo
 import app.accrescent.directory.priv.v1.listAppListingsPageToken
-import app.accrescent.directory.v1.AppListing
-import app.accrescent.directory.v1.DeviceAttributes
-import app.accrescent.directory.v1.DirectoryService
-import app.accrescent.directory.v1.GetAppListingRequest
-import app.accrescent.directory.v1.GetAppListingResponse
-import app.accrescent.directory.v1.appDownloadInfo
-import app.accrescent.directory.v1.appListing
-import app.accrescent.directory.v1.copy
-import app.accrescent.directory.v1.getAppDownloadInfoRequest
-import app.accrescent.directory.v1.getAppDownloadInfoResponse
-import app.accrescent.directory.v1.getAppListingRequest
-import app.accrescent.directory.v1.image
-import app.accrescent.directory.v1.listAppListingsRequest
-import app.accrescent.directory.v1.packageInfo
-import app.accrescent.directory.v1.splitDownloadInfo
 import app.accrescent.server.directory.data.AppRepository
 import com.google.protobuf.TextFormat
 import io.grpc.Status
@@ -54,12 +53,12 @@ private const val REQUEST_TIMEOUT_SECS: Long = 5
 
 @QuarkusTest
 @QuarkusTestResource(KafkaCompanionResource::class)
-class DirectoryServiceImplTest {
+class AppServiceImplImplTest {
     @InjectKafkaCompanion
     lateinit var kafka: KafkaCompanion
 
     @GrpcClient
-    lateinit var directory: DirectoryService
+    lateinit var appService: AppService
 
     @Inject
     private lateinit var appRepository: AppRepository
@@ -87,7 +86,7 @@ class DirectoryServiceImplTest {
     fun getAppListingForUnknownAppIdReturnsNotFound() {
         val status = CompletableFuture<Status.Code>()
 
-        directory.getAppListing(validGetAppListingRequest)
+        appService.getAppListing(validGetAppListingRequest)
             .subscribe()
             .with(
                 { status.complete(Status.Code.OK) },
@@ -113,7 +112,7 @@ class DirectoryServiceImplTest {
             TestDataHelper.validAppPublicationRequested3Incompatible,
         )
 
-        val response = directory.getAppListing(request)
+        val response = appService.getAppListing(request)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -126,7 +125,7 @@ class DirectoryServiceImplTest {
 
         KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
 
-        val response = directory.listAppListings(request)
+        val response = appService.listAppListings(request)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -144,7 +143,7 @@ class DirectoryServiceImplTest {
             TestDataHelper.validAppPublicationRequested2,
         )
 
-        val response = directory.listAppListings(listAppListingsRequest)
+        val response = appService.listAppListings(listAppListingsRequest)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -163,7 +162,7 @@ class DirectoryServiceImplTest {
             TestDataHelper.validAppPublicationRequested2,
         )
 
-        var nextPageToken: String? = directory.listAppListings(request)
+        var nextPageToken: String? = appService.listAppListings(request)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
             .let {
@@ -173,7 +172,7 @@ class DirectoryServiceImplTest {
             }
         while (nextPageToken != null) {
             val nextRequest = request.copy { pageToken = nextPageToken }
-            val nextResponse = directory.listAppListings(nextRequest)
+            val nextResponse = appService.listAppListings(nextRequest)
                 .subscribeAsCompletionStage()
                 .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -205,7 +204,7 @@ class DirectoryServiceImplTest {
             TestDataHelper.validAppPublicationRequested3Incompatible,
         )
 
-        var nextPageToken: String? = directory.listAppListings(request)
+        var nextPageToken: String? = appService.listAppListings(request)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
             .let {
@@ -214,7 +213,7 @@ class DirectoryServiceImplTest {
             }
         while (nextPageToken != null) {
             val nextRequest = request.copy { pageToken = nextPageToken }
-            val nextResponse = directory.listAppListings(nextRequest)
+            val nextResponse = appService.listAppListings(nextRequest)
                 .subscribeAsCompletionStage()
                 .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -237,7 +236,7 @@ class DirectoryServiceImplTest {
 
         val request = listAppListingsRequest { this.pageToken = pageToken }
 
-        directory.listAppListings(request)
+        appService.listAppListings(request)
             .subscribe()
             .with(
                 { response.complete(Status.Code.OK) },
@@ -257,7 +256,7 @@ class DirectoryServiceImplTest {
     fun getAppDownloadInfoReturnsExpected() {
         KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
 
-        val response = directory.getAppDownloadInfo(validGetAppDownloadInfoRequest)
+        val response = appService.getAppDownloadInfo(validGetAppDownloadInfoRequest)
             .subscribeAsCompletionStage()
             .get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)
 
@@ -269,10 +268,6 @@ class DirectoryServiceImplTest {
         assertEquals(
             expectedResponse.appDownloadInfo.splitDownloadInfoList.toSet(),
             response.appDownloadInfo.splitDownloadInfoList.toSet(),
-        )
-        assertEquals(
-            expectedResponse.appDownloadInfo.packageInfo,
-            response.appDownloadInfo.packageInfo,
         )
     }
 
@@ -294,10 +289,6 @@ class DirectoryServiceImplTest {
                     },
                 )
             )
-            packageInfo = packageInfo {
-                versionCode = 49
-                versionName = "0.25.0"
-            }
         }
     }
 
@@ -307,7 +298,7 @@ class DirectoryServiceImplTest {
         //
         // Has all known fields set as of bundletool 1.18.0 except device_tier, device_groups, and
         // country_set.
-        private val validDeviceAttributes = DirectoryServiceImplTest::class.java.classLoader
+        private val validDeviceAttributes = AppServiceImplImplTest::class.java.classLoader
             .getResourceAsStream("valid-device-attributes.txtpb")!!
             .use {
                 val builder = DeviceAttributes.newBuilder()

@@ -85,21 +85,21 @@ tasks.bufLint {
     enabled = false
 }
 
-tasks.register<Exec>("downloadDirectoryApiProtos") {
-    inputs.property("app.accrescent.directory.directory-api-version", libs.versions.directory.api)
-    outputs.dir("$projectDir/src/main/proto/accrescent/directory/v1")
+tasks.register<Exec>("downloadAppStoreApiProtos") {
+    inputs.property("app.accrescent.directory.appstore-api-version", libs.versions.appstore.api)
+    outputs.dir("$projectDir/src/main/proto/accrescent/appstore")
 
     val bufExecutable = configurations.getByName(BUF_BINARY_CONFIGURATION_NAME).singleFile
     if (!bufExecutable.canExecute()) {
         bufExecutable.setExecutable(true)
     }
 
-    val directoryApiVersion = inputs.properties["app.accrescent.directory.directory-api-version"]
+    val appStoreApiVersion = inputs.properties["app.accrescent.directory.appstore-api-version"]
 
     commandLine(
         bufExecutable.absolutePath,
         "export",
-        "buf.build/accrescent/directory-api:$directoryApiVersion",
+        "buf.build/accrescent/appstore-api:$appStoreApiVersion",
         "--output",
         "$projectDir/src/main/proto/",
     )
@@ -111,14 +111,14 @@ tasks.register<Exec>("downloadDirectoryApiProtos") {
     }
 }
 tasks.register("downloadProtos") {
-    dependsOn(tasks.getByName("downloadDirectoryApiProtos"))
+    dependsOn(tasks.getByName("downloadAppStoreApiProtos"))
 }
 tasks.quarkusGenerateCode {
     dependsOn(tasks.getByName("downloadProtos"))
 }
 
 tasks.clean {
-    delete("$projectDir/src/main/proto/accrescent/directory/v1")
+    delete("$projectDir/src/main/proto/accrescent/appstore")
     delete("$projectDir/src/main/proto/android")
 }
 
@@ -142,7 +142,7 @@ dokka {
 
         perPackageOption {
             matchingRegex =
-                """^app\.accrescent\.directory\.((priv\.)?v1)|com\.(android\.bundle|google\.protobuf)"""
+                """^app\.accrescent\.(appstore|directory\.priv)\.v1|com\.(android\.bundle|google\.protobuf)"""
             suppress = true
         }
     }
