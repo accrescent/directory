@@ -4,7 +4,7 @@
 
 [versions]
 appstore-api = "v1.0.1"
-buf = "0.10.3"
+buf = "0.11.0"
 bundletool = "1.18.2"
 dokka = "2.0.0"
 kotlin = "2.2.20"
