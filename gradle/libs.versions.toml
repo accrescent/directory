@@ -5,7 +5,7 @@
 [versions]
 appstore-api = "v1.0.1"
 buf = "0.10.3"
-bundletool = "1.18.2"
+bundletool = "1.18.3"
 dokka = "2.0.0"
 kotlin = "2.2.20"
 managed-kafka-auth-login-handler = "1.0.6"
