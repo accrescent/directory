@@ -5,6 +5,7 @@
 package app.accrescent.server.directory
 
 import app.accrescent.appstore.v1.AppService
+import app.accrescent.appstore.v1.DeviceAttributes
 import app.accrescent.appstore.v1.GetAppDownloadInfoRequest
 import app.accrescent.appstore.v1.GetAppDownloadInfoResponse
 import app.accrescent.appstore.v1.GetAppListingRequest
@@ -223,6 +224,7 @@ class AppServiceImpl @Inject constructor(
         request: GetAppDownloadInfoRequest,
     ): Uni<GetAppDownloadInfoResponse> {
         validateRequestOrThrow(request)
+        validateDeviceAbisOrThrow(request.deviceAttributes)
 
         val response = ReleaseChannel.findByAppIdAndName(
             request.appId,
@@ -275,6 +277,7 @@ class AppServiceImpl @Inject constructor(
     @WithSession
     override fun getAppUpdateInfo(request: GetAppUpdateInfoRequest): Uni<GetAppUpdateInfoResponse> {
         validateRequestOrThrow(request)
+        validateDeviceAbisOrThrow(request.deviceAttributes)
 
         val response = ReleaseChannel.findByAppIdAndName(
             request.appId,
@@ -326,6 +329,20 @@ class AppServiceImpl @Inject constructor(
         }
 
         return response
+    }
+
+    /**
+     * Rejects a request whose device spec contains an ABI bundletool does not recognize.
+     *
+     * @throws StatusRuntimeException if the device spec contains an unrecognized ABI
+     */
+    private fun validateDeviceAbisOrThrow(deviceAttributes: DeviceAttributes) {
+        firstUnrecognizedAbi(deviceAttributes)?.let { abi ->
+            throw Status
+                .fromCode(Status.Code.INVALID_ARGUMENT)
+                .withDescription("unrecognized ABI in device spec: $abi")
+                .asRuntimeException()
+        }
     }
 
     /**

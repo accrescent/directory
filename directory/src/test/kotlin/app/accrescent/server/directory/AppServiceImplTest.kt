@@ -271,6 +271,60 @@ class AppServiceImplImplTest {
         )
     }
 
+    @Test
+    fun getAppDownloadInfoWithUnrecognizedDeviceAbiReturnsInvalidArgument() {
+        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
+
+        val request = getAppDownloadInfoRequest {
+            appId = "app.accrescent.client"
+            deviceAttributes = deviceAttributesWithUnrecognizedAbi
+        }
+
+        val status = CompletableFuture<Status.Code>()
+        appService.getAppDownloadInfo(request)
+            .subscribe()
+            .with(
+                { status.complete(Status.Code.OK) },
+                {
+                    require(it is StatusRuntimeException)
+                    status.complete(it.status.code)
+                },
+            )
+
+        assertEquals(
+            Status.Code.INVALID_ARGUMENT,
+            status.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS),
+        )
+    }
+
+    @Test
+    fun getAppDownloadInfoWithUnparseableOpenGlVersionReturnsFailedPrecondition() {
+        KafkaHelper.publishApps(kafka, TestDataHelper.validAppPublicationRequested)
+
+        // A non-numeric reqGlEsVersion makes the matcher throw a NumberFormatException
+        // rather than a BundleToolException, exercising the wider backstop catch.
+        val request = getAppDownloadInfoRequest {
+            appId = "app.accrescent.client"
+            deviceAttributes = deviceAttributesWithUnparseableOpenGlVersion
+        }
+
+        val status = CompletableFuture<Status.Code>()
+        appService.getAppDownloadInfo(request)
+            .subscribe()
+            .with(
+                { status.complete(Status.Code.OK) },
+                {
+                    require(it is StatusRuntimeException)
+                    status.complete(it.status.code)
+                },
+            )
+
+        assertEquals(
+            Status.Code.FAILED_PRECONDITION,
+            status.get(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS),
+        )
+    }
+
     private fun getExpectedAppDownloadInfoResponse() = getAppDownloadInfoResponse {
         appDownloadInfo = appDownloadInfo {
             splitDownloadInfo.addAll(
@@ -306,6 +360,21 @@ class AppServiceImplImplTest {
                 builder
             }
             .build()
+
+        private val deviceAttributesWithUnrecognizedAbi: DeviceAttributes = validDeviceAttributes
+            .toBuilder()
+            .setSpec(validDeviceAttributes.spec.toBuilder().addSupportedAbis("definitely-not-an-abi"))
+            .build()
+
+        private val deviceAttributesWithUnparseableOpenGlVersion: DeviceAttributes =
+            validDeviceAttributes
+                .toBuilder()
+                .setSpec(
+                    validDeviceAttributes.spec.toBuilder()
+                        .clearDeviceFeatures()
+                        .addDeviceFeatures("reqGlEsVersion=banana")
+                )
+                .build()
 
         private val validGetAppListingRequest = getAppListingRequest {
             appId = "app.accrescent.client"
