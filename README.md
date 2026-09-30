@@ -8,6 +8,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 The backend server which powers Accrescent's app directory.
 
+> [!WARNING]
+> This project is deprecated and is no longer receiving updates. Its functionality has been merged
+> into [Parcelo]. Please see that project instead.
+
 ## About
 
 The directory server is Accrescent's server technology which powers Accrescent's app directory
@@ -19,3 +23,5 @@ to:
 - Retrieve app download information based on the requesting device's needs
 - Check for app updates
 - Check whether an app is compatible with the current Android device
+
+[Parcelo]: https://github.com/accrescent/parcelo
